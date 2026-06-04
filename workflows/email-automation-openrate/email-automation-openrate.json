@@ -1,5 +1,5 @@
 {
-  "name": "Email Automation + Openrate",
+  "name": "Email Automation + Open Rate Tracking",
   "nodes": [
     {
       "parameters": {
@@ -37,10 +37,10 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        6912,
-        -368
+        224,
+        0
       ],
-      "id": "098f897b-93c1-4c4f-a796-a5bb06bb93d5",
+      "id": "0db75b6f-22b3-4aef-9bb4-11d0e90c86e4",
       "name": "\ud83d\udcc5 Check if Weekday1"
     },
     {
@@ -80,10 +80,10 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        7136,
-        -368
+        448,
+        0
       ],
-      "id": "3f2ae697-19f8-46bf-b978-fd0c41ed9b19",
+      "id": "49608040-eeae-4cbe-baee-dacdd81ba0ec",
       "name": "\ud83d\udd50 Check Business Hours (9AM-6PM)1"
     },
     {
@@ -93,10 +93,10 @@
       "type": "n8n-nodes-base.limit",
       "typeVersion": 1,
       "position": [
-        7808,
-        -368
+        1120,
+        0
       ],
-      "id": "f262489e-c680-43cd-b0e9-a079c3436fd5",
+      "id": "ceb4412b-ec59-4045-8c61-5f4105db84b8",
       "name": "\u26a1 Limit to 4 Emails Per Run1"
     },
     {
@@ -111,10 +111,10 @@
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3,
       "position": [
-        7392,
-        -128
+        704,
+        240
       ],
-      "id": "aceafcc2-df8c-4f9c-b143-fdc6efa45294",
+      "id": "616eb63e-d0f8-4418-8798-d4620c2e609e",
       "name": "\ud83e\udd16 AI Email Personalizer1"
     },
     {
@@ -124,10 +124,10 @@
       "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
       "typeVersion": 1.3,
       "position": [
-        7632,
-        48
+        944,
+        416
       ],
-      "id": "6a3e9fde-7e87-4a54-b69a-f0c98ff0e3c9",
+      "id": "31387eb8-5305-4844-90dc-c5d38b99708b",
       "name": "\ud83d\udccb JSON Output Parser1"
     },
     {
@@ -137,10 +137,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        6944,
-        -128
+        256,
+        240
       ],
-      "id": "f15c0c29-ba5b-4019-866f-e6500e6d4a75",
+      "id": "e2b06792-f698-477c-9649-1469be12fe29",
       "name": "\ud83c\udfb2 Generate Random Wait Time1"
     },
     {
@@ -196,10 +196,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        7168,
-        -128
+        480,
+        240
       ],
-      "id": "75266e80-2942-4d25-99e7-016af66bbe5e",
+      "id": "39ece50b-a620-4ee1-b5f2-5067c39b2d13",
       "name": "\ud83d\udcdd Prepare Contact Data1"
     },
     {
@@ -209,11 +209,11 @@
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
       "position": [
-        6720,
-        0
+        32,
+        368
       ],
-      "id": "9e2cc640-b50a-4f71-b9d8-cee2b6ef7b9b",
-      "name": "Loop Over Items"
+      "id": "15db30c2-1446-4550-8aa2-1f289f7e531b",
+      "name": "\ud83d\udd01 Loop \u2014 Process Each Lead"
     },
     {
       "parameters": {
@@ -229,10 +229,10 @@
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
       "position": [
-        6688,
-        -368
+        0,
+        0
       ],
-      "id": "89bb6487-4627-48f2-830a-fd70b3a53ba7",
+      "id": "4052a7f1-9698-4f23-aa2b-9983a674f45f",
       "name": "\u23f0 Run Every 15 Minutes1"
     },
     {
@@ -243,12 +243,12 @@
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1.1,
       "position": [
-        8192,
-        0
+        1504,
+        368
       ],
-      "id": "847b43f1-d92c-455c-ab97-5a6f0bea8227",
+      "id": "11b0a7a1-f6d5-4cb4-80e2-61e31f63eb11",
       "name": "\u23f1\ufe0f Random Delay (0-5 min)1",
-      "webhookId": "4b1fd1c1-ab29-4573-b31f-563bb0841ffa"
+      "webhookId": "YOUR_WAIT_WEBHOOK_ID"
     },
     {
       "parameters": {
@@ -277,17 +277,17 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        7584,
-        -368
+        896,
+        0
       ],
-      "id": "974e2e1d-9f09-45d2-811d-f654cf0c622a",
-      "name": "If"
+      "id": "00e156e2-b02d-424a-a666-a25fd11ff323",
+      "name": "\u2705 Gate \u2014 Safe To Send Check"
     },
     {
       "parameters": {
-        "sendTo": "=your@email.com",
+        "sendTo": "your-sending-email@yourdomain.com",
         "subject": "={{ $json.output.subject }}",
-        "message": "={{ $json.output.body }}\n\n<img src=\"https://YOUR_N8N_INSTANCE/webhook/YOUR_PIXEL_WEBHOOK_ID?q={{ $('Loop Over Items').item.json.id }}\" width=\"1\" height=\"1\" style=\"display:none;\" alt=\"\" />",
+        "message": "={{ $json.output.body }}\n\n<img src=\"https://YOUR_N8N_INSTANCE/webhook/YOUR_WEBHOOK_UUID?q={{ $('Loop Over Items').item.json.id }}\" width=\"1\" height=\"1\" style=\"display:none;\" alt=\"\" />",
         "options": {
           "appendAttribution": false
         }
@@ -295,18 +295,12 @@
       "type": "n8n-nodes-base.gmail",
       "typeVersion": 2.1,
       "position": [
-        7744,
-        -128
+        1056,
+        240
       ],
-      "id": "c881eb6e-3589-41db-a101-1619514e3011",
+      "id": "80a635f8-76f0-4254-82a4-2ee08898973d",
       "name": "\ud83d\udce7 Send Email via Email A",
-      "webhookId": "YOUR_GMAIL_WEBHOOK_ID",
-      "credentials": {
-        "gmailOAuth2": {
-          "id": "YOUR_GMAIL_CREDENTIAL_ID",
-          "name": "Gmail OAuth2 API"
-        }
-      }
+      "webhookId": "YOUR_GMAIL_WEBHOOK_ID"
     },
     {
       "parameters": {
@@ -323,16 +317,16 @@
           "value": "YOUR_AIRTABLE_TABLE_ID",
           "mode": "list",
           "cachedResultName": "Leads",
-          "cachedResultUrl": "https://airtable.com/YOUR_AIRTABLE_BASE_ID/YOUR_AIRTABLE_TABLE_ID"
+          "cachedResultUrl": "https://airtable.com/YOUR_AIRTABLE_BASE_ID"
         },
         "filterByFormula": "=",
         "options": {
           "view": {
             "__rl": true,
-            "value": "YOUR_AIRTABLE_VIEW_EMAIL_SENT",
+            "value": "YOUR_AIRTABLE_VIEW_ID",
             "mode": "list",
             "cachedResultName": "Email Sent",
-            "cachedResultUrl": "https://airtable.com/YOUR_AIRTABLE_BASE_ID/YOUR_AIRTABLE_TABLE_ID/YOUR_AIRTABLE_VIEW_EMAIL_SENT"
+            "cachedResultUrl": "https://airtable.com/YOUR_AIRTABLE_BASE_ID/YOUR_TABLE/YOUR_VIEW"
           }
         },
         "sort": {
@@ -342,17 +336,11 @@
       "type": "n8n-nodes-base.airtable",
       "typeVersion": 2.2,
       "position": [
-        7360,
-        -368
+        672,
+        0
       ],
-      "id": "75b202ce-2b30-41e0-9b2b-edc3ebc6a80e",
-      "name": "Search records",
-      "credentials": {
-        "airtableTokenApi": {
-          "id": "YOUR_AIRTABLE_CREDENTIAL_ID",
-          "name": "Airtable Personal Access Token account"
-        }
-      }
+      "id": "40409a40-f317-4518-a054-be8b3514fc83",
+      "name": "\ud83d\udd0e Airtable \u2014 Fetch Ready-to-Send Queue"
     },
     {
       "parameters": {
@@ -369,17 +357,11 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
       "typeVersion": 1.3,
       "position": [
-        7328,
-        64
+        640,
+        432
       ],
-      "id": "78910a2a-adec-431d-b6dd-f7f789b08e06",
-      "name": "Anthropic Chat Model",
-      "credentials": {
-        "anthropicApi": {
-          "id": "YOUR_ANTHROPIC_CREDENTIAL_ID",
-          "name": "Anthropic account"
-        }
-      }
+      "id": "7fed5778-58bb-422c-b8fc-c6f0822ba94c",
+      "name": "\ud83e\udde0 LLM \u2014 Claude Sonnet (Email Rewriter)"
     },
     {
       "parameters": {
@@ -396,7 +378,7 @@
           "value": "YOUR_AIRTABLE_TABLE_ID",
           "mode": "list",
           "cachedResultName": "Leads",
-          "cachedResultUrl": "https://airtable.com/YOUR_AIRTABLE_BASE_ID/YOUR_AIRTABLE_TABLE_ID"
+          "cachedResultUrl": "https://airtable.com/YOUR_AIRTABLE_BASE_ID"
         },
         "columns": {
           "mappingMode": "defineBelow",
@@ -702,17 +684,11 @@
       "type": "n8n-nodes-base.airtable",
       "typeVersion": 2.2,
       "position": [
-        7968,
-        -128
+        1280,
+        240
       ],
-      "id": "367b53ac-8408-41ad-aea4-0d729e68c51e",
-      "name": "Update record",
-      "credentials": {
-        "airtableTokenApi": {
-          "id": "YOUR_AIRTABLE_CREDENTIAL_ID",
-          "name": "Airtable Personal Access Token account"
-        }
-      }
+      "id": "2bf0c24d-162c-4636-8ec0-2748bb3578ed",
+      "name": "\ud83d\udccb Airtable \u2014 Mark Email as Sent"
     },
     {
       "parameters": {
@@ -728,12 +704,12 @@
         },
         "options": {}
       },
-      "id": "85ee1e2f-70ef-42f5-bf56-fb536053825f",
-      "name": "Create data pix",
+      "id": "64d20c55-2dbe-4468-9a73-885c486bc21d",
+      "name": "\ud83d\uddbc\ufe0f Build \u2014 1x1 Tracking Pixel (Base64)",
       "type": "n8n-nodes-base.set",
       "position": [
-        6912,
-        256
+        224,
+        624
       ],
       "typeVersion": 3.4
     },
@@ -746,28 +722,28 @@
           "mimeType": "image/png"
         }
       },
-      "id": "dcf3b166-5449-48d7-8dac-b7deb6d13d8d",
-      "name": "Create img bin",
+      "id": "b49ba57e-13c6-4f43-becf-091062c9bbdc",
+      "name": "\ud83d\udd27 Convert \u2014 Pixel to Binary PNG",
       "type": "n8n-nodes-base.convertToFile",
       "position": [
-        7136,
-        256
+        448,
+        624
       ],
       "typeVersion": 1.1
     },
     {
       "parameters": {
-        "path": "YOUR_PIXEL_WEBHOOK_ID",
+        "path": "YOUR_WEBHOOK_UUID",
         "options": {}
       },
-      "id": "58aa788f-5051-4518-a0e9-92e4b5284094",
-      "name": "Request img",
+      "id": "b4ed9236-71ec-4cbc-9633-9904c1318330",
+      "name": "\ud83d\udce1 Webhook \u2014 Receive Open Event",
       "type": "n8n-nodes-base.webhook",
       "position": [
-        6688,
-        256
+        0,
+        624
       ],
-      "webhookId": "YOUR_PIXEL_WEBHOOK_ID",
+      "webhookId": "YOUR_WEBHOOK_UUID",
       "typeVersion": 2
     },
     {
@@ -785,7 +761,7 @@
           "value": "YOUR_AIRTABLE_TABLE_ID",
           "mode": "list",
           "cachedResultName": "Leads",
-          "cachedResultUrl": "https://airtable.com/YOUR_AIRTABLE_BASE_ID/YOUR_AIRTABLE_TABLE_ID"
+          "cachedResultUrl": "https://airtable.com/YOUR_AIRTABLE_BASE_ID"
         },
         "columns": {
           "mappingMode": "defineBelow",
@@ -1102,17 +1078,11 @@
       "type": "n8n-nodes-base.airtable",
       "typeVersion": 2.2,
       "position": [
-        7792,
-        256
+        1104,
+        624
       ],
-      "id": "4bcc68cb-1d98-4092-b3af-36cfad78b4ba",
-      "name": "Update record1",
-      "credentials": {
-        "airtableTokenApi": {
-          "id": "YOUR_AIRTABLE_CREDENTIAL_ID",
-          "name": "Airtable Personal Access Token account"
-        }
-      }
+      "id": "ad742a09-6087-4a97-ac04-5cbff173c1ca",
+      "name": "\ud83d\udccb Airtable \u2014 Write Open Timestamp"
     },
     {
       "parameters": {
@@ -1128,7 +1098,7 @@
           "value": "YOUR_AIRTABLE_TABLE_ID",
           "mode": "list",
           "cachedResultName": "Leads",
-          "cachedResultUrl": "https://airtable.com/YOUR_AIRTABLE_BASE_ID/YOUR_AIRTABLE_TABLE_ID"
+          "cachedResultUrl": "https://airtable.com/YOUR_AIRTABLE_BASE_ID"
         },
         "id": "={{ $('Request img').item.json.query.q }}",
         "options": {}
@@ -1136,17 +1106,11 @@
       "type": "n8n-nodes-base.airtable",
       "typeVersion": 2.2,
       "position": [
-        7344,
-        256
+        656,
+        624
       ],
-      "id": "837b70f9-b989-4c80-8622-147f19e3f7a8",
-      "name": "Get a record",
-      "credentials": {
-        "airtableTokenApi": {
-          "id": "YOUR_AIRTABLE_CREDENTIAL_ID",
-          "name": "Airtable Personal Access Token account"
-        }
-      }
+      "id": "c7e285c1-e022-4510-8cda-6116fa79c532",
+      "name": "\ud83d\udd0d Airtable \u2014 Lookup Lead by Pixel ID"
     },
     {
       "parameters": {
@@ -1176,11 +1140,11 @@
       "type": "n8n-nodes-base.filter",
       "typeVersion": 2.3,
       "position": [
-        7552,
-        256
+        864,
+        624
       ],
-      "id": "01d977af-7a01-4536-bcf7-ed906bacfa95",
-      "name": "Filter"
+      "id": "5544a398-3aac-4ad7-aa2b-6a952d15c4a0",
+      "name": "\ud83d\udea6 Filter \u2014 Skip Already-Opened Leads"
     }
   ],
   "pinData": {},
@@ -1200,7 +1164,7 @@
       "main": [
         [
           {
-            "node": "Search records",
+            "node": "\ud83d\udd0e Airtable \u2014 Fetch Ready-to-Send Queue",
             "type": "main",
             "index": 0
           }
@@ -1211,7 +1175,7 @@
       "main": [
         [
           {
-            "node": "Loop Over Items",
+            "node": "\ud83d\udd01 Loop \u2014 Process Each Lead",
             "type": "main",
             "index": 0
           }
@@ -1251,7 +1215,7 @@
         ]
       ]
     },
-    "Loop Over Items": {
+    "\ud83d\udd01 Loop \u2014 Process Each Lead": {
       "main": [
         [],
         [
@@ -1278,14 +1242,14 @@
       "main": [
         [
           {
-            "node": "Loop Over Items",
+            "node": "\ud83d\udd01 Loop \u2014 Process Each Lead",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "If": {
+    "\u2705 Gate \u2014 Safe To Send Check": {
       "main": [
         [
           {
@@ -1293,15 +1257,14 @@
             "type": "main",
             "index": 0
           }
-        ],
-        []
+        ]
       ]
     },
     "\ud83d\udce7 Send Email via Email A": {
       "main": [
         [
           {
-            "node": "Update record",
+            "node": "\ud83d\udccb Airtable \u2014 Mark Email as Sent",
             "type": "main",
             "index": 0
           }
@@ -1319,18 +1282,18 @@
         ]
       ]
     },
-    "Search records": {
+    "\ud83d\udd0e Airtable \u2014 Fetch Ready-to-Send Queue": {
       "main": [
         [
           {
-            "node": "If",
+            "node": "\u2705 Gate \u2014 Safe To Send Check",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Anthropic Chat Model": {
+    "\ud83e\udde0 LLM \u2014 Claude Sonnet (Email Rewriter)": {
       "ai_languageModel": [
         [
           {
@@ -1341,7 +1304,7 @@
         ]
       ]
     },
-    "Update record": {
+    "\ud83d\udccb Airtable \u2014 Mark Email as Sent": {
       "main": [
         [
           {
@@ -1352,55 +1315,55 @@
         ]
       ]
     },
-    "Request img": {
+    "\ud83d\udce1 Webhook \u2014 Receive Open Event": {
       "main": [
         [
           {
-            "node": "Create data pix",
+            "node": "\ud83d\uddbc\ufe0f Build \u2014 1x1 Tracking Pixel (Base64)",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Create img bin": {
+    "\ud83d\udd27 Convert \u2014 Pixel to Binary PNG": {
       "main": [
         [
           {
-            "node": "Get a record",
+            "node": "\ud83d\udd0d Airtable \u2014 Lookup Lead by Pixel ID",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Create data pix": {
+    "\ud83d\uddbc\ufe0f Build \u2014 1x1 Tracking Pixel (Base64)": {
       "main": [
         [
           {
-            "node": "Create img bin",
+            "node": "\ud83d\udd27 Convert \u2014 Pixel to Binary PNG",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Get a record": {
+    "\ud83d\udd0d Airtable \u2014 Lookup Lead by Pixel ID": {
       "main": [
         [
           {
-            "node": "Filter",
+            "node": "\ud83d\udea6 Filter \u2014 Skip Already-Opened Leads",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Filter": {
+    "\ud83d\udea6 Filter \u2014 Skip Already-Opened Leads": {
       "main": [
         [
           {
-            "node": "Update record1",
+            "node": "\ud83d\udccb Airtable \u2014 Write Open Timestamp",
             "type": "main",
             "index": 0
           }
@@ -1408,16 +1371,15 @@
       ]
     }
   },
-  "active": true,
+  "active": false,
   "settings": {
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "3caf8933-2b47-4604-8d29-98bf54e13235",
+  "versionId": "ca39d55b-4205-4887-ac8a-8df3dca05687",
   "meta": {
-    "templateCredsSetupCompleted": true,
     "instanceId": "YOUR_N8N_INSTANCE_ID"
   },
-  "id": "v6ShB5wTAxUmeeuq",
+  "id": "6tLfbmOzm2PB8Odn",
   "tags": []
 }

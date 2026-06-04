@@ -1,5 +1,5 @@
 {
-  "name": "Lead Sourcing + Email and ICP Validation",
+  "name": "Lead Sourcing + ICP Validation",
   "nodes": [
     {
       "parameters": {
@@ -12,11 +12,11 @@
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.3,
       "position": [
-        -1024,
-        400
+        256,
+        1376
       ],
-      "id": "d84a4f93-6c53-45d0-b197-77764bb2c268",
-      "name": "Schedule Trigger"
+      "id": "d8b8fa82-374e-4e6b-a2f6-3534e14b76aa",
+      "name": "\u23f0 Trigger \u2014 Apify Lead Scrape (Scheduled)"
     },
     {
       "parameters": {
@@ -30,17 +30,11 @@
       "type": "@apify/n8n-nodes-apify.apify",
       "typeVersion": 1,
       "position": [
-        -816,
-        160
+        704,
+        1376
       ],
-      "id": "ddc8a854-251e-42b5-a476-5bb4aaf3ad21",
-      "name": "Get dataset items",
-      "credentials": {
-        "apifyOAuth2Api": {
-          "id": "YOUR_APIFY_CREDENTIAL_ID",
-          "name": "Apify OAuth2 API"
-        }
-      }
+      "id": "386f1815-92f3-4df9-8b41-5952289c509a",
+      "name": "\ud83d\udce6 Apify \u2014 Fetch Dataset Items"
     },
     {
       "parameters": {
@@ -54,11 +48,11 @@
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3.1,
       "position": [
-        -352,
-        736
+        928,
+        1584
       ],
-      "id": "242e3501-092c-494f-b7a9-1b6fdca33fed",
-      "name": "AI Agent"
+      "id": "c86acfc0-d3b6-4eef-a029-f8314488e9c5",
+      "name": "\ud83e\udd16 Gemini \u2014 ICP Vertical + Email Scorer"
     },
     {
       "parameters": {
@@ -67,17 +61,11 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
       "typeVersion": 1,
       "position": [
-        -288,
-        960
+        992,
+        1808
       ],
-      "id": "c699b75f-1453-4a35-bb33-2edb96ed72b0",
-      "name": "Google Gemini Chat Model",
-      "credentials": {
-        "googlePalmApi": {
-          "id": "YOUR_GEMINI_CREDENTIAL_ID",
-          "name": "Google Gemini(PaLM) Api account"
-        }
-      }
+      "id": "f32630f7-20d3-400a-ab5e-eea2eab97195",
+      "name": "\ud83e\udde0 LLM \u2014 Google Gemini (Flash)"
     },
     {
       "parameters": {
@@ -86,11 +74,11 @@
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
       "position": [
-        -576,
-        976
+        704,
+        1840
       ],
-      "id": "3a6aeda3-9891-4fa7-bdb7-d281b5acea23",
-      "name": "Loop Over Items"
+      "id": "d9a20144-8679-42f9-b81e-be17f74c45c9",
+      "name": "\ud83d\udd01 Loop \u2014 Process Each Lead"
     },
     {
       "parameters": {
@@ -102,11 +90,11 @@
       "type": "@n8n/n8n-nodes-langchain.informationExtractor",
       "typeVersion": 1.2,
       "position": [
-        0,
-        736
+        1280,
+        1584
       ],
-      "id": "663672e7-3e7b-4968-9853-d5b5ebe0028d",
-      "name": "Information Extractor"
+      "id": "f0bedbb6-9e3a-4b82-9e2c-ef6a9f38f1f8",
+      "name": "\ud83d\udccb Parser \u2014 Extract Structured AI Output"
     },
     {
       "parameters": {
@@ -119,11 +107,11 @@
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.3,
       "position": [
-        -1024,
-        976
+        256,
+        1840
       ],
-      "id": "77c2a4d7-ef14-4241-8bca-809614693770",
-      "name": "Schedule Trigger1"
+      "id": "0d32fc52-8dce-411b-966a-e4b2a338b2bd",
+      "name": "\u23f0 Trigger \u2014 Validation Queue (Scheduled)"
     },
     {
       "parameters": {
@@ -152,11 +140,11 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        576,
-        720
+        1856,
+        1632
       ],
-      "id": "f3fcffaf-c612-4907-9588-bcfcbdd34709",
-      "name": "HTTP Request",
+      "id": "1c40c7d4-6fd4-4740-b938-6236f593f177",
+      "name": "\ud83d\udce1 Clearout API \u2014 Verify Email Deliverability",
       "onError": "continueErrorOutput"
     },
     {
@@ -198,11 +186,11 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        352,
-        736
+        1632,
+        1584
       ],
-      "id": "81e460ef-dc3c-4fc4-887f-346027fee5e4",
-      "name": "If"
+      "id": "17893a62-674d-4f39-862b-ddddb7ac3350",
+      "name": "\u2705 Gate \u2014 ICP Match + Not Yet Validated?"
     },
     {
       "parameters": {
@@ -211,7 +199,7 @@
           "__rl": true,
           "value": "YOUR_AIRTABLE_BASE_ID",
           "mode": "list",
-          "cachedResultName": "Test Base",
+          "cachedResultName": "Your Base",
           "cachedResultUrl": "https://airtable.com/YOUR_AIRTABLE_BASE_ID"
         },
         "table": {
@@ -565,15 +553,15 @@
       "type": "n8n-nodes-base.airtable",
       "typeVersion": 2.2,
       "position": [
-        -128,
-        400
+        1600,
+        1376
       ],
-      "id": "ca8674a5-bdf1-40c4-b227-a63803f895b4",
-      "name": "Create or update a record",
+      "id": "bdefefcc-d4bb-45be-9d1b-4f84f9cf91ff",
+      "name": "\ud83d\udccb Airtable \u2014 Store Unvalidated Lead",
       "credentials": {
         "airtableTokenApi": {
           "id": "YOUR_AIRTABLE_CREDENTIAL_ID",
-          "name": "Airtable Personal Access Token account"
+          "name": "Airtable Personal Access Token account 2"
         }
       }
     },
@@ -584,7 +572,7 @@
           "__rl": true,
           "value": "YOUR_AIRTABLE_BASE_ID",
           "mode": "list",
-          "cachedResultName": "Test Base",
+          "cachedResultName": "Your Base",
           "cachedResultUrl": "https://airtable.com/YOUR_AIRTABLE_BASE_ID"
         },
         "table": {
@@ -599,10 +587,10 @@
         "options": {
           "view": {
             "__rl": true,
-            "value": "YOUR_AIRTABLE_VIEW_NOT_VALIDATED",
+            "value": "YOUR_AIRTABLE_VIEW_ID",
             "mode": "list",
             "cachedResultName": "Not Validated Data",
-            "cachedResultUrl": "https://airtable.com/YOUR_AIRTABLE_BASE_ID/YOUR_AIRTABLE_TABLE_ID/YOUR_AIRTABLE_VIEW_NOT_VALIDATED"
+            "cachedResultUrl": "https://airtable.com/YOUR_AIRTABLE_BASE_ID/YOUR_AIRTABLE_TABLE_ID/YOUR_AIRTABLE_VIEW_ID"
           }
         },
         "sort": {
@@ -616,17 +604,11 @@
       "type": "n8n-nodes-base.airtable",
       "typeVersion": 2.2,
       "position": [
-        -800,
-        976
+        480,
+        1840
       ],
-      "id": "6f773655-cb48-4429-8f26-301655b61842",
-      "name": "Search records",
-      "credentials": {
-        "airtableTokenApi": {
-          "id": "YOUR_AIRTABLE_CREDENTIAL_ID",
-          "name": "Airtable Personal Access Token account"
-        }
-      }
+      "id": "4d9e7572-e109-439b-9ac4-aa5ceeb090da",
+      "name": "\ud83d\udd0e Airtable \u2014 Fetch Unvalidated Queue"
     },
     {
       "parameters": {
@@ -635,7 +617,7 @@
           "__rl": true,
           "value": "YOUR_AIRTABLE_BASE_ID",
           "mode": "list",
-          "cachedResultName": "Test Base",
+          "cachedResultName": "Your Base",
           "cachedResultUrl": "https://airtable.com/YOUR_AIRTABLE_BASE_ID"
         },
         "table": {
@@ -950,53 +932,11 @@
       "type": "n8n-nodes-base.airtable",
       "typeVersion": 2.2,
       "position": [
-        800,
-        816
+        2080,
+        1664
       ],
-      "id": "a6a08be6-06e1-4518-bcd0-45a1c8aa883e",
-      "name": "Create or update a record1",
-      "credentials": {
-        "airtableTokenApi": {
-          "id": "YOUR_AIRTABLE_CREDENTIAL_ID",
-          "name": "Airtable Personal Access Token account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "documentId": {
-          "__rl": true,
-          "value": "YOUR_GOOGLE_SHEETS_DOC_ID",
-          "mode": "list",
-          "cachedResultName": "DB - Industry (Vish)",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEETS_DOC_ID/edit?usp=drivesdk"
-        },
-        "sheetName": {
-          "__rl": true,
-          "value": 1042770274,
-          "mode": "list",
-          "cachedResultName": "Main DB",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEETS_DOC_ID/edit#gid=YOUR_SHEET_TAB_ID"
-        },
-        "filtersUI": {
-          "values": []
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.googleSheets",
-      "typeVersion": 4.7,
-      "position": [
-        -800,
-        400
-      ],
-      "id": "9715f6df-a53e-4ffc-80c2-766192fe0548",
-      "name": "Get row(s) in sheet1",
-      "credentials": {
-        "googleSheetsOAuth2Api": {
-          "id": "YOUR_GOOGLE_SHEETS_CREDENTIAL_ID",
-          "name": "Google Sheets OAuth2 API"
-        }
-      }
+      "id": "7d0fc114-b69b-4539-b380-301b7f39fc58",
+      "name": "\ud83d\udcbe Airtable \u2014 Write Validation Results"
     },
     {
       "parameters": {
@@ -1005,11 +945,11 @@
       "type": "n8n-nodes-base.limit",
       "typeVersion": 1,
       "position": [
-        -352,
-        400
+        1376,
+        1376
       ],
-      "id": "00132619-e7d4-4e1b-bbf1-2302dcc6a550",
-      "name": "Limit"
+      "id": "07fb2895-1c95-4df3-8ab4-83f4f0e09710",
+      "name": "\u26a1 Limit \u2014 Cap Batch to 30 Leads"
     },
     {
       "parameters": {
@@ -1018,7 +958,7 @@
           "__rl": true,
           "value": "YOUR_AIRTABLE_BASE_ID",
           "mode": "list",
-          "cachedResultName": "Test Base",
+          "cachedResultName": "Your Base",
           "cachedResultUrl": "https://airtable.com/YOUR_AIRTABLE_BASE_ID"
         },
         "table": {
@@ -1267,33 +1207,7 @@
               "defaultMatch": false,
               "canBeUsedToMatch": true,
               "display": true,
-              "type": "options",
-              "options": [
-                {
-                  "name": "Not Contacted",
-                  "value": "Not Contacted"
-                },
-                {
-                  "name": "Contacted",
-                  "value": "Contacted"
-                },
-                {
-                  "name": "Qualified",
-                  "value": "Qualified"
-                },
-                {
-                  "name": "Unqualified",
-                  "value": "Unqualified"
-                },
-                {
-                  "name": "Nurturing",
-                  "value": "Nurturing"
-                },
-                {
-                  "name": "New",
-                  "value": "New"
-                }
-              ],
+              "type": "string",
               "readOnly": false,
               "removed": true
             },
@@ -1305,7 +1219,7 @@
               "canBeUsedToMatch": true,
               "display": true,
               "type": "boolean",
-              "readOnly": false,
+              "redOnly": false,
               "removed": true
             },
             {
@@ -1372,17 +1286,11 @@
       "type": "n8n-nodes-base.airtable",
       "typeVersion": 2.2,
       "position": [
-        -592,
-        160
+        928,
+        1376
       ],
-      "id": "8b7c035a-8ca2-41ef-a390-4862ab370269",
-      "name": "Create or update a record2",
-      "credentials": {
-        "airtableTokenApi": {
-          "id": "YOUR_AIRTABLE_CREDENTIAL_ID",
-          "name": "Airtable Personal Access Token account"
-        }
-      }
+      "id": "a0535bb5-1168-49dd-afbe-f34e904fdacf",
+      "name": "\ud83d\udce5 Airtable \u2014 Upsert Raw Lead"
     },
     {
       "parameters": {
@@ -1413,183 +1321,215 @@
       "type": "n8n-nodes-base.filter",
       "typeVersion": 2.3,
       "position": [
-        -576,
-        400
+        1152,
+        1376
       ],
-      "id": "fb6ec96d-06d7-46e6-b3d6-c94b058b01b1",
-      "name": "Filter"
+      "id": "44201ff0-20b2-4ade-9f70-56680f689b04",
+      "name": "\ud83d\udd0d Filter \u2014 Skip Already-Validated Leads"
+    },
+    {
+      "parameters": {
+        "operation": "Run actor and get dataset",
+        "actorId": {
+          "__rl": true,
+          "value": "IoSHqwTR9YGhzccez",
+          "mode": "list",
+          "cachedResultName": "\u2728Leads Finder - $1.5/1k leads with Emails [Apollo Alternative] (code_crafter/leads-finder)",
+          "cachedResultUrl": "https://console.apify.com/actors/IoSHqwTR9YGhzccez/input"
+        },
+        "authentication": "apifyOAuth2Api"
+      },
+      "type": "@apify/n8n-nodes-apify.apify",
+      "typeVersion": 1,
+      "position": [
+        480,
+        1376
+      ],
+      "id": "0466aace-ee47-493a-a055-23977b852426",
+      "name": "\ud83d\udd77\ufe0f Apify \u2014 Run Leads Finder Actor"
     }
   ],
   "pinData": {},
   "connections": {
-    "Schedule Trigger": {
+    "\u23f0 Trigger \u2014 Apify Lead Scrape (Scheduled)": {
       "main": [
         [
           {
-            "node": "Get row(s) in sheet1",
+            "node": "\ud83d\udd77\ufe0f Apify \u2014 Run Leads Finder Actor",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Get dataset items": {
+    "\ud83d\udce6 Apify \u2014 Fetch Dataset Items": {
       "main": [
         [
           {
-            "node": "Create or update a record2",
+            "node": "\ud83d\udce5 Airtable \u2014 Upsert Raw Lead",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "AI Agent": {
+    "\ud83e\udd16 Gemini \u2014 ICP Vertical + Email Scorer": {
       "main": [
         [
           {
-            "node": "Information Extractor",
+            "node": "\ud83d\udccb Parser \u2014 Extract Structured AI Output",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Google Gemini Chat Model": {
+    "\ud83e\udde0 LLM \u2014 Google Gemini (Flash)": {
       "ai_languageModel": [
         [
           {
-            "node": "AI Agent",
+            "node": "\ud83e\udd16 Gemini \u2014 ICP Vertical + Email Scorer",
             "type": "ai_languageModel",
             "index": 0
           },
           {
-            "node": "Information Extractor",
+            "node": "\ud83d\udccb Parser \u2014 Extract Structured AI Output",
             "type": "ai_languageModel",
             "index": 0
           }
         ]
       ]
     },
-    "Loop Over Items": {
+    "\ud83d\udd01 Loop \u2014 Process Each Lead": {
       "main": [
         [],
         [
           {
-            "node": "AI Agent",
+            "node": "\ud83e\udd16 Gemini \u2014 ICP Vertical + Email Scorer",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Information Extractor": {
+    "\ud83d\udccb Parser \u2014 Extract Structured AI Output": {
       "main": [
         [
           {
-            "node": "If",
+            "node": "\u2705 Gate \u2014 ICP Match + Not Yet Validated?",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Schedule Trigger1": {
+    "\u23f0 Trigger \u2014 Validation Queue (Scheduled)": {
       "main": [
         [
           {
-            "node": "Search records",
+            "node": "\ud83d\udd0e Airtable \u2014 Fetch Unvalidated Queue",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "HTTP Request": {
+    "\ud83d\udce1 Clearout API \u2014 Verify Email Deliverability": {
       "main": [
         [
           {
-            "node": "Create or update a record1",
+            "node": "\ud83d\udcbe Airtable \u2014 Write Validation Results",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Loop Over Items",
+            "node": "\ud83d\udd01 Loop \u2014 Process Each Lead",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "If": {
+    "\u2705 Gate \u2014 ICP Match + Not Yet Validated?": {
       "main": [
         [
           {
-            "node": "HTTP Request",
+            "node": "\ud83d\udce1 Clearout API \u2014 Verify Email Deliverability",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Create or update a record1",
+            "node": "\ud83d\udcbe Airtable \u2014 Write Validation Results",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Search records": {
+    "\ud83d\udd0e Airtable \u2014 Fetch Unvalidated Queue": {
       "main": [
         [
           {
-            "node": "Loop Over Items",
+            "node": "\ud83d\udd01 Loop \u2014 Process Each Lead",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Create or update a record1": {
+    "\ud83d\udcbe Airtable \u2014 Write Validation Results": {
       "main": [
         [
           {
-            "node": "Loop Over Items",
+            "node": "\ud83d\udd01 Loop \u2014 Process Each Lead",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Get row(s) in sheet1": {
+    "\u26a1 Limit \u2014 Cap Batch to 30 Leads": {
       "main": [
         [
           {
-            "node": "Filter",
+            "node": "\ud83d\udccb Airtable \u2014 Store Unvalidated Lead",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Limit": {
+    "\ud83d\udce5 Airtable \u2014 Upsert Raw Lead": {
       "main": [
         [
           {
-            "node": "Create or update a record",
+            "node": "\ud83d\udd0d Filter \u2014 Skip Already-Validated Leads",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Filter": {
+    "\ud83d\udd0d Filter \u2014 Skip Already-Validated Leads": {
       "main": [
         [
           {
-            "node": "Limit",
+            "node": "\u26a1 Limit \u2014 Cap Batch to 30 Leads",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "\ud83d\udd77\ufe0f Apify \u2014 Run Leads Finder Actor": {
+      "main": [
+        [
+          {
+            "node": "\ud83d\udce6 Apify \u2014 Fetch Dataset Items",
             "type": "main",
             "index": 0
           }
@@ -1602,11 +1542,11 @@
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "4ff24c89-19d6-4d8b-8ee4-cba40a4ef223",
+  "versionId": "7bbb8174-a1f3-4ee9-9ee7-210999cf5aa2",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "YOUR_N8N_INSTANCE_ID"
   },
-  "id": "CVRoL3nOu207vfvA",
+  "id": "fNbMgkKOL5ocK6ud",
   "tags": []
 }

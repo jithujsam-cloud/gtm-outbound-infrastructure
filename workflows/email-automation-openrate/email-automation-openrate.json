@@ -1,0 +1,1423 @@
+{
+  "name": "Email Automation + Openrate",
+  "nodes": [
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "ff925882-95a8-4746-a89f-5965a3bf00a2",
+              "leftValue": "={{ $json['Day of week'] }}",
+              "rightValue": "Sunday",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            },
+            {
+              "id": "37544f76-aca5-4c1f-92e1-6e6a179b7c9c",
+              "leftValue": "={{ $json['Day of week'] }}",
+              "rightValue": "Saturday",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        6912,
+        -368
+      ],
+      "id": "098f897b-93c1-4c4f-a796-a5bb06bb93d5",
+      "name": "\ud83d\udcc5 Check if Weekday1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "ff925882-95a8-4746-a89f-5965a3bf00a2",
+              "leftValue": "={{ $('\u23f0 Run Every 15 Minutes1').item.json.Hour }}",
+              "rightValue": 9,
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            },
+            {
+              "id": "37544f76-aca5-4c1f-92e1-6e6a179b7c9c",
+              "leftValue": "={{ $('\u23f0 Run Every 15 Minutes1').item.json.Hour }}",
+              "rightValue": 17,
+              "operator": {
+                "type": "number",
+                "operation": "lte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        7136,
+        -368
+      ],
+      "id": "3f2ae697-19f8-46bf-b978-fd0c41ed9b19",
+      "name": "\ud83d\udd50 Check Business Hours (9AM-6PM)1"
+    },
+    {
+      "parameters": {
+        "maxItems": 6
+      },
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        7808,
+        -368
+      ],
+      "id": "f262489e-c680-43cd-b0e9-a079c3436fd5",
+      "name": "\u26a1 Limit to 4 Emails Per Run1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Here is the email to rewrite:\nSubject: {{ $json.Subject }}\nBody: {{ $json.Body }}\n\nContact Person :{{ $json['Contact Person'] }}\nCompany Name: {{ $json.Company }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=You are a cold email rewriting agent. Every time you receive an email, rewrite it to sound natural, conversational, and personalized. Each rewrite must feel distinct \u2014 vary your sentence structure, opening lines, and phrasing every single time. Never produce the same output twice for the same input.\nYour Objectives:\n\nMaintain the core value proposition and call-to-action\nKeep tone professional yet conversational\nPreserve all original links exactly as provided\nMatch the original email's length and structure\nFormat properly for professional email display\nVary vocabulary, sentence order, and openings on every rewrite\n\nSTRICT FORMATTING RULES:\nAllowed Tags Only:\n<div>, <br>, <ul>, <li>, <strong>, <a>\nRequired <div> Wrapper:\nEvery email must start with <div style=\"font-size: 14px; line-height: 1.5; color: #000000;\"> and end with </div>\nLine Break Rules (CRITICAL):\n\nUse <br><br> between paragraphs only\nNO <br> or <br><br> before <ul> tags\nNO <br> or <br><br> after </ul> tags\nLists appear immediately after their intro sentence\nText resumes immediately after </ul>\n\nSignature Formatting:\n\nUse single <br> between signature lines\nNO <br><br> after sender name\n\nList Formatting:\n\nUse <ul> for 3+ related items\nNo style attributes on <ul> tags\nFormat: <li><strong>Title</strong> - description</li> for emphasized items\nFormat: <li>description</li> for regular items\n\nLink Formatting:\n<a href=\"full-url\" style=\"color: #0066cc; text-decoration: none;\">display text</a>\nWriting Style:\n\nNo em dashes or en dashes, use hyphens only\nKeep paragraphs short (2-4 sentences)\nVary your opening line every time, never start two rewrites the same way\nRotate between different ways to frame the problem, the solution, and the CTA\n\nOutput Requirements:\n\nHTML only, no explanations, markdown, or comments\n\nReplace [SUBJECT] and [BODY] with your content each time. If this is going back into n8n, swap those with {{ $json.Subject }} and {{ $json.Body }}."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        7392,
+        -128
+      ],
+      "id": "aceafcc2-df8c-4f9c-b143-fdc6efa45294",
+      "name": "\ud83e\udd16 AI Email Personalizer1"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"subject\": \"personalized subject line here\",\n  \"body\": \"complete HTML email body here\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        7632,
+        48
+      ],
+      "id": "6a3e9fde-7e87-4a54-b69a-f0c98ff0e3c9",
+      "name": "\ud83d\udccb JSON Output Parser1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const randomNumber = parseFloat((Math.random() * 3).toFixed(2));\nreturn [{ json: { randomNumber } }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        6944,
+        -128
+      ],
+      "id": "f15c0c29-ba5b-4019-866f-e6500e6d4a75",
+      "name": "\ud83c\udfb2 Generate Random Wait Time1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "317f639d-105d-43e1-b53d-0a94364bd389",
+              "name": "Subject",
+              "value": "=Most recruiters send CVs. We solve hiring problems.",
+              "type": "string"
+            },
+            {
+              "id": "97221642-5fc7-40ba-8401-1a1df07cb47b",
+              "name": "Body",
+              "value": "=Hello {First Name}, \n\nI noticed that {Company Name} is expanding, and most teams at this stage get stuck in 30\u201360 day hiring cycles.\nMost teams end up spending hours screening profiles that never convert.\n\nWe solve this by delivering pre-vetted mid- to senior-level candidates with an 80% CV selection rate and 70\u201380% joining rate, so you are only evaluating people who are likely to close.\nWe have worked with VeriPoint Technologies, Maven Silicon, Formix International, Nexxbase (GoNoise) and more to cut hiring time nearly in half without compromising on quality.\n\nIf this aligns with you, I would be open to a 30-minute introductory call to explore how we can work together.\n\nBest regards,\nIshaan Davar\n\nFounder @ Vish\n+91 99106 83662",
+              "type": "string"
+            },
+            {
+              "id": "7aae6a94-8f53-4c27-bc93-e9a91b73f317",
+              "name": "Contact Person",
+              "value": "={{ $('\u26a1 Limit to 4 Emails Per Run1').item.json.fields['Full Name'] }}",
+              "type": "string"
+            },
+            {
+              "id": "78c0ab76-f92e-43f7-b6a4-961c4e97e5d2",
+              "name": "Company",
+              "value": "={{ $('\u26a1 Limit to 4 Emails Per Run1').item.json.fields['Company Name'] }}",
+              "type": "string"
+            },
+            {
+              "id": "32439d9e-4662-4e80-b30c-5432433cc8d3",
+              "name": "Position",
+              "value": "={{ $('\u26a1 Limit to 4 Emails Per Run1').item.json.fields.Position }}",
+              "type": "string"
+            },
+            {
+              "id": "665cb428-9413-4dc0-b72b-5ca6ff385da2",
+              "name": "Email",
+              "value": "={{ $('\u26a1 Limit to 4 Emails Per Run1').item.json.fields.Email }}",
+              "type": "string"
+            },
+            {
+              "id": "b07600bd-cef3-4bb1-a038-ee499bc607ca",
+              "name": "randomNumber",
+              "value": "={{ $('\ud83c\udfb2 Generate Random Wait Time1').item.json.randomNumber }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        7168,
+        -128
+      ],
+      "id": "75266e80-2942-4d25-99e7-016af66bbe5e",
+      "name": "\ud83d\udcdd Prepare Contact Data1"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        6720,
+        0
+      ],
+      "id": "9e2cc640-b50a-4f71-b9d8-cee2b6ef7b9b",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 15
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        6688,
+        -368
+      ],
+      "id": "89bb6487-4627-48f2-830a-fd70b3a53ba7",
+      "name": "\u23f0 Run Every 15 Minutes1"
+    },
+    {
+      "parameters": {
+        "amount": "={{ $('\ud83d\udcdd Prepare Contact Data1').item.json.randomNumber }}",
+        "unit": "minutes"
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        8192,
+        0
+      ],
+      "id": "847b43f1-d92c-455c-ab97-5a6f0bea8227",
+      "name": "\u23f1\ufe0f Random Delay (0-5 min)1",
+      "webhookId": "4b1fd1c1-ab29-4573-b31f-563bb0841ffa"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "e4015fef-4800-4ea6-bdd1-38ebc158a07f",
+              "leftValue": "={{ $json.fields['Safe To Send'] }}",
+              "rightValue": "yes",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        7584,
+        -368
+      ],
+      "id": "974e2e1d-9f09-45d2-811d-f654cf0c622a",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "sendTo": "=your@email.com",
+        "subject": "={{ $json.output.subject }}",
+        "message": "={{ $json.output.body }}\n\n<img src=\"https://YOUR_N8N_INSTANCE/webhook/YOUR_PIXEL_WEBHOOK_ID?q={{ $('Loop Over Items').item.json.id }}\" width=\"1\" height=\"1\" style=\"display:none;\" alt=\"\" />",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        7744,
+        -128
+      ],
+      "id": "c881eb6e-3589-41db-a101-1619514e3011",
+      "name": "\ud83d\udce7 Send Email via Email A",
+      "webhookId": "YOUR_GMAIL_WEBHOOK_ID",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "YOUR_GMAIL_CREDENTIAL_ID",
+          "name": "Gmail OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "YOUR_AIRTABLE_BASE_ID",
+          "mode": "list",
+          "cachedResultName": "Test Base",
+          "cachedResultUrl": "https://airtable.com/YOUR_AIRTABLE_BASE_ID"
+        },
+        "table": {
+          "__rl": true,
+          "value": "YOUR_AIRTABLE_TABLE_ID",
+          "mode": "list",
+          "cachedResultName": "Leads",
+          "cachedResultUrl": "https://airtable.com/YOUR_AIRTABLE_BASE_ID/YOUR_AIRTABLE_TABLE_ID"
+        },
+        "filterByFormula": "=",
+        "options": {
+          "view": {
+            "__rl": true,
+            "value": "YOUR_AIRTABLE_VIEW_EMAIL_SENT",
+            "mode": "list",
+            "cachedResultName": "Email Sent",
+            "cachedResultUrl": "https://airtable.com/YOUR_AIRTABLE_BASE_ID/YOUR_AIRTABLE_TABLE_ID/YOUR_AIRTABLE_VIEW_EMAIL_SENT"
+          }
+        },
+        "sort": {
+          "property": []
+        }
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        7360,
+        -368
+      ],
+      "id": "75b202ce-2b30-41e0-9b2b-edc3ebc6a80e",
+      "name": "Search records",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "YOUR_AIRTABLE_CREDENTIAL_ID",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "claude-sonnet-4-5-20250929",
+          "cachedResultName": "Claude Sonnet 4.5"
+        },
+        "options": {
+          "temperature": 0.7
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.3,
+      "position": [
+        7328,
+        64
+      ],
+      "id": "78910a2a-adec-431d-b6dd-f7f789b08e06",
+      "name": "Anthropic Chat Model",
+      "credentials": {
+        "anthropicApi": {
+          "id": "YOUR_ANTHROPIC_CREDENTIAL_ID",
+          "name": "Anthropic account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "YOUR_AIRTABLE_BASE_ID",
+          "mode": "list",
+          "cachedResultName": "Test Base",
+          "cachedResultUrl": "https://airtable.com/YOUR_AIRTABLE_BASE_ID"
+        },
+        "table": {
+          "__rl": true,
+          "value": "YOUR_AIRTABLE_TABLE_ID",
+          "mode": "list",
+          "cachedResultName": "Leads",
+          "cachedResultUrl": "https://airtable.com/YOUR_AIRTABLE_BASE_ID/YOUR_AIRTABLE_TABLE_ID"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Email Sent": true,
+            "id": "={{ $('\u26a1 Limit to 4 Emails Per Run1').item.json.id }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "Full Name",
+              "displayName": "Full Name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Company Name",
+              "displayName": "Company Name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Position",
+              "displayName": "Position",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Industry",
+              "displayName": "Industry",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "State",
+              "displayName": "State",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Domain",
+              "displayName": "Domain",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Employee Size",
+              "displayName": "Employee Size",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Country",
+              "displayName": "Country",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Company Description",
+              "displayName": "Company Description",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Company LinkedIn",
+              "displayName": "Company LinkedIn",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "LinkedIn Url",
+              "displayName": "LinkedIn Url",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Website",
+              "displayName": "Website",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Email Check",
+              "displayName": "Email Check",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "AI Summary",
+              "displayName": "AI Summary",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Vertical Match",
+              "displayName": "Vertical Match",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Reasoning",
+              "displayName": "Reasoning",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Safe To Send",
+              "displayName": "Safe To Send",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Smtp Provider",
+              "displayName": "Smtp Provider",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "MX Record",
+              "displayName": "MX Record",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Domain (Clearout API)",
+              "displayName": "Domain (Clearout API)",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Account",
+              "displayName": "Account",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "AI Response (Clearout API)",
+              "displayName": "AI Response (Clearout API)",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Email Sent",
+              "displayName": "Email Sent",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        7968,
+        -128
+      ],
+      "id": "367b53ac-8408-41ad-aea4-0d729e68c51e",
+      "name": "Update record",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "YOUR_AIRTABLE_CREDENTIAL_ID",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ab15b0f8-c40f-4874-8724-ddae8f99e646",
+              "name": "data",
+              "type": "string",
+              "value": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAAYdEVYdFNvZnR3YXJlAFBhaW50Lk5FVCA1LjEuMvu8A7YAAAC2ZVhJZklJKgAIAAAABQAaAQUAAQAAAEoAAAAbAQUAAQAAAFIAAAAoAQMAAQAAAAIAAAAxAQIAEAAAAFoAAABphwQAAQAAAGoAAAAAAAAAYAAAAAEAAABgAAAAAQAAAFBhaW50Lk5FVCA1LjEuMgADAACQBwAEAAAAMDIzMAGgAwABAAAAAQAAAAWgBAABAAAAlAAAAAAAAAACAAEAAgAEAAAAUjk4AAIABwAEAAAAMDEwMAAAAADp1fY4ytpsegAAAA1JREFUGFdjYGBgYAAAAAUAAYoz4wAAAAAASUVORK5CYII="
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "85ee1e2f-70ef-42f5-bf56-fb536053825f",
+      "name": "Create data pix",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        6912,
+        256
+      ],
+      "typeVersion": 3.4
+    },
+    {
+      "parameters": {
+        "operation": "toBinary",
+        "sourceProperty": "data",
+        "binaryPropertyName": "pixel",
+        "options": {
+          "mimeType": "image/png"
+        }
+      },
+      "id": "dcf3b166-5449-48d7-8dac-b7deb6d13d8d",
+      "name": "Create img bin",
+      "type": "n8n-nodes-base.convertToFile",
+      "position": [
+        7136,
+        256
+      ],
+      "typeVersion": 1.1
+    },
+    {
+      "parameters": {
+        "path": "YOUR_PIXEL_WEBHOOK_ID",
+        "options": {}
+      },
+      "id": "58aa788f-5051-4518-a0e9-92e4b5284094",
+      "name": "Request img",
+      "type": "n8n-nodes-base.webhook",
+      "position": [
+        6688,
+        256
+      ],
+      "webhookId": "YOUR_PIXEL_WEBHOOK_ID",
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "YOUR_AIRTABLE_BASE_ID",
+          "mode": "list",
+          "cachedResultName": "Test Base",
+          "cachedResultUrl": "https://airtable.com/YOUR_AIRTABLE_BASE_ID"
+        },
+        "table": {
+          "__rl": true,
+          "value": "YOUR_AIRTABLE_TABLE_ID",
+          "mode": "list",
+          "cachedResultName": "Leads",
+          "cachedResultUrl": "https://airtable.com/YOUR_AIRTABLE_BASE_ID/YOUR_AIRTABLE_TABLE_ID"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id": "={{ $('Request img').item.json.query.q }}",
+            "Opened On": "={{ $now }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "Full Name",
+              "displayName": "Full Name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Company Name",
+              "displayName": "Company Name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Position",
+              "displayName": "Position",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Industry",
+              "displayName": "Industry",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "State",
+              "displayName": "State",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Domain",
+              "displayName": "Domain",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Employee Size",
+              "displayName": "Employee Size",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Country",
+              "displayName": "Country",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Company Description",
+              "displayName": "Company Description",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Company LinkedIn",
+              "displayName": "Company LinkedIn",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "LinkedIn Url",
+              "displayName": "LinkedIn Url",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Website",
+              "displayName": "Website",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Email Check",
+              "displayName": "Email Check",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "AI Summary",
+              "displayName": "AI Summary",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Vertical Match",
+              "displayName": "Vertical Match",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Reasoning",
+              "displayName": "Reasoning",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Safe To Send",
+              "displayName": "Safe To Send",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Smtp Provider",
+              "displayName": "Smtp Provider",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "MX Record",
+              "displayName": "MX Record",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Domain (Clearout API)",
+              "displayName": "Domain (Clearout API)",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Account",
+              "displayName": "Account",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "AI Response (Clearout API)",
+              "displayName": "AI Response (Clearout API)",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Email Sent",
+              "displayName": "Email Sent",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Opened On",
+              "displayName": "Opened On",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        7792,
+        256
+      ],
+      "id": "4bcc68cb-1d98-4092-b3af-36cfad78b4ba",
+      "name": "Update record1",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "YOUR_AIRTABLE_CREDENTIAL_ID",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "base": {
+          "__rl": true,
+          "value": "YOUR_AIRTABLE_BASE_ID",
+          "mode": "list",
+          "cachedResultName": "Test Base",
+          "cachedResultUrl": "https://airtable.com/YOUR_AIRTABLE_BASE_ID"
+        },
+        "table": {
+          "__rl": true,
+          "value": "YOUR_AIRTABLE_TABLE_ID",
+          "mode": "list",
+          "cachedResultName": "Leads",
+          "cachedResultUrl": "https://airtable.com/YOUR_AIRTABLE_BASE_ID/YOUR_AIRTABLE_TABLE_ID"
+        },
+        "id": "={{ $('Request img').item.json.query.q }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        7344,
+        256
+      ],
+      "id": "837b70f9-b989-4c80-8622-147f19e3f7a8",
+      "name": "Get a record",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "YOUR_AIRTABLE_CREDENTIAL_ID",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "123e942d-f52a-4745-8ce2-4c9f5b20c01c",
+              "leftValue": "={{ $json.fields['Opened On'] }}",
+              "rightValue": "",
+              "operator": {
+                "type": "dateTime",
+                "operation": "notExists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.3,
+      "position": [
+        7552,
+        256
+      ],
+      "id": "01d977af-7a01-4536-bcf7-ed906bacfa95",
+      "name": "Filter"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "\ud83d\udcc5 Check if Weekday1": {
+      "main": [
+        [
+          {
+            "node": "\ud83d\udd50 Check Business Hours (9AM-6PM)1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "\ud83d\udd50 Check Business Hours (9AM-6PM)1": {
+      "main": [
+        [
+          {
+            "node": "Search records",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "\u26a1 Limit to 4 Emails Per Run1": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "\ud83d\udccb JSON Output Parser1": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "\ud83e\udd16 AI Email Personalizer1",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "\ud83c\udfb2 Generate Random Wait Time1": {
+      "main": [
+        [
+          {
+            "node": "\ud83d\udcdd Prepare Contact Data1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "\ud83d\udcdd Prepare Contact Data1": {
+      "main": [
+        [
+          {
+            "node": "\ud83e\udd16 AI Email Personalizer1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "\ud83c\udfb2 Generate Random Wait Time1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "\u23f0 Run Every 15 Minutes1": {
+      "main": [
+        [
+          {
+            "node": "\ud83d\udcc5 Check if Weekday1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "\u23f1\ufe0f Random Delay (0-5 min)1": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "\u26a1 Limit to 4 Emails Per Run1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "\ud83d\udce7 Send Email via Email A": {
+      "main": [
+        [
+          {
+            "node": "Update record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "\ud83e\udd16 AI Email Personalizer1": {
+      "main": [
+        [
+          {
+            "node": "\ud83d\udce7 Send Email via Email A",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search records": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Anthropic Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "\ud83e\udd16 AI Email Personalizer1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update record": {
+      "main": [
+        [
+          {
+            "node": "\u23f1\ufe0f Random Delay (0-5 min)1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Request img": {
+      "main": [
+        [
+          {
+            "node": "Create data pix",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create img bin": {
+      "main": [
+        [
+          {
+            "node": "Get a record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create data pix": {
+      "main": [
+        [
+          {
+            "node": "Create img bin",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a record": {
+      "main": [
+        [
+          {
+            "node": "Filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter": {
+      "main": [
+        [
+          {
+            "node": "Update record1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "3caf8933-2b47-4604-8d29-98bf54e13235",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "YOUR_N8N_INSTANCE_ID"
+  },
+  "id": "v6ShB5wTAxUmeeuq",
+  "tags": []
+}

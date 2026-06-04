@@ -1,0 +1,1005 @@
+{
+  "name": "Job Signal Scraper",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {}
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -112,
+        -96
+      ],
+      "id": "2f69cff3-dc78-4940-b062-412378e9f9d3",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "resource": "Datasets",
+        "datasetId": "YOUR_APIFY_DATASET_ID",
+        "limit": null,
+        "options": {},
+        "authentication": "apifyOAuth2Api"
+      },
+      "type": "@apify/n8n-nodes-apify.apify",
+      "typeVersion": 1,
+      "position": [
+        112,
+        -96
+      ],
+      "id": "b2f7b951-5540-4605-ba10-70aad918030e",
+      "name": "Get dataset items",
+      "credentials": {
+        "apifyOAuth2Api": {
+          "id": "YOUR_APIFY_CREDENTIAL_ID",
+          "name": "Apify OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\n// flatten data safely\nlet data = [];\n\nfor (const item of items) {\n  if (item.json.data && Array.isArray(item.json.data)) {\n    data.push(...item.json.data);\n  } else {\n    data.push(item.json);\n  }\n}\n\nconst grouped = {};\n\nfor (const item of data) {\n  const company = item.companyName || item['Company Name'];\n  let title = item.jobTitle || item['Job Title'];\n  const jd = item.jobDescription || item['Job Description'] || \"\";\n  const location = item.location || item['Location'];\n  const domain = item.companyWebsite || item.domain || \"\";\n  const jobId = item.jobId || item.ID;\n\n  if (!company) continue;\n\n  // normalize title\n  if (title) {\n    title = title.toLowerCase().replace(/\\b\\w/g, c => c.toUpperCase());\n  }\n\n  if (!grouped[company]) {\n    grouped[company] = {\n      jobTitles: new Set(),\n      jobTitleCount: 0,\n      locationCounts: {},\n      locationSet: new Set(),\n      domains: new Set(),\n      jobIds: [],\n      jobDetails: []\n    };\n  }\n\n  // count all jobs\n  if (title) {\n    grouped[company].jobTitleCount += 1;\n    grouped[company].jobTitles.add(title);\n    grouped[company].jobDetails.push(`${title} - ${jd}`);\n  }\n\n  // locations\n  if (location) {\n    grouped[company].locationCounts[location] =\n      (grouped[company].locationCounts[location] || 0) + 1;\n\n    grouped[company].locationSet.add(location);\n  }\n\n  // domains\n  if (domain) grouped[company].domains.add(domain);\n\n  // IDs\n  if (jobId) grouped[company].jobIds.push(jobId);\n}\n\nconst output = [];\n\nfor (const company in grouped) {\n  const jobTitlesArray = Array.from(grouped[company].jobTitles);\n  const domainsArray = Array.from(grouped[company].domains);\n\n  const formattedLocations = Object.entries(grouped[company].locationCounts)\n    .map(([loc, count]) => `${loc} (${count})`)\n    .join(', ');\n\n  const numberedJobDetails = grouped[company].jobDetails\n    .map((item, i) => `${i + 1}. ${item}`)\n    .join('\\n');\n\n  output.push({\n    json: {\n      company,\n\n      job_ids: grouped[company].jobIds,\n\n      job_titles: jobTitlesArray.join(', '),\n      job_title_count: grouped[company].jobTitleCount,\n\n      locations: formattedLocations,\n      location_count: grouped[company].locationSet.size,\n\n      domains: domainsArray.join(', '),\n\n      job_details: numberedJobDetails\n    }\n  });\n}\n\nreturn output;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        144,
+        112
+      ],
+      "id": "c71a89c9-d77a-4748-8e01-ec5410551a9a",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        784,
+        -96
+      ],
+      "id": "b7f7ee49-4ca7-4282-bce2-5a5fdc71aba6",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEETS_DOC_ID",
+          "mode": "list",
+          "cachedResultName": "Test Data",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEETS_DOC_ID/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1806108655,
+          "mode": "list",
+          "cachedResultName": "Comp wise Job",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEETS_DOC_ID/edit#gid=YOUR_COMP_WISE_JOB_SHEET_TAB_ID"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Company Name": "={{ $json.company }}",
+            "Location": "={{ $json.locations }}",
+            "Domain": "={{ $json.domains }}",
+            "Positions ": "={{ $json.job_titles }}",
+            "Time": "={{ $now }}",
+            "No of Positions": "={{ $json.job_title_count }}",
+            "Location hiring for": "={{ $json.location_count }}",
+            "Dataset": "YOUR_APIFY_DATASET_ID",
+            "IDs": "={{ $json.job_ids }}"
+          },
+          "matchingColumns": [
+            "Company Name"
+          ],
+          "schema": [
+            {
+              "id": "Company Name",
+              "displayName": "Company Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Positions ",
+              "displayName": "Positions ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Time",
+              "displayName": "Time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "No of Positions",
+              "displayName": "No of Positions",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Location",
+              "displayName": "Location",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Domain",
+              "displayName": "Domain",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Location hiring for",
+              "displayName": "Location hiring for",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Dataset",
+              "displayName": "Dataset",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Analysis",
+              "displayName": "Analysis",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Hook",
+              "displayName": "Hook",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "IDs",
+              "displayName": "IDs",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        368,
+        112
+      ],
+      "id": "feee4b31-62a3-4d3f-8184-5fa6e76b62b4",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "YOUR_GOOGLE_SHEETS_CREDENTIAL_ID",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        688,
+        240
+      ],
+      "id": "bc94d7f7-a45f-48a0-b634-e126528ffaf0",
+      "name": "Loop Over Items2"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEETS_DOC_ID",
+          "mode": "list",
+          "cachedResultName": "Test Data",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEETS_DOC_ID/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1806108655,
+          "mode": "list",
+          "cachedResultName": "Comp wise Job",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEETS_DOC_ID/edit#gid=YOUR_COMP_WISE_JOB_SHEET_TAB_ID"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "row_number": 0,
+            "Analysis": "={{ $json.output.analysis }}",
+            "Hook": "={{ $json.output.hook }}",
+            "IDs": "={{ $('Loop Over Items2').item.json.IDs }}"
+          },
+          "matchingColumns": [
+            "IDs"
+          ],
+          "schema": [
+            {
+              "id": "Company Name",
+              "displayName": "Company Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Positions ",
+              "displayName": "Positions ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Time",
+              "displayName": "Time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "No of Positions",
+              "displayName": "No of Positions",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Location",
+              "displayName": "Location",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Domain",
+              "displayName": "Domain",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Location hiring for",
+              "displayName": "Location hiring for",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Dataset",
+              "displayName": "Dataset",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Analysis",
+              "displayName": "Analysis",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Hook",
+              "displayName": "Hook",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "IDs",
+              "displayName": "IDs",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1648,
+        448
+      ],
+      "id": "39af8c2d-306b-4fcc-8408-5a91a7709a88",
+      "name": "Update row in sheet1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "YOUR_GOOGLE_SHEETS_CREDENTIAL_ID",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "7f3630d4-2f96-47a3-96a7-3724e3c28f98",
+              "name": "companyName",
+              "value": "={{ $json.companyName }}",
+              "type": "string"
+            },
+            {
+              "id": "600db634-6d6d-4e8c-85a2-e188aab5e14f",
+              "name": "jobTitle",
+              "value": "={{ $json.jobTitle }}",
+              "type": "string"
+            },
+            {
+              "id": "e083ce8d-d711-4616-89c6-7f87c34b7fba",
+              "name": "postedTime",
+              "value": "={{ $json.postedTime }}",
+              "type": "string"
+            },
+            {
+              "id": "063ba1a2-b2bb-4ee4-bf08-002dea49066c",
+              "name": "location",
+              "value": "={{ $json.location }}",
+              "type": "string"
+            },
+            {
+              "id": "acd3f6df-cf3e-41b7-bc41-00d7afbeb2e0",
+              "name": "applyUrl",
+              "value": "={{ $json.applyUrl }}",
+              "type": "string"
+            },
+            {
+              "id": "711db293-bb40-496b-a945-b6af9e754ba9",
+              "name": "companyWebsite",
+              "value": "={{ $json.companyWebsite }}",
+              "type": "string"
+            },
+            {
+              "id": "f20d58df-79f2-4274-bcd1-5469df2516f6",
+              "name": "jobId",
+              "value": "={{$json.jobId }}",
+              "type": "string"
+            },
+            {
+              "id": "715a898e-672c-459e-a3f9-d5525c028849",
+              "name": "jobDescription",
+              "value": "={{ $json.jobDescription }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        336,
+        -96
+      ],
+      "id": "bd832a4c-0933-42b5-940b-dd83b0211fe2",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=company name: {{ $('Loop Over Items2').item.json['Company Name'] }}\njob titles: {{ $('Loop Over Items2').item.json['Positions '] }}\nnumber of roles : {{ $('Loop Over Items2').item.json['No of Positions'] }}\nlocations : {{ $('Loop Over Items2').item.json.Location }}\njob descriptions : {{ $json.formatted }}\n",
+        "options": {
+          "systemMessage": "=You are a senior analyst at a recruitment firm. Given raw job posting data for a company, \noutput ONLY a JSON object. No explanation, no preamble, no markdown formatting.\n\nReturn exactly this structure:\n\n{\n  \"analysis\": \"A short, sharp paragraph (4\u20136 lines) covering: what the company is building or expanding (inferred from titles + JDs), where they are hiring and what that signals (city, region, multi-location = CoE, GCC, scale-up), seniority spread and what it tells you (IC-heavy = execution phase, lead-heavy = new function), stack or domain focus, and urgency indicators (volume, posting recency, net-new titles, re-listed roles).\",\n  \"hook\": \"1\u20132 lines. Written as a CEO of a recruitment firm would say it after reading these JDs \u2014 not a sales pitch, not keyword-stuffed. Reference the actual location, the actual domain, and the actual scale of hiring. No buzzwords. No 'leverage', 'synergy', 'world-class', 'passionate', 'excited to connect'.\"\n}\n\n---\n\nEXAMPLE OUTPUT\n\n{\n  \"analysis\": \"Teradata is building out a dedicated AI engineering hub across India, with 23 open roles spanning Hyderabad, Bengaluru, and Pune. The spread runs from Senior to Principal level, with net-new titles like 'Principal AI Engineer \u2013 Agentic Systems' signalling this isn't backfill \u2014 they're standing up a new function. The domain is narrow and deep: Agentic AI, AI Marketplace, and Cloud Platform engineering, with Python and Java as the core stack. Posting recency and volume across three cities points to active, time-sensitive hiring rather than pipeline building.\",\n  \"hook\": \"You're clearly building something significant on the AI side in India \u2014 23 roles across three cities at this seniority level doesn't happen quietly. We place exactly this profile of engineer and we're already active in these markets.\"\n}\n\n---\n\nNow apply this to the following job data:\n[PASTE COMPANY NAME, TITLES, LOCATIONS, ROLE COUNT, POSTING DATE, JD SNIPPETS]"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        944,
+        320
+      ],
+      "id": "7ed0acac-1a7c-4db6-8359-640e11ed2489",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        1024,
+        544
+      ],
+      "id": "e61d6a50-b577-4ed6-a156-5b1538d36644",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "YOUR_GEMINI_CREDENTIAL_ID",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "text": "={{ $json.output }}",
+        "schemaType": "fromJson",
+        "jsonSchemaExample": "{\n  \"analysis\": \"A short, sharp paragraph (4\u20136 lines) covering: what the company is building or expanding (inferred from titles + JDs), where they are hiring and what that signals (city, region, multi-location = CoE, GCC, scale-up), seniority spread and what it tells you (IC-heavy = execution phase, lead-heavy = new function), stack or domain focus, and urgency indicators (volume, posting recency, net-new titles, re-listed roles).\",\n  \"hook\": \"1\u20132 lines. Written as a CEO of a recruitment firm would say it after reading these JDs \u2014 not a sales pitch, not keyword-stuffed. Reference the actual location, the actual domain, and the actual scale of hiring. No buzzwords. No 'leverage', 'synergy', 'world-class', 'passionate', 'excited to connect'.\"\n}\n",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.informationExtractor",
+      "typeVersion": 1.2,
+      "position": [
+        1296,
+        320
+      ],
+      "id": "a0b10e34-2641-4fc0-b0be-3a8ab1270214",
+      "name": "Information Extractor"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEETS_DOC_ID",
+          "mode": "list",
+          "cachedResultName": "Test Data",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEETS_DOC_ID/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1329460687,
+          "mode": "list",
+          "cachedResultName": "Job Posts - Apify Dump",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEETS_DOC_ID/edit#gid=YOUR_JOB_POSTS_SHEET_TAB_ID"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "ID": "={{ $json.jobId }}",
+            "Job Title": "={{ $json.jobTitle }}",
+            "Job Description": "={{ $json.jobDescription }}",
+            "Location": "={{ $json.location }}",
+            "Apply Link": "={{ $json.applyUrl }}",
+            "TIme": "={{$now}}",
+            "companyName": "={{ $json.companyName }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "ID",
+              "displayName": "ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Job Title",
+              "displayName": "Job Title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Job Description",
+              "displayName": "Job Description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Location",
+              "displayName": "Location",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Apply Link",
+              "displayName": "Apply Link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "TIme",
+              "displayName": "TIme",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "companyName",
+              "displayName": "companyName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        560,
+        -96
+      ],
+      "id": "b4b30e6e-e90e-460a-b1cb-2b54b37efce0",
+      "name": "Append row in sheet1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "YOUR_GOOGLE_SHEETS_CREDENTIAL_ID",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEETS_DOC_ID",
+          "mode": "list",
+          "cachedResultName": "Test Data",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEETS_DOC_ID/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1806108655,
+          "mode": "list",
+          "cachedResultName": "Comp wise Job",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEETS_DOC_ID/edit#gid=YOUR_COMP_WISE_JOB_SHEET_TAB_ID"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        368,
+        304
+      ],
+      "id": "560719d7-ff37-41fa-b0eb-8f9edd8539cd",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "YOUR_GOOGLE_SHEETS_CREDENTIAL_ID",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 15
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        144,
+        304
+      ],
+      "id": "936a38c8-67a4-4610-b282-bb9b2f312c4d",
+      "name": "Schedule Trigger4"
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json.IDs;\n\nlet ids;\n\n// Handle different formats\nif (Array.isArray(raw)) {\n  ids = raw;\n} else if (typeof raw === 'string') {\n  ids = JSON.parse(raw);\n} else {\n  throw new Error('IDs is neither array nor string');\n}\n\nreturn ids.map(id => ({\n  json: { id }\n}));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        912,
+        112
+      ],
+      "id": "d8314536-6bd5-4cd5-a2f4-60ea037a4848",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEETS_DOC_ID",
+          "mode": "list",
+          "cachedResultName": "Test Data",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEETS_DOC_ID/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1329460687,
+          "mode": "list",
+          "cachedResultName": "Job Posts - Apify Dump",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEETS_DOC_ID/edit#gid=YOUR_JOB_POSTS_SHEET_TAB_ID"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "ID",
+              "lookupValue": "={{ $json.id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1136,
+        112
+      ],
+      "id": "7466eb60-e8e9-428b-adc6-7ce7f5dd24b2",
+      "name": "Get row(s) in sheet2",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "YOUR_GOOGLE_SHEETS_CREDENTIAL_ID",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json.data;\n\nif (!Array.isArray(data)) {\n  throw new Error(\"Expected 'data' to be an array\");\n}\n\nconst result = data.map((item, index) => {\n  const title = item['Job Title'] || 'No Title';\n  const jd = item['Job Description'] || 'No Description';\n\n  return `${index + 1}. ${title}\\n${jd}`;\n}).join('\\n\\n');\n\nreturn [\n  {\n    json: {\n      formatted: result\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1584,
+        112
+      ],
+      "id": "699fb31f-0678-4f93-b013-fbab0363c947",
+      "name": "Code in JavaScript2"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "include": "allFieldsExcept",
+        "fieldsToExclude": "['Job Description'], ['Job Title']",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        1360,
+        112
+      ],
+      "id": "ab0b435b-f6ba-4d47-9a41-89bfb7c23011",
+      "name": "Aggregate1"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get dataset items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get dataset items": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items2": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update row in sheet1": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Information Extractor",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Information Extractor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Information Extractor": {
+      "main": [
+        [
+          {
+            "node": "Update row in sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet1": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger4": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet2": {
+      "main": [
+        [
+          {
+            "node": "Aggregate1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript2": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate1": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "519a3ec3-428f-4deb-abe1-a5067f298b0b",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "YOUR_N8N_INSTANCE_ID"
+  },
+  "id": "slexcWnUI0R7H9a9",
+  "tags": []
+}

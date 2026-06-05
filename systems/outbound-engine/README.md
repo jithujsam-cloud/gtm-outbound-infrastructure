@@ -1,4 +1,4 @@
-# Outbound Engine
+# Outbound Engine ✉️
 
 ## The problem
 
@@ -8,19 +8,19 @@ Identical copy sent at machine speed is what gets domains flagged. Most automati
 
 One workflow, two branches: the send branch and the tracking branch.
 
-Send branch:
+**Send branch:**
 - Schedule trigger fires every 15 minutes, weekdays only, 9am-5pm
 - Fetches leads from the "Email Sent" view in Airtable, filtered to Safe To Send = yes
 - Caps each run at 6 leads
-- Generates a random float between 0 and 3, used as a minute delay before each send
+- Generates a random float between 0 and 3, used as a minute delay before each send ⏱️
 - Passes the base subject and body template to Claude, which rewrites both on every call: different opening line, different sentence structure, different framing, same core message and CTA
 - A JSON output parser enforces a strict subject + body schema so downstream nodes always get clean output
 - Sends via Gmail with a 1x1 transparent PNG pixel embedded in the body, URL-encoded with the Airtable record ID
 - Marks Email Sent = true on the record immediately after send
 - Waits the random delay, then loops to the next lead
 
-Tracking branch:
-- A separate webhook endpoint receives GET requests when the pixel loads in a recipient's email client
+**Tracking branch:**
+- A separate webhook endpoint receives GET requests when the pixel loads in a recipient's email client 📬
 - Extracts the record ID from the URL query parameter
 - Fetches the Airtable record and checks whether Opened On is already set
 - If not set, writes the current timestamp to Opened On and returns the pixel image to the client

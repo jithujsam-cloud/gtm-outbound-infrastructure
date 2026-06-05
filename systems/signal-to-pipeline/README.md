@@ -1,4 +1,4 @@
-# Signal-to-Pipeline
+# Signal-to-Pipeline 🔍
 
 ## The problem
 
@@ -8,17 +8,17 @@ Most outbound is sent to static lists built from Apollo exports or CSV uploads. 
 
 Two workflows, one pipeline. The output of both feeds the same Airtable table, which is the queue that the outbound engine pulls from.
 
-The job signal workflow:
+**The job signal workflow:**
 - Apify pulls LinkedIn job postings by industry and target role set
 - n8n flattens the raw dataset, normalises field names, and groups all open roles by company
 - Gemini generates a hiring analysis per company: what they are building (inferred from titles and JDs), where they are hiring and what that signals, seniority spread, stack focus, urgency indicators
 - Gemini also generates a one-line outreach hook per company, written as an opener that references the actual location, domain, and scale of hiring
 
-The lead sourcing workflow:
+**The lead sourcing workflow:**
 - Apify Leads Finder runs against the same target list and pulls raw contact records
 - Leads upsert into Airtable immediately, matched by email
 - Gemini scores each contact for ICP fit across five verticals: D2C/E-commerce, Defense/Aviation, Fintech, Pharma, Semiconductor/Data Center. Returns true/false with a written explanation of what triggered the verdict
-- Email scoring runs deterministically: structure check (+20), name match against local part (+15 each for first and last), domain match (+25), pattern quality (+10), generic prefix penalty (-20). Threshold is 60 for VALID
+- Email scoring runs deterministically: structure check (+20), name match against local part (+15 each for first and last), domain match (+25), pattern quality (+10), generic prefix penalty (-20). Threshold is 60 for VALID ✅
 - Clearout API runs SMTP-level verification only on leads that pass the ICP check
 - Final upsert writes AI summary, vertical match, email score, Clearout status, and Safe To Send flag back to the same Airtable record
 

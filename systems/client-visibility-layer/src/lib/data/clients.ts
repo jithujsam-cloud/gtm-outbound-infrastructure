@@ -1,11 +1,11 @@
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import type { Client } from '@/lib/types';
 
 export type { Client };
 
 export async function getClients(): Promise<Client[]> {
   try {
-    const supabase = await createClient();
+    const supabase = createAdminClient();
     const { data, error } = await supabase
       .from('clients')
       .select('id, name, slug, status, created_at')
@@ -25,7 +25,7 @@ export async function getClients(): Promise<Client[]> {
 
 export async function getClientBySlug(slug: string): Promise<Client | null> {
   try {
-    const supabase = await createClient();
+    const supabase = createAdminClient();
     const { data, error } = await supabase
       .from('clients')
       .select('id, name, slug, status, created_at')
@@ -46,7 +46,7 @@ export async function getClientBySlug(slug: string): Promise<Client | null> {
 
 export async function getPublicClientBySlug(slug: string) {
   try {
-    const supabase = await createClient();
+    const supabase = createAdminClient();
     const { data, error } = await supabase
       .rpc('get_public_client_by_slug', { p_slug: slug })
       .maybeSingle();

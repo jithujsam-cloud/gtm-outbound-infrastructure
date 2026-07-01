@@ -1,15 +1,7 @@
-export const dynamic = 'force-dynamic';
-
-import { createClient } from '@/lib/supabase/server';
 import { getClients } from '@/lib/data/clients';
-import { redirect } from 'next/navigation';
 import PortalSettingsClient from './portal-settings-client';
 
 export default async function PortalSettingsPage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect('/auth/login');
-
   const clients = await getClients();
 
   return (

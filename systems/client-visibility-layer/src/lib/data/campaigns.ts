@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import type { FullCampaign } from '@/lib/types';
 
 const CAMPAIGN_COLUMNS =
@@ -7,7 +7,7 @@ const CAMPAIGN_COLUMNS =
 
 export async function getCampaignsForClient(clientId: string): Promise<FullCampaign[]> {
   try {
-    const supabase = await createClient();
+    const supabase = createAdminClient();
     const { data, error } = await supabase
       .from('campaigns')
       .select(CAMPAIGN_COLUMNS)
@@ -27,7 +27,7 @@ export async function getCampaignsForClient(clientId: string): Promise<FullCampa
 
 export async function getPublicCampaigns(clientId: string) {
   try {
-    const supabase = await createClient();
+    const supabase = createAdminClient();
     const { data, error } = await supabase
       .rpc('get_public_campaigns', { p_client_id: clientId });
 

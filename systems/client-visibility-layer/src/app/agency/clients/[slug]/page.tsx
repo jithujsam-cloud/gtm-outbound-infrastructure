@@ -1,7 +1,4 @@
-export const dynamic = 'force-dynamic';
-
 import { notFound } from 'next/navigation';
-import { createClient } from '@/lib/supabase/server';
 import { getClientBySlug } from '@/lib/data/clients';
 import { getCampaignsForClient } from '@/lib/data/campaigns';
 import ClientDashboard from '@/components/ClientDashboard';
@@ -12,8 +9,6 @@ interface Props {
 
 export default async function AgencyClientDetail({ params }: Props) {
   const { slug } = await params;
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
 
   const client = await getClientBySlug(slug);
   if (!client) notFound();
@@ -24,7 +19,6 @@ export default async function AgencyClientDetail({ params }: Props) {
   return (
     <div className="px-4 py-6 md:px-6 lg:px-8">
       <div className="mx-auto max-w-[1440px]">
-        {/* Header */}
         <div className="mb-6">
           <div className="flex items-center gap-3">
             <h1 className="text-2xl font-semibold text-on-surface tracking-tight">{client.name}</h1>

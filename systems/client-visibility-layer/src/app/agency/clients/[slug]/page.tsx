@@ -57,7 +57,6 @@ export default async function AgencyClientDetail({ params }: Props) {
             week_2_leads: latestCampaign.week_2_leads,
             week_3_leads: latestCampaign.week_3_leads,
             week_4_leads: latestCampaign.week_4_leads,
-            last_synced: latestCampaign.last_synced ?? new Date().toISOString(),
           }} />
         )}
       </div>

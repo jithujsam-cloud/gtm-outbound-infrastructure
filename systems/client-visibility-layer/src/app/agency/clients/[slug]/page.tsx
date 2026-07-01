@@ -52,7 +52,6 @@ export default async function AgencyClientDetail({ params }: Props) {
             emails_sent: latestCampaign.emails_sent,
             open_rate: latestCampaign.open_rate,
             reply_rate: latestCampaign.reply_rate,
-            positive_reply_rate: latestCampaign.positive_reply_rate,
             leads_generated: latestCampaign.leads_generated,
             week_1_leads: latestCampaign.week_1_leads,
             week_2_leads: latestCampaign.week_2_leads,

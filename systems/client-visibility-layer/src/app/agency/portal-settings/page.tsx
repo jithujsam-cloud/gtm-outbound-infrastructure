@@ -1,0 +1,29 @@
+export const dynamic = 'force-dynamic';
+
+import { createClient } from '@/lib/supabase/server';
+import { getClients } from '@/lib/data/clients';
+import { redirect } from 'next/navigation';
+import PortalSettingsClient from './portal-settings-client';
+
+export default async function PortalSettingsPage() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect('/auth/login');
+
+  const clients = await getClients();
+
+  return (
+    <div className="px-4 py-6 md:px-6 lg:px-8">
+      <div className="mx-auto max-w-[1440px]">
+        <div className="mb-6">
+          <h1 className="text-2xl font-semibold text-on-surface tracking-tight">Portal Settings</h1>
+          <p className="mt-1 text-sm text-on-surface-variant">
+            Toggle client portal visibility and copy share links.
+          </p>
+        </div>
+
+        <PortalSettingsClient clients={clients} />
+      </div>
+    </div>
+  );
+}

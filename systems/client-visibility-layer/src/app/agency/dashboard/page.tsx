@@ -11,7 +11,7 @@ export default async function AgencyDashboard() {
         <div className="mx-auto max-w-[1440px]">
           <h1 className="text-2xl font-semibold text-on-surface tracking-tight">Clients</h1>
           <p className="mt-1 text-sm text-on-surface-variant">
-            No clients yet. Run the seed function to create demo data.
+            No clients yet. If the database just got migrated, refresh the page — demo data seeds automatically on first load.
           </p>
         </div>
       </div>

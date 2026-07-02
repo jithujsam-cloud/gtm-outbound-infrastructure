@@ -66,11 +66,10 @@ All are SECURITY DEFINER — scope results to a single `client_id`.
 
 1. Create a Supabase project at supabase.com
 2. Run `supabase/01_schema.sql` in the SQL Editor
-3. Seed demo data: `SELECT seed_demo_data();`
-4. Copy `.env.example` to `.env.local` and fill in `NEXT_PUBLIC_SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY`
-5. `npm install && npm run dev`
+3. Copy `.env.example` to `.env.local` and fill in `NEXT_PUBLIC_SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY`
+4. `npm install && npm run dev`
 
-No auth user to create, no login page. Open `http://localhost:3000/agency/dashboard` directly.
+Open `http://localhost:3000/agency/dashboard` directly. The first visit auto-seeds demo data (2 clients, 1 campaign each) — no manual SQL needed.
 
 ## 📁 Files
 

@@ -3,9 +3,23 @@ import type { Client } from '@/lib/types';
 
 export type { Client };
 
+async function seedIfEmpty(): Promise<void> {
+  const supabase = createAdminClient();
+  const { count } = await supabase
+    .from('clients')
+    .select('*', { count: 'exact', head: true });
+
+  if (count === 0) {
+    await supabase.rpc('seed_demo_data');
+  }
+}
+
 export async function getClients(): Promise<Client[]> {
   try {
     const supabase = createAdminClient();
+
+    await seedIfEmpty();
+
     const { data, error } = await supabase
       .from('clients')
       .select('id, name, slug, status, created_at')

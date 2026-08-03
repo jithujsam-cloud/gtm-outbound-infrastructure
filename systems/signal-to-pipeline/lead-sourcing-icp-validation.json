@@ -1,23 +1,5 @@
 {
-  "name": "Lead Sourcing + ICP Validation",
   "nodes": [
-    {
-      "parameters": {
-        "rule": {
-          "interval": [
-            {}
-          ]
-        }
-      },
-      "type": "n8n-nodes-base.scheduleTrigger",
-      "typeVersion": 1.3,
-      "position": [
-        256,
-        1376
-      ],
-      "id": "d8b8fa82-374e-4e6b-a2f6-3534e14b76aa",
-      "name": "\u23f0 Trigger \u2014 Apify Lead Scrape (Scheduled)"
-    },
     {
       "parameters": {
         "resource": "Datasets",
@@ -30,11 +12,11 @@
       "type": "@apify/n8n-nodes-apify.apify",
       "typeVersion": 1,
       "position": [
-        704,
-        1376
+        368,
+        0
       ],
-      "id": "386f1815-92f3-4df9-8b41-5952289c509a",
-      "name": "\ud83d\udce6 Apify \u2014 Fetch Dataset Items"
+      "id": "d267752d-97fb-4fd5-afb0-3897c516a64a",
+      "name": "📦 Apify — Fetch Dataset Items"
     },
     {
       "parameters": {
@@ -42,17 +24,17 @@
         "text": "=Use the following fields for classification (in priority order):\n1. Company Name : {{ $json.fields['Company Name'] }}\n2. Industry Tag : {{ $json.fields.Industry }}\n3. Company Description / Website Keywords : {{ $json.fields['Company Description'] }}\n4. Email: {{ $json.fields.Email }}\n5. FUll name: {{ $json.fields['Full Name'] }}\n5. Domain: {{ $json.fields.Domain }}",
         "hasOutputParser": true,
         "options": {
-          "systemMessage": "=You are a B2B lead validation engine for a recruitment firm. Given a lead record, perform two independent checks and return a single JSON object.\n\n---\n\n## CHECK 1: INDUSTRY VALIDATION\n\nDetermine if the company belongs to any of the following ICP verticals:\n- D2C / E-commerce\n- Defense / Aviation\n- Fintech\n- Pharma\n- Semiconductor / Data Center\n\nUse a **broad matching approach** \u2014 include adjacent and enabling companies (e.g., fintech software platforms, defense suppliers, pharma tech, e-commerce enablement tools, semiconductor equipment).\n\nIf a company qualifies under **any one** of the verticals, mark it as a match.\n\n---\n\n### VERTICAL DEFINITIONS\n\n#### 1. D2C / E-commerce\n**Includes:**\n- Direct-to-consumer brands selling physical or digital products online\n- E-commerce platforms, marketplaces, and storefronts\n- E-commerce enablement: logistics tech, warehouse management, last-mile delivery, returns platforms\n- Retail tech: POS systems, inventory management, omnichannel tools\n- D2C-focused marketing tech, loyalty, and personalization platforms\n\n**Does NOT include:**\n- Pure brick-and-mortar retailers with no online presence\n- Generic logistics or shipping companies with no e-commerce focus\n\n---\n\n#### 2. Defense / Aviation\n**Includes:**\n- Defense contractors and OEMs (weapons systems, military hardware, surveillance)\n- Aerospace manufacturers (commercial and military aircraft, spacecraft, satellites)\n- Aviation MRO (maintenance, repair, overhaul)\n- Defense electronics, radar, communication systems\n- Drone manufacturers and UAV technology companies\n- Defense software and simulation companies\n- Airport operations and air traffic management technology\n\n**Does NOT include:**\n- Pure travel agencies or airline ticketing platforms\n- Generic GPS or mapping software with no defense application\n\n---\n\n#### 3. Fintech\n**Includes:**\n- Digital payments, wallets, and payment gateways\n- Neo-banks, digital lending, and BNPL platforms\n- Wealth management, robo-advisory, and trading platforms\n- Insurance tech (InsurTech)\n- Regulatory tech (RegTech) and compliance platforms\n- Blockchain and crypto financial infrastructure\n- Banking software and core banking platforms\n- Financial data analytics and fraud detection\n\n**Does NOT include:**\n- Traditional banks or NBFCs with no technology product\n- Generic accounting software with no financial services angle\n\n---\n\n#### 4. Pharma\n**Includes:**\n- Pharmaceutical manufacturers and drug developers\n- Biotechnology and life sciences companies\n- Clinical research organizations (CROs) and contract manufacturing (CMOs/CDMOs)\n- Medical devices and diagnostics\n- Health tech platforms supporting pharma workflows (clinical trials, pharmacovigilance, drug discovery AI)\n- Specialty chemicals used in pharma manufacturing\n\n**Does NOT include:**\n- Generic hospitals or clinics with no pharma/medtech function\n- Health insurance companies with no pharma product\n\n---\n\n#### 5. Semiconductor / Data Center\n**Includes:**\n- GCCs / offshore R&D centers of semiconductor companies\n- Fabless chip design companies\n- Semiconductor foundries and manufacturing\n- Semiconductor equipment and materials\n- EDA (Electronic Design Automation) software\n- Data center operators, colocation providers, and hyperscalers\n- Assembly, testing, and packaging (OSAT)\n\n**Does NOT include:**\n- Pure cloud SaaS or DevOps companies with no chip or hardware function\n- Generic IT services or staffing firms\n\n---\n\n### EXPLICIT EXCLUSION \u2014 RECRUITMENT / STAFFING FIRMS\nIf the company is a **recruitment, staffing, executive search, RPO, or HR outsourcing firm**, it is **always invalid**, regardless of the industries it serves.\n\nSignals to detect recruitment firms:\n- Company name contains words like: Recruits, Staffing, Talent, Search, Manpower, Placement, HR Solutions, Executive Search, Headhunting, RPO\n- Company description mentions: \"placing candidates\", \"talent acquisition services\", \"workforce solutions for clients\", \"connecting job seekers\"\n- Industry tag is: Staffing, Recruiting, Human Resources, HR Services\n\nIf any of these signals are present \u2192 `vertical_match: false`, `matched_vertical: null`\n\n---\n\n### CLASSIFICATION RULES\n\nUse the following fields in priority order:\n1. Company Name \u2014 `{{ $json.fields['Company Name'] }}`\n2. Industry Tag \u2014 `{{ $json.fields.Industry }}`\n3. Company Description \u2014 `{{ $json.fields['Company Description'] }}`\n4. Domain \u2014 `{{ $json.fields.Domain }}`\n\nDo **not** use web search. Classify based only on the provided fields.\n\nIf there is **insufficient information** to classify (all fields are empty or generic), set `vertical_match: false` and explain in `keyword_reasoning`.\n\n### keyword_reasoning format:\nWrite 2\u20133 sentences answering:\n- What does this company appear to do, based on the provided fields?\n- What specific field or keyword triggered the match or miss?\n- Which vertical was matched (if any)?\n\n---\n\n## CHECK 2: EMAIL VALIDATION\n\n### Step 1 \u2014 Basic Structure (0\u201320)\nCheck format: contains exactly one @ and a valid domain (x@y.z)\nIf valid \u2192 +20\nElse \u2192 score 0, reason \"Invalid structure\", stop here\n\n### Step 2 \u2014 Split Components\n- `id` = everything before @\n- `domain` = everything after @\n- `first` = first word of Full Name field \u2192 `{{ $json.fields['Full Name'] }}`\n- `last` = last word of Full Name field \u2192 `{{ $json.fields['Full Name'] }}`\n\n### Step 3 \u2014 Name Match (0\u201330)\nIf id contains first (case-insensitive) \u2192 +15\nIf id contains last (case-insensitive) \u2192 +15\nIf neither \u2192 reason \"No name match\"\n\n### Step 4 \u2014 Domain Match (0\u201325)\nExpected domain:\n- Use Domain field if present \u2192 `{{ $json.fields.Domain }}`\n- Else strip http/https/www from Website field\nIf email domain = expected domain \u2192 +25\nElse \u2192 reason \"Domain mismatch\"\n\n### Step 5 \u2014 Generic Email Penalty (-20)\nIf id is any of: info, support, sales, admin, contact, hello, hr, careers\n\u2192 -20, reason \"Generic email\"\n\n### Step 6 \u2014 Pattern Quality (0\u201310)\nIf id matches a clean pattern (firstname.lastname, firstname_lastname, firstname, f.lastname)\n\u2192 +10\nElse \u2192 reason \"Unusual pattern\"\n\n### Step 7 \u2014 Final Score\nSum all points. Floor at 0.\n\n### Step 8 \u2014 Classification\n- Score \u2265 60 \u2192 \"VALID\"\n- Score < 60 \u2192 \"NOT VALID\"\n\n### Step 9 \u2014 Reasoning\nWrite 1\u20132 sentences explaining the result.\nIf valid \u2192 \"Strong match \u2014 name and domain both align. Pattern is clean.\"\nElse \u2192 State each failed check and what it means.\n\n---\n\n## INPUT FORMAT\n\n```json\n{\n  \"name\": \"{{ $json.fields['Full Name'] }}\",\n  \"email\": \"{{ $json.fields.Email }}\",\n  \"company_name\": \"{{ $json.fields['Company Name'] }}\",\n  \"industry_tag\": \"{{ $json.fields.Industry }}\",\n  \"company_description\": \"{{ $json.fields['Company Description'] }}\",\n  \"domain\": \"{{ $json.fields.Domain }}\"\n}\n```\n\n## OUTPUT FORMAT\n\nReturn only valid JSON. No explanation. No markdown. No code fences.\n\n```json\n{\n  \"email\": \"string (exact email from input)\",\n  \"vertical_match\": true | false,\n  \"matched_vertical\": \"D2C / E-commerce\" | \"Defense / Aviation\" | \"Fintech\" | \"Pharma\" | \"Semiconductor / Data Center\" | null,\n  \"keyword_reasoning\": \"string (2\u20133 sentences: what the company does + what triggered the match or miss)\",\n  \"email_score\": 0\u2013100,\n  \"email_check\": \"VALID\" | \"NOT VALID\",\n  \"email_reasoning\": \"string (1\u20132 sentences explaining the result)\"\n}\n```"
+          "systemMessage": "=You are a B2B lead validation engine for a recruitment firm. Given a lead record, perform two independent checks and return a single JSON object.\n\n---\n\n## CHECK 1: INDUSTRY VALIDATION\n\nDetermine if the company belongs to any of the following ICP verticals:\n- D2C / E-commerce\n- Defense / Aviation\n- Fintech\n- Pharma\n- Semiconductor / Data Center\n\nUse a **broad matching approach** — include adjacent and enabling companies (e.g., fintech software platforms, defense suppliers, pharma tech, e-commerce enablement tools, semiconductor equipment).\n\nIf a company qualifies under **any one** of the verticals, mark it as a match.\n\n---\n\n### VERTICAL DEFINITIONS\n\n#### 1. D2C / E-commerce\n**Includes:**\n- Direct-to-consumer brands selling physical or digital products online\n- E-commerce platforms, marketplaces, and storefronts\n- E-commerce enablement: logistics tech, warehouse management, last-mile delivery, returns platforms\n- Retail tech: POS systems, inventory management, omnichannel tools\n- D2C-focused marketing tech, loyalty, and personalization platforms\n\n**Does NOT include:**\n- Pure brick-and-mortar retailers with no online presence\n- Generic logistics or shipping companies with no e-commerce focus\n\n---\n\n#### 2. Defense / Aviation\n**Includes:**\n- Defense contractors and OEMs (weapons systems, military hardware, surveillance)\n- Aerospace manufacturers (commercial and military aircraft, spacecraft, satellites)\n- Aviation MRO (maintenance, repair, overhaul)\n- Defense electronics, radar, communication systems\n- Drone manufacturers and UAV technology companies\n- Defense software and simulation companies\n- Airport operations and air traffic management technology\n\n**Does NOT include:**\n- Pure travel agencies or airline ticketing platforms\n- Generic GPS or mapping software with no defense application\n\n---\n\n#### 3. Fintech\n**Includes:**\n- Digital payments, wallets, and payment gateways\n- Neo-banks, digital lending, and BNPL platforms\n- Wealth management, robo-advisory, and trading platforms\n- Insurance tech (InsurTech)\n- Regulatory tech (RegTech) and compliance platforms\n- Blockchain and crypto financial infrastructure\n- Banking software and core banking platforms\n- Financial data analytics and fraud detection\n\n**Does NOT include:**\n- Traditional banks or NBFCs with no technology product\n- Generic accounting software with no financial services angle\n\n---\n\n#### 4. Pharma\n**Includes:**\n- Pharmaceutical manufacturers and drug developers\n- Biotechnology and life sciences companies\n- Clinical research organizations (CROs) and contract manufacturing (CMOs/CDMOs)\n- Medical devices and diagnostics\n- Health tech platforms supporting pharma workflows (clinical trials, pharmacovigilance, drug discovery AI)\n- Specialty chemicals used in pharma manufacturing\n\n**Does NOT include:**\n- Generic hospitals or clinics with no pharma/medtech function\n- Health insurance companies with no pharma product\n\n---\n\n#### 5. Semiconductor / Data Center\n**Includes:**\n- GCCs / offshore R&D centers of semiconductor companies\n- Fabless chip design companies\n- Semiconductor foundries and manufacturing\n- Semiconductor equipment and materials\n- EDA (Electronic Design Automation) software\n- Data center operators, colocation providers, and hyperscalers\n- Assembly, testing, and packaging (OSAT)\n\n**Does NOT include:**\n- Pure cloud SaaS or DevOps companies with no chip or hardware function\n- Generic IT services or staffing firms\n\n---\n\n### EXPLICIT EXCLUSION — RECRUITMENT / STAFFING FIRMS\nIf the company is a **recruitment, staffing, executive search, RPO, or HR outsourcing firm**, it is **always invalid**, regardless of the industries it serves.\n\nSignals to detect recruitment firms:\n- Company name contains words like: Recruits, Staffing, Talent, Search, Manpower, Placement, HR Solutions, Executive Search, Headhunting, RPO\n- Company description mentions: \"placing candidates\", \"talent acquisition services\", \"workforce solutions for clients\", \"connecting job seekers\"\n- Industry tag is: Staffing, Recruiting, Human Resources, HR Services\n\nIf any of these signals are present → `vertical_match: false`, `matched_vertical: null`\n\n---\n\n### CLASSIFICATION RULES\n\nUse the following fields in priority order:\n1. Company Name — `{{ $json.fields['Company Name'] }}`\n2. Industry Tag — `{{ $json.fields.Industry }}`\n3. Company Description — `{{ $json.fields['Company Description'] }}`\n4. Domain — `{{ $json.fields.Domain }}`\n\nDo **not** use web search. Classify based only on the provided fields.\n\nIf there is **insufficient information** to classify (all fields are empty or generic), set `vertical_match: false` and explain in `keyword_reasoning`.\n\n### keyword_reasoning format:\nWrite 2–3 sentences answering:\n- What does this company appear to do, based on the provided fields?\n- What specific field or keyword triggered the match or miss?\n- Which vertical was matched (if any)?\n\n---\n\n## CHECK 2: EMAIL VALIDATION\n\n### Step 1 — Basic Structure (0–20)\nCheck format: contains exactly one @ and a valid domain (x@y.z)\nIf valid → +20\nElse → score 0, reason \"Invalid structure\", stop here\n\n### Step 2 — Split Components\n- `id` = everything before @\n- `domain` = everything after @\n- `first` = first word of Full Name field → `{{ $json.fields['Full Name'] }}`\n- `last` = last word of Full Name field → `{{ $json.fields['Full Name'] }}`\n\n### Step 3 — Name Match (0–30)\nIf id contains first (case-insensitive) → +15\nIf id contains last (case-insensitive) → +15\nIf neither → reason \"No name match\"\n\n### Step 4 — Domain Match (0–25)\nExpected domain:\n- Use Domain field if present → `{{ $json.fields.Domain }}`\n- Else strip http/https/www from Website field\nIf email domain = expected domain → +25\nElse → reason \"Domain mismatch\"\n\n### Step 5 — Generic Email Penalty (-20)\nIf id is any of: info, support, sales, admin, contact, hello, hr, careers\n→ -20, reason \"Generic email\"\n\n### Step 6 — Pattern Quality (0–10)\nIf id matches a clean pattern (firstname.lastname, firstname_lastname, firstname, f.lastname)\n→ +10\nElse → reason \"Unusual pattern\"\n\n### Step 7 — Final Score\nSum all points. Floor at 0.\n\n### Step 8 — Classification\n- Score ≥ 60 → \"VALID\"\n- Score < 60 → \"NOT VALID\"\n\n### Step 9 — Reasoning\nWrite 1–2 sentences explaining the result.\nIf valid → \"Strong match — name and domain both align. Pattern is clean.\"\nElse → State each failed check and what it means.\n\n---\n\n## INPUT FORMAT\n\n```json\n{\n  \"name\": \"{{ $json.fields['Full Name'] }}\",\n  \"email\": \"{{ $json.fields.Email }}\",\n  \"company_name\": \"{{ $json.fields['Company Name'] }}\",\n  \"industry_tag\": \"{{ $json.fields.Industry }}\",\n  \"company_description\": \"{{ $json.fields['Company Description'] }}\",\n  \"domain\": \"{{ $json.fields.Domain }}\"\n}\n```\n\n## OUTPUT FORMAT\n\nReturn only valid JSON. No explanation. No markdown. No code fences.\n\n```json\n{\n  \"email\": \"string (exact email from input)\",\n  \"vertical_match\": true | false,\n  \"matched_vertical\": \"D2C / E-commerce\" | \"Defense / Aviation\" | \"Fintech\" | \"Pharma\" | \"Semiconductor / Data Center\" | null,\n  \"keyword_reasoning\": \"string (2–3 sentences: what the company does + what triggered the match or miss)\",\n  \"email_score\": 0–100,\n  \"email_check\": \"VALID\" | \"NOT VALID\",\n  \"email_reasoning\": \"string (1–2 sentences explaining the result)\"\n}\n```"
         }
       },
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3.1,
       "position": [
-        928,
-        1584
+        592,
+        336
       ],
-      "id": "c86acfc0-d3b6-4eef-a029-f8314488e9c5",
-      "name": "\ud83e\udd16 Gemini \u2014 ICP Vertical + Email Scorer"
+      "id": "372c1cd0-8216-4ed5-87c5-6c4f7097765e",
+      "name": "🤖 Gemini — ICP Vertical + Email Scorer"
     },
     {
       "parameters": {
@@ -61,11 +43,11 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
       "typeVersion": 1,
       "position": [
-        992,
-        1808
+        664,
+        552
       ],
-      "id": "f32630f7-20d3-400a-ab5e-eea2eab97195",
-      "name": "\ud83e\udde0 LLM \u2014 Google Gemini (Flash)"
+      "id": "95aaf8c0-87f3-4461-b5c0-ee11c991f888",
+      "name": "🧠 LLM — Google Gemini (Flash)"
     },
     {
       "parameters": {
@@ -74,27 +56,27 @@
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
       "position": [
-        704,
-        1840
+        368,
+        576
       ],
-      "id": "d9a20144-8679-42f9-b81e-be17f74c45c9",
-      "name": "\ud83d\udd01 Loop \u2014 Process Each Lead"
+      "id": "528fc83c-d48a-494a-8bf4-5297a0c1c4d0",
+      "name": "🔁 Loop — Process Each Lead"
     },
     {
       "parameters": {
         "text": "={{ $json.output }}",
         "schemaType": "fromJson",
-        "jsonSchemaExample": "{\n  \"email\": \"string (exact email from input)\",\n  \"vertical_match\": \"true or false\",\n  \"matched_vertical\": \"string\",\n  \"keyword_reasoning\": \"string (2\u20133 sentences: what the company does + what triggered the match or miss)\",\n  \"email_score\": 100,\n  \"email_check\": \"VALID\",\n  \"email_reasoning\": \"string (1\u20132 sentences explaining the result)\"\n}",
+        "jsonSchemaExample": "{\n  \"email\": \"string (exact email from input)\",\n  \"vertical_match\": \"true or false\",\n  \"matched_vertical\": \"string\",\n  \"keyword_reasoning\": \"string (2–3 sentences: what the company does + what triggered the match or miss)\",\n  \"email_score\": 100,\n  \"email_check\": \"VALID\",\n  \"email_reasoning\": \"string (1–2 sentences explaining the result)\"\n}",
         "options": {}
       },
       "type": "@n8n/n8n-nodes-langchain.informationExtractor",
       "typeVersion": 1.2,
       "position": [
-        1280,
-        1584
+        944,
+        336
       ],
-      "id": "f0bedbb6-9e3a-4b82-9e2c-ef6a9f38f1f8",
-      "name": "\ud83d\udccb Parser \u2014 Extract Structured AI Output"
+      "id": "1b2f143f-07c7-477e-9a09-893d7e44c10c",
+      "name": "📋 Parser — Extract Structured AI Output"
     },
     {
       "parameters": {
@@ -107,11 +89,11 @@
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.3,
       "position": [
-        256,
-        1840
+        -80,
+        576
       ],
-      "id": "0d32fc52-8dce-411b-966a-e4b2a338b2bd",
-      "name": "\u23f0 Trigger \u2014 Validation Queue (Scheduled)"
+      "id": "2620787b-8e5e-4e11-8ce0-0604105d1b91",
+      "name": "⏰ Trigger — Validation Queue (Scheduled)"
     },
     {
       "parameters": {
@@ -140,11 +122,11 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        1856,
-        1632
+        1520,
+        256
       ],
-      "id": "1c40c7d4-6fd4-4740-b938-6236f593f177",
-      "name": "\ud83d\udce1 Clearout API \u2014 Verify Email Deliverability",
+      "id": "f9391988-e3b6-48d9-8d51-b13948bb2fb6",
+      "name": "📡 Clearout API — Verify Email Deliverability",
       "onError": "continueErrorOutput"
     },
     {
@@ -186,11 +168,11 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        1632,
-        1584
+        1296,
+        336
       ],
-      "id": "17893a62-674d-4f39-862b-ddddb7ac3350",
-      "name": "\u2705 Gate \u2014 ICP Match + Not Yet Validated?"
+      "id": "ce5b08fe-d309-43aa-8468-dad007a4608b",
+      "name": "✅ Gate — ICP Match + Not Yet Validated?"
     },
     {
       "parameters": {
@@ -553,17 +535,11 @@
       "type": "n8n-nodes-base.airtable",
       "typeVersion": 2.2,
       "position": [
-        1600,
-        1376
+        1264,
+        0
       ],
-      "id": "bdefefcc-d4bb-45be-9d1b-4f84f9cf91ff",
-      "name": "\ud83d\udccb Airtable \u2014 Store Unvalidated Lead",
-      "credentials": {
-        "airtableTokenApi": {
-          "id": "YOUR_AIRTABLE_CREDENTIAL_ID",
-          "name": "Airtable Personal Access Token account 2"
-        }
-      }
+      "id": "1d85e9e6-0ad7-435a-90e9-ea771bc71e5c",
+      "name": "📋 Airtable — Store Unvalidated Lead"
     },
     {
       "parameters": {
@@ -604,11 +580,11 @@
       "type": "n8n-nodes-base.airtable",
       "typeVersion": 2.2,
       "position": [
-        480,
-        1840
+        144,
+        576
       ],
-      "id": "4d9e7572-e109-439b-9ac4-aa5ceeb090da",
-      "name": "\ud83d\udd0e Airtable \u2014 Fetch Unvalidated Queue"
+      "id": "f7eeaa45-1235-41ec-942a-9a80f7daa2d9",
+      "name": "🔎 Airtable — Fetch Unvalidated Queue"
     },
     {
       "parameters": {
@@ -932,11 +908,11 @@
       "type": "n8n-nodes-base.airtable",
       "typeVersion": 2.2,
       "position": [
-        2080,
-        1664
+        1744,
+        400
       ],
-      "id": "7d0fc114-b69b-4539-b380-301b7f39fc58",
-      "name": "\ud83d\udcbe Airtable \u2014 Write Validation Results"
+      "id": "6f8410a2-6aa9-4dc1-a34e-71cf4a34dcf0",
+      "name": "💾 Airtable — Write Validation Results"
     },
     {
       "parameters": {
@@ -945,11 +921,11 @@
       "type": "n8n-nodes-base.limit",
       "typeVersion": 1,
       "position": [
-        1376,
-        1376
+        1040,
+        0
       ],
-      "id": "07fb2895-1c95-4df3-8ab4-83f4f0e09710",
-      "name": "\u26a1 Limit \u2014 Cap Batch to 30 Leads"
+      "id": "98e2028c-1563-469a-abd7-9b0b9dffa470",
+      "name": "⚡ Limit — Cap Batch to 30 Leads"
     },
     {
       "parameters": {
@@ -1286,11 +1262,11 @@
       "type": "n8n-nodes-base.airtable",
       "typeVersion": 2.2,
       "position": [
-        928,
-        1376
+        592,
+        0
       ],
-      "id": "a0535bb5-1168-49dd-afbe-f34e904fdacf",
-      "name": "\ud83d\udce5 Airtable \u2014 Upsert Raw Lead"
+      "id": "f71c95d3-6bbe-490e-a4ba-5a0e89a1eda5",
+      "name": "📥 Airtable — Upsert Raw Lead"
     },
     {
       "parameters": {
@@ -1321,215 +1297,233 @@
       "type": "n8n-nodes-base.filter",
       "typeVersion": 2.3,
       "position": [
-        1152,
-        1376
+        816,
+        0
       ],
-      "id": "44201ff0-20b2-4ade-9f70-56680f689b04",
-      "name": "\ud83d\udd0d Filter \u2014 Skip Already-Validated Leads"
+      "id": "ad756fac-86d4-461e-a51f-88c52424f5ce",
+      "name": "🔍 Filter — Skip Already-Validated Leads"
     },
     {
       "parameters": {
-        "operation": "Run actor and get dataset",
-        "actorId": {
-          "__rl": true,
-          "value": "IoSHqwTR9YGhzccez",
-          "mode": "list",
-          "cachedResultName": "\u2728Leads Finder - $1.5/1k leads with Emails [Apollo Alternative] (code_crafter/leads-finder)",
-          "cachedResultUrl": "https://console.apify.com/actors/IoSHqwTR9YGhzccez/input"
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d411163c-8cda-488c-a79a-49a3cc23ef49",
+              "name": "Dataset",
+              "value": "bRJfDd89yk2NnU1vr",
+              "type": "string"
+            }
+          ]
         },
-        "authentication": "apifyOAuth2Api"
+        "options": {}
       },
-      "type": "@apify/n8n-nodes-apify.apify",
-      "typeVersion": 1,
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
       "position": [
-        480,
-        1376
+        144,
+        0
       ],
-      "id": "0466aace-ee47-493a-a055-23977b852426",
-      "name": "\ud83d\udd77\ufe0f Apify \u2014 Run Leads Finder Actor"
+      "id": "d8249dd0-a185-41df-9a31-73ab0946e3f1",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {}
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -80,
+        0
+      ],
+      "id": "dfd40439-5d2f-4c10-b812-9bfed839e5bb",
+      "name": "⏰ Trigger — Validation Queue (Scheduled)1"
     }
   ],
-  "pinData": {},
   "connections": {
-    "\u23f0 Trigger \u2014 Apify Lead Scrape (Scheduled)": {
+    "📦 Apify — Fetch Dataset Items": {
       "main": [
         [
           {
-            "node": "\ud83d\udd77\ufe0f Apify \u2014 Run Leads Finder Actor",
+            "node": "📥 Airtable — Upsert Raw Lead",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "\ud83d\udce6 Apify \u2014 Fetch Dataset Items": {
+    "🤖 Gemini — ICP Vertical + Email Scorer": {
       "main": [
         [
           {
-            "node": "\ud83d\udce5 Airtable \u2014 Upsert Raw Lead",
+            "node": "📋 Parser — Extract Structured AI Output",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "\ud83e\udd16 Gemini \u2014 ICP Vertical + Email Scorer": {
-      "main": [
-        [
-          {
-            "node": "\ud83d\udccb Parser \u2014 Extract Structured AI Output",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "\ud83e\udde0 LLM \u2014 Google Gemini (Flash)": {
+    "🧠 LLM — Google Gemini (Flash)": {
       "ai_languageModel": [
         [
           {
-            "node": "\ud83e\udd16 Gemini \u2014 ICP Vertical + Email Scorer",
+            "node": "🤖 Gemini — ICP Vertical + Email Scorer",
             "type": "ai_languageModel",
             "index": 0
           },
           {
-            "node": "\ud83d\udccb Parser \u2014 Extract Structured AI Output",
+            "node": "📋 Parser — Extract Structured AI Output",
             "type": "ai_languageModel",
             "index": 0
           }
         ]
       ]
     },
-    "\ud83d\udd01 Loop \u2014 Process Each Lead": {
+    "🔁 Loop — Process Each Lead": {
       "main": [
         [],
         [
           {
-            "node": "\ud83e\udd16 Gemini \u2014 ICP Vertical + Email Scorer",
+            "node": "🤖 Gemini — ICP Vertical + Email Scorer",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "\ud83d\udccb Parser \u2014 Extract Structured AI Output": {
+    "📋 Parser — Extract Structured AI Output": {
       "main": [
         [
           {
-            "node": "\u2705 Gate \u2014 ICP Match + Not Yet Validated?",
+            "node": "✅ Gate — ICP Match + Not Yet Validated?",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "\u23f0 Trigger \u2014 Validation Queue (Scheduled)": {
+    "⏰ Trigger — Validation Queue (Scheduled)": {
       "main": [
         [
           {
-            "node": "\ud83d\udd0e Airtable \u2014 Fetch Unvalidated Queue",
+            "node": "🔎 Airtable — Fetch Unvalidated Queue",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "\ud83d\udce1 Clearout API \u2014 Verify Email Deliverability": {
+    "📡 Clearout API — Verify Email Deliverability": {
       "main": [
         [
           {
-            "node": "\ud83d\udcbe Airtable \u2014 Write Validation Results",
+            "node": "💾 Airtable — Write Validation Results",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "\ud83d\udd01 Loop \u2014 Process Each Lead",
+            "node": "🔁 Loop — Process Each Lead",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "\u2705 Gate \u2014 ICP Match + Not Yet Validated?": {
+    "✅ Gate — ICP Match + Not Yet Validated?": {
       "main": [
         [
           {
-            "node": "\ud83d\udce1 Clearout API \u2014 Verify Email Deliverability",
+            "node": "📡 Clearout API — Verify Email Deliverability",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "\ud83d\udcbe Airtable \u2014 Write Validation Results",
+            "node": "💾 Airtable — Write Validation Results",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "\ud83d\udd0e Airtable \u2014 Fetch Unvalidated Queue": {
+    "🔎 Airtable — Fetch Unvalidated Queue": {
       "main": [
         [
           {
-            "node": "\ud83d\udd01 Loop \u2014 Process Each Lead",
+            "node": "🔁 Loop — Process Each Lead",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "\ud83d\udcbe Airtable \u2014 Write Validation Results": {
+    "💾 Airtable — Write Validation Results": {
       "main": [
         [
           {
-            "node": "\ud83d\udd01 Loop \u2014 Process Each Lead",
+            "node": "🔁 Loop — Process Each Lead",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "\u26a1 Limit \u2014 Cap Batch to 30 Leads": {
+    "⚡ Limit — Cap Batch to 30 Leads": {
       "main": [
         [
           {
-            "node": "\ud83d\udccb Airtable \u2014 Store Unvalidated Lead",
+            "node": "📋 Airtable — Store Unvalidated Lead",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "\ud83d\udce5 Airtable \u2014 Upsert Raw Lead": {
+    "📥 Airtable — Upsert Raw Lead": {
       "main": [
         [
           {
-            "node": "\ud83d\udd0d Filter \u2014 Skip Already-Validated Leads",
+            "node": "🔍 Filter — Skip Already-Validated Leads",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "\ud83d\udd0d Filter \u2014 Skip Already-Validated Leads": {
+    "🔍 Filter — Skip Already-Validated Leads": {
       "main": [
         [
           {
-            "node": "\u26a1 Limit \u2014 Cap Batch to 30 Leads",
+            "node": "⚡ Limit — Cap Batch to 30 Leads",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "\ud83d\udd77\ufe0f Apify \u2014 Run Leads Finder Actor": {
+    "Edit Fields": {
       "main": [
         [
           {
-            "node": "\ud83d\udce6 Apify \u2014 Fetch Dataset Items",
+            "node": "📦 Apify — Fetch Dataset Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "⏰ Trigger — Validation Queue (Scheduled)1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
             "type": "main",
             "index": 0
           }
@@ -1537,16 +1531,8 @@
       ]
     }
   },
-  "active": false,
-  "settings": {
-    "executionOrder": "v1",
-    "binaryMode": "separate"
-  },
-  "versionId": "7bbb8174-a1f3-4ee9-9ee7-210999cf5aa2",
+  "pinData": {},
   "meta": {
-    "templateCredsSetupCompleted": true,
-    "instanceId": "YOUR_N8N_INSTANCE_ID"
-  },
-  "id": "fNbMgkKOL5ocK6ud",
-  "tags": []
+    "instanceId": "df00c59d722ac7157757fb11cc13b9405a6020eaa7e850b6bd21887b97d87ed0"
+  }
 }

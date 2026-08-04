@@ -22,7 +22,8 @@ export function CsvUploadStep({ onParsed }: CsvUploadStepProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const parseCsv = useCallback((text: string, fileName: string): ParsedCsv => {
-    const lines = text.split(/\r?\n/).filter((l) => l.trim());
+    const lines = splitCsvRows(text);
+
     if (lines.length < 2) {
       throw new Error("CSV file must have a header row and at least one data row");
     }
@@ -32,7 +33,7 @@ export function CsvUploadStep({ onParsed }: CsvUploadStepProps) {
 
     for (let i = 1; i < lines.length; i++) {
       const row = parseCsvLine(lines[i]);
-      if (row.length > 0) {
+      if (row.some((cell) => cell !== "")) {
         rows.push(row);
       }
     }
@@ -204,6 +205,54 @@ export function CsvUploadStep({ onParsed }: CsvUploadStepProps) {
       )}
     </div>
   );
+}
+
+function splitCsvRows(text: string): string[] {
+  const rows: string[] = [];
+  let current = "";
+  let inQuotes = false;
+
+  for (let i = 0; i < text.length; i++) {
+    const char = text[i];
+
+    if (inQuotes) {
+      current += char;
+      if (char === '"') {
+        if (i + 1 < text.length && text[i + 1] === '"') {
+          current += '"';
+          i++;
+        } else {
+          inQuotes = false;
+        }
+      }
+    } else {
+      if (char === '"') {
+        current += char;
+        inQuotes = true;
+      } else if (char === "\n") {
+        rows.push(current);
+        current = "";
+      } else if (char === "\r") {
+        // skip — handle \r\n
+        if (i + 1 < text.length && text[i + 1] === "\n") {
+          rows.push(current);
+          current = "";
+          i++;
+        } else {
+          rows.push(current);
+          current = "";
+        }
+      } else {
+        current += char;
+      }
+    }
+  }
+
+  if (current) {
+    rows.push(current);
+  }
+
+  return rows.filter((r) => r.trim());
 }
 
 function parseCsvLine(line: string): string[] {

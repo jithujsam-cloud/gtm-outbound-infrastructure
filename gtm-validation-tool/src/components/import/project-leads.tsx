@@ -15,9 +15,11 @@ interface ProjectLeadsProps {
 
 export function ProjectLeads({ projectId, initialLeads, initialTotal }: ProjectLeadsProps) {
   const [importOpen, setImportOpen] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const handleImported = useCallback(() => {
     setImportOpen(false);
+    setRefreshKey((k) => k + 1);
   }, []);
 
   return (
@@ -36,6 +38,7 @@ export function ProjectLeads({ projectId, initialLeads, initialTotal }: ProjectL
           projectId={projectId}
           initialData={initialLeads}
           initialTotal={initialTotal}
+          refreshKey={refreshKey}
         />
       </div>
 

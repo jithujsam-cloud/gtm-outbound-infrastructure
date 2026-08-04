@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   useReactTable,
   getCoreRowModel,
@@ -37,14 +37,24 @@ interface LeadsTableProps {
   projectId: string;
   initialData: Lead[];
   initialTotal: number;
+  refreshKey?: number;
 }
 
-export function LeadsTable({ projectId, initialData, initialTotal }: LeadsTableProps) {
+export function LeadsTable({ projectId, initialData, initialTotal, refreshKey }: LeadsTableProps) {
   const [data, setData] = useState<Lead[]>(initialData);
   const [sorting, setSorting] = useState<SortingState>([]);
   const [globalFilter, setGlobalFilter] = useState("");
   const [totalCount, setTotalCount] = useState(initialTotal);
   const [loading, setLoading] = useState(false);
+  const initialLoad = useRef(false);
+
+  useEffect(() => {
+    if (!initialLoad.current) {
+      initialLoad.current = true;
+      return;
+    }
+    fetchPage(0);
+  }, [refreshKey]);
 
   const table = useReactTable({
     data,
@@ -141,8 +151,8 @@ export function LeadsTable({ projectId, initialData, initialTotal }: LeadsTableP
             variant="outline"
             size="sm"
             onClick={() => {
-              table.previousPage();
               fetchPage(table.getState().pagination.pageIndex - 1);
+              table.previousPage();
             }}
             disabled={!table.getCanPreviousPage()}
           >
@@ -157,8 +167,8 @@ export function LeadsTable({ projectId, initialData, initialTotal }: LeadsTableP
             variant="outline"
             size="sm"
             onClick={() => {
-              table.nextPage();
               fetchPage(table.getState().pagination.pageIndex + 1);
+              table.nextPage();
             }}
             disabled={!table.getCanNextPage()}
           >

@@ -2,12 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 const notConfigured = NextResponse.json(
-  { error: "Supabase is not configured" },
+  { error: "Supabase is not configured. Go to /integrations to set it up." },
   { status: 503 }
 );
 
 export async function GET() {
-  const supabase = createAdminClient();
+  const supabase = await createAdminClient();
   if (!supabase) return notConfigured;
 
   const { data, error } = await supabase
@@ -28,7 +28,7 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
-  const supabase = createAdminClient();
+  const supabase = await createAdminClient();
   if (!supabase) return notConfigured;
 
   const body = await request.json();

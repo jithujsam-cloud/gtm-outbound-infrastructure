@@ -55,7 +55,14 @@ export default async function ProjectPage({
           <div>
             <p className="text-sm font-medium">Supabase is not configured</p>
             <p className="text-xs text-amber-700 dark:text-amber-300 mt-0.5">
-              Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in your Vercel environment variables.
+              Go to{" "}
+              <a
+                href="/integrations"
+                className="underline underline-offset-2 font-medium hover:text-amber-900 dark:hover:text-amber-100"
+              >
+                Integrations
+              </a>{" "}
+              and paste your Supabase project URL, anon key, and service role key.
             </p>
           </div>
         </div>

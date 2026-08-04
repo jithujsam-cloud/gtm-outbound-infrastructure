@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 const notConfigured = NextResponse.json(
-  { error: "Supabase is not configured" },
+  { error: "Supabase is not configured. Go to /integrations to set it up." },
   { status: 503 }
 );
 
@@ -11,7 +11,7 @@ export async function GET(
   { params }: { params: Promise<{ projectId: string }> }
 ) {
   const { projectId } = await params;
-  const supabase = createAdminClient();
+  const supabase = await createAdminClient();
   if (!supabase) return notConfigured;
 
   const { data, error } = await supabase
@@ -32,7 +32,7 @@ export async function PUT(
   { params }: { params: Promise<{ projectId: string }> }
 ) {
   const { projectId } = await params;
-  const supabase = createAdminClient();
+  const supabase = await createAdminClient();
   if (!supabase) return notConfigured;
 
   const body = await request.json();
@@ -56,7 +56,7 @@ export async function DELETE(
   { params }: { params: Promise<{ projectId: string }> }
 ) {
   const { projectId } = await params;
-  const supabase = createAdminClient();
+  const supabase = await createAdminClient();
   if (!supabase) return notConfigured;
 
   const { error } = await supabase

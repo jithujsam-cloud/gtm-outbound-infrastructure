@@ -1,14 +1,21 @@
 import { StatsCards } from "@/components/dashboard/stats-cards";
 import { RecentProjects } from "@/components/dashboard/recent-projects";
+import { DashboardCharts } from "@/components/charts/dashboard-charts";
 import { AlertTriangle } from "lucide-react";
 import type { DashboardStats } from "@/types";
 import type { Project } from "@/types";
 
 export const dynamic = "force-dynamic";
 
+interface VerticalCount {
+  vertical: string;
+  count: number;
+}
+
 async function getDashboardData(): Promise<{
   stats: DashboardStats;
   projects: (Project & { lead_count: number })[];
+  verticalBreakdown: VerticalCount[];
   configured: boolean;
 }> {
   try {
@@ -19,6 +26,7 @@ async function getDashboardData(): Promise<{
       return {
         stats: { totalProjects: 0, totalLeads: 0, validatedLeads: 0, icpMatchRate: 0 },
         projects: [],
+        verticalBreakdown: [],
         configured: false,
       };
     }
@@ -29,54 +37,54 @@ async function getDashboardData(): Promise<{
       { count: validatedLeads },
       { count: icpMatches },
       { data: recentProjects },
+      { data: verticalRows },
     ] = await Promise.all([
       supabase.from("projects").select("*", { count: "exact", head: true }),
       supabase.from("leads").select("*", { count: "exact", head: true }),
-      supabase
-        .from("leads")
-        .select("*", { count: "exact", head: true })
-        .not("email_check", "is", null),
-      supabase
-        .from("leads")
-        .select("*", { count: "exact", head: true })
-        .eq("vertical_match", true),
-      supabase
-        .from("projects")
-        .select("*, leads(count)")
-        .order("created_at", { ascending: false })
-        .limit(5),
+      supabase.from("leads").select("*", { count: "exact", head: true }).not("email_check", "is", null),
+      supabase.from("leads").select("*", { count: "exact", head: true }).eq("vertical_match", true),
+      supabase.from("projects").select("*, leads(count)").order("created_at", { ascending: false }).limit(5),
+      supabase.from("leads").select("matched_vertical").eq("vertical_match", true).not("matched_vertical", "is", null),
     ]);
 
-    const projects =
-      recentProjects?.map((p) => ({
-        ...p,
-        lead_count: (p.leads as unknown as { count: number }[])?.[0]?.count ?? 0,
-      })) ?? [];
+    const verticalCounts: Record<string, number> = {};
+    for (const row of (verticalRows ?? [])) {
+      const v = row.matched_vertical!;
+      verticalCounts[v] = (verticalCounts[v] ?? 0) + 1;
+    }
+
+    const verticalBreakdown: VerticalCount[] = [
+      "D2C / E-commerce", "Defense / Aviation", "Fintech", "Pharma", "Semiconductor / Data Center",
+    ].map((v) => ({ vertical: v, count: verticalCounts[v] ?? 0 }));
+
+    const projects = recentProjects?.map((p) => ({
+      ...p,
+      lead_count: (p.leads as unknown as { count: number }[])?.[0]?.count ?? 0,
+    })) ?? [];
 
     return {
       stats: {
         totalProjects: totalProjects ?? 0,
         totalLeads: totalLeads ?? 0,
         validatedLeads: validatedLeads ?? 0,
-        icpMatchRate:
-          totalLeads && totalLeads > 0
-            ? Math.round(((icpMatches ?? 0) / totalLeads) * 100)
-            : 0,
+        icpMatchRate: totalLeads && totalLeads > 0 ? Math.round(((icpMatches ?? 0) / totalLeads) * 100) : 0,
       },
       projects,
+      verticalBreakdown,
       configured: true,
     };
   } catch {
     return {
       stats: { totalProjects: 0, totalLeads: 0, validatedLeads: 0, icpMatchRate: 0 },
       projects: [],
+      verticalBreakdown: [],
       configured: false,
     };
   }
 }
 
 export default async function DashboardPage() {
-  const { stats, projects, configured } = await getDashboardData();
+  const { stats, projects, verticalBreakdown, configured } = await getDashboardData();
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
@@ -94,10 +102,7 @@ export default async function DashboardPage() {
             <p className="text-sm font-medium">Supabase is not configured</p>
             <p className="text-xs text-amber-700 dark:text-amber-300 mt-0.5">
               Go to{" "}
-              <a
-                href="/integrations"
-                className="underline underline-offset-2 font-medium hover:text-amber-900 dark:hover:text-amber-100"
-              >
+              <a href="/integrations" className="underline underline-offset-2 font-medium hover:text-amber-900 dark:hover:text-amber-100">
                 Integrations
               </a>{" "}
               and paste your Supabase project URL, anon key, and service role key.
@@ -107,6 +112,12 @@ export default async function DashboardPage() {
       )}
 
       <StatsCards stats={stats} />
+      <DashboardCharts
+        icpRate={stats.icpMatchRate}
+        validatedCount={stats.validatedLeads}
+        totalLeads={stats.totalLeads}
+        verticalBreakdown={verticalBreakdown}
+      />
       <RecentProjects projects={projects} />
     </div>
   );

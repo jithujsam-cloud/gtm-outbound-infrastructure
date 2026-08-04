@@ -3,7 +3,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LeadsTable } from "@/components/spreadsheet/leads-table";
 import type { Lead } from "@/types";
 
+export const dynamic = "force-dynamic";
+
 async function getProjectWithLeads(projectId: string) {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+    return null;
+  }
+
   try {
     const { createClient } = await import("@/lib/supabase/server");
     const supabase = await createClient();

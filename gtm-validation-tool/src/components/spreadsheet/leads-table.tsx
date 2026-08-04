@@ -1,11 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import {
   useReactTable,
   getCoreRowModel,
   getSortedRowModel,
-  getPaginationState,
   getPaginationRowModel,
   flexRender,
   type ColumnDef,

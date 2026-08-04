@@ -1,55 +1,96 @@
-import * as React from "react"
-import { cn } from "@/lib/utils"
+"use client";
 
-function Dialog({ ...props }: React.ComponentProps<"div">) {
-  return <div data-slot="dialog" {...props} />
+import * as React from "react";
+import { cn } from "@/lib/utils";
+
+interface DialogContextValue {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
-function DialogTrigger({ ...props }: React.ComponentProps<"div">) {
-  return <div data-slot="dialog-trigger" {...props} />
+const DialogContext = React.createContext<DialogContextValue | null>(null);
+
+function useDialog() {
+  const ctx = React.useContext(DialogContext);
+  if (!ctx) throw new Error("Dialog components must be used within <Dialog>");
+  return ctx;
 }
 
-function DialogContent({ className, ...props }: React.ComponentProps<"div">) {
+function Dialog({
+  open,
+  onOpenChange,
+  children,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  children: React.ReactNode;
+}) {
+  if (!open) return null;
+
+  return (
+    <DialogContext.Provider value={{ open, onOpenChange }}>
+      {children}
+    </DialogContext.Provider>
+  );
+}
+
+function DialogOverlay({ className, ...props }: React.ComponentProps<"div">) {
+  const { onOpenChange } = useDialog();
   return (
     <div
-      data-slot="dialog-content"
       className={cn(
-        "bg-background max-w-lg rounded-lg border p-6 shadow-lg",
+        "fixed inset-0 z-50 bg-black/50 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
         className
       )}
+      onClick={() => onOpenChange(false)}
       {...props}
     />
-  )
+  );
+}
+
+function DialogContent({ className, children, ...props }: React.ComponentProps<"div">) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      <DialogOverlay />
+      <div
+        className={cn(
+          "relative z-50 bg-background max-w-lg rounded-lg border p-6 shadow-lg",
+          className
+        )}
+        onClick={(e) => e.stopPropagation()}
+        {...props}
+      >
+        {children}
+      </div>
+    </div>
+  );
 }
 
 function DialogHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
-      data-slot="dialog-header"
       className={cn("flex flex-col gap-2 text-center sm:text-left", className)}
       {...props}
     />
-  )
+  );
 }
 
 function DialogTitle({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
-      data-slot="dialog-title"
       className={cn("text-lg leading-none font-semibold", className)}
       {...props}
     />
-  )
+  );
 }
 
 function DialogDescription({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
-      data-slot="dialog-description"
       className={cn("text-muted-foreground text-sm", className)}
       {...props}
     />
-  )
+  );
 }
 
-export { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription }
+export { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription };

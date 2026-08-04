@@ -3,6 +3,8 @@ import { RecentProjects } from "@/components/dashboard/recent-projects";
 import type { DashboardStats } from "@/types";
 import type { Project } from "@/types";
 
+export const dynamic = "force-dynamic";
+
 async function getDashboardData(): Promise<{
   stats: DashboardStats;
   projects: (Project & { lead_count: number })[];

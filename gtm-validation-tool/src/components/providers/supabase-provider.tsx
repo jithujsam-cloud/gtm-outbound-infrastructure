@@ -24,10 +24,9 @@ export function SupabaseProvider({ children }: { children: React.ReactNode }) {
 
 export function useSupabase() {
   const client = useContext(SupabaseContext);
-  if (!client) {
+  if (client === null) {
     throw new Error(
-      "useSupabase must be used within SupabaseProvider and Supabase must be configured. " +
-      "Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY environment variables."
+      "Supabase is not configured. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY environment variables."
     );
   }
   return client;

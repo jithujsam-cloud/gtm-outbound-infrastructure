@@ -1,12 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 
+const notConfigured = NextResponse.json(
+  { error: "Supabase is not configured" },
+  { status: 503 }
+);
+
 export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ projectId: string }> }
 ) {
   const { projectId } = await params;
   const supabase = createAdminClient();
+  if (!supabase) return notConfigured;
 
   const url = new URL(_request.url);
   const page = parseInt(url.searchParams.get("page") ?? "1");
@@ -39,6 +45,8 @@ export async function POST(
 ) {
   const { projectId } = await params;
   const supabase = createAdminClient();
+  if (!supabase) return notConfigured;
+
   const body = await request.json();
 
   const leads = Array.isArray(body) ? body : [body];

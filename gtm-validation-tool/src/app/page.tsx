@@ -1,5 +1,6 @@
 import { StatsCards } from "@/components/dashboard/stats-cards";
 import { RecentProjects } from "@/components/dashboard/recent-projects";
+import { AlertTriangle } from "lucide-react";
 import type { DashboardStats } from "@/types";
 import type { Project } from "@/types";
 
@@ -8,10 +9,19 @@ export const dynamic = "force-dynamic";
 async function getDashboardData(): Promise<{
   stats: DashboardStats;
   projects: (Project & { lead_count: number })[];
+  configured: boolean;
 }> {
   try {
     const { createClient } = await import("@/lib/supabase/server");
     const supabase = await createClient();
+
+    if (!supabase) {
+      return {
+        stats: { totalProjects: 0, totalLeads: 0, validatedLeads: 0, icpMatchRate: 0 },
+        projects: [],
+        configured: false,
+      };
+    }
 
     const [
       { count: totalProjects },
@@ -54,22 +64,19 @@ async function getDashboardData(): Promise<{
             : 0,
       },
       projects,
+      configured: true,
     };
   } catch {
     return {
-      stats: {
-        totalProjects: 0,
-        totalLeads: 0,
-        validatedLeads: 0,
-        icpMatchRate: 0,
-      },
+      stats: { totalProjects: 0, totalLeads: 0, validatedLeads: 0, icpMatchRate: 0 },
       projects: [],
+      configured: false,
     };
   }
 }
 
 export default async function DashboardPage() {
-  const { stats, projects } = await getDashboardData();
+  const { stats, projects, configured } = await getDashboardData();
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
@@ -79,6 +86,19 @@ export default async function DashboardPage() {
           Overview of your lead validation pipeline.
         </p>
       </div>
+
+      {!configured && (
+        <div className="flex items-center gap-3 rounded-lg border border-amber-200 bg-amber-50 p-4 text-amber-800 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-200">
+          <AlertTriangle className="size-5 shrink-0" />
+          <div>
+            <p className="text-sm font-medium">Supabase is not configured</p>
+            <p className="text-xs text-amber-700 dark:text-amber-300 mt-0.5">
+              Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in your Vercel environment variables.
+            </p>
+          </div>
+        </div>
+      )}
+
       <StatsCards stats={stats} />
       <RecentProjects projects={projects} />
     </div>

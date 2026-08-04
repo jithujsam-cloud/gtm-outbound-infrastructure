@@ -130,6 +130,29 @@ export interface Database {
           updated_at?: string
         }
       }
+      integration_settings: {
+        Row: {
+          id: string
+          provider: string
+          api_key: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          provider: string
+          api_key: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          provider?: string
+          api_key?: string
+          created_at?: string
+          updated_at?: string
+        }
+      }
     }
     Views: {}
     Functions: {}

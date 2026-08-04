@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { AlertTriangle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { LeadsTable } from "@/components/spreadsheet/leads-table";
+import { ProjectLeads } from "@/components/import/project-leads";
 import type { Lead } from "@/types";
 
 export const dynamic = "force-dynamic";
@@ -86,9 +86,9 @@ export default async function ProjectPage({
           <CardTitle className="text-base">Leads ({total})</CardTitle>
         </CardHeader>
         <CardContent>
-          <LeadsTable
+          <ProjectLeads
             projectId={projectId}
-            initialData={leads}
+            initialLeads={leads}
             initialTotal={total}
           />
         </CardContent>

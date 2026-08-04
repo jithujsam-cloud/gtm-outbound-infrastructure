@@ -1,32 +1,32 @@
 import { NextRequest, NextResponse } from "next/server";
+import { COOKIE_MAP } from "@/lib/supabase/config";
 
-const COOKIE_PREFIX = "gtm_supabase_";
-const COOKIE_KEYS = ["url", "anon_key", "service_role_key"] as const;
+const COOKIE_OPTIONS = {
+  path: "/",
+  httpOnly: true,
+  secure: false,
+  sameSite: "lax" as const,
+  maxAge: 60 * 60 * 24 * 30, // 30 days
+};
+
+const KEYS_TO_SAVE = [
+  { bodyKey: "supabaseUrl", cookieKey: COOKIE_MAP.supabase_url },
+  { bodyKey: "supabaseAnonKey", cookieKey: COOKIE_MAP.supabase_anon_key },
+  { bodyKey: "supabaseServiceRoleKey", cookieKey: COOKIE_MAP.supabase_service_role_key },
+  { bodyKey: "geminiApiKey", cookieKey: COOKIE_MAP.gemini_api_key },
+  { bodyKey: "clearoutApiKey", cookieKey: COOKIE_MAP.clearout_api_key },
+] as const;
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
 
-  const cookieOptions = {
-    path: "/",
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax" as const,
-    maxAge: 60 * 60 * 24 * 30, // 30 days
-  };
-
   const response = NextResponse.json({ success: true });
 
-  if (body.url) {
-    response.cookies.set(`${COOKIE_PREFIX}url`, body.url, cookieOptions);
-  }
-  if (body.anonKey) {
-    response.cookies.set(`${COOKIE_PREFIX}anon_key`, body.anonKey, cookieOptions);
-  }
-  if (body.serviceRoleKey) {
-    response.cookies.set(`${COOKIE_PREFIX}service_role_key`, body.serviceRoleKey, {
-      ...cookieOptions,
-      maxAge: body.serviceRoleKey ? 60 * 60 * 24 * 30 : 0,
-    });
+  for (const { bodyKey, cookieKey } of KEYS_TO_SAVE) {
+    const value = body[bodyKey];
+    if (value) {
+      response.cookies.set(cookieKey, value, COOKIE_OPTIONS);
+    }
   }
 
   return response;
@@ -36,8 +36,8 @@ export async function DELETE() {
   const response = NextResponse.json({ success: true });
   const expireOptions = { path: "/", maxAge: 0 };
 
-  for (const key of COOKIE_KEYS) {
-    response.cookies.set(`${COOKIE_PREFIX}${key}`, "", expireOptions);
+  for (const { cookieKey } of KEYS_TO_SAVE) {
+    response.cookies.set(cookieKey, "", expireOptions);
   }
 
   return response;

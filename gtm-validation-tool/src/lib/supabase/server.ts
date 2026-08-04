@@ -2,6 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/database";
+import { COOKIE_MAP } from "./config";
 
 async function resolveConfig(): Promise<{ url: string; key: string } | null> {
   const envUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -13,8 +14,8 @@ async function resolveConfig(): Promise<{ url: string; key: string } | null> {
 
   try {
     const cookieStore = await cookies();
-    const cookieUrl = cookieStore.get("gtm_supabase_url")?.value;
-    const cookieKey = cookieStore.get("gtm_supabase_anon_key")?.value;
+    const cookieUrl = cookieStore.get(COOKIE_MAP.supabase_url)?.value;
+    const cookieKey = cookieStore.get(COOKIE_MAP.supabase_anon_key)?.value;
 
     if (cookieUrl && cookieKey) {
       return { url: cookieUrl, key: cookieKey };

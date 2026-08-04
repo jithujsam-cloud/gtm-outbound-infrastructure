@@ -14,8 +14,8 @@ function resolveConfig(): { url: string; key: string } | null {
   }
 
   const localConfig = getLocalConfig();
-  if (localConfig?.url && localConfig?.anonKey) {
-    return { url: localConfig.url, key: localConfig.anonKey };
+  if (localConfig.supabaseUrl && localConfig.supabaseAnonKey) {
+    return { url: localConfig.supabaseUrl, key: localConfig.supabaseAnonKey };
   }
 
   return null;

@@ -1,6 +1,7 @@
+import { Suspense } from "react";
 import { StatsCards } from "@/components/dashboard/stats-cards";
-import { RecentProjects } from "@/components/dashboard/recent-projects";
-import { DashboardCharts } from "@/components/charts/dashboard-charts";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { AlertTriangle } from "lucide-react";
 import type { DashboardStats } from "@/types";
 import type { Project } from "@/types";
@@ -83,9 +84,7 @@ async function getDashboardData(): Promise<{
   }
 }
 
-export default async function DashboardPage() {
-  const { stats, projects, verticalBreakdown, configured } = await getDashboardData();
-
+export default function DashboardPage() {
   return (
     <div className="space-y-8">
       <div>
@@ -95,6 +94,21 @@ export default async function DashboardPage() {
         </p>
       </div>
 
+      <Suspense fallback={<StatsSkeleton />}>
+        <DashboardContent />
+      </Suspense>
+    </div>
+  );
+}
+
+async function DashboardContent() {
+  const { stats, projects, verticalBreakdown, configured } = await getDashboardData();
+
+  const { DashboardCharts } = await import("@/components/charts/dashboard-charts");
+  const { RecentProjects } = await import("@/components/dashboard/recent-projects");
+
+  return (
+    <>
       {!configured && (
         <div className="flex items-center gap-3 rounded-lg border border-amber-200 bg-amber-50 p-4 text-amber-800 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-200">
           <AlertTriangle className="size-5 shrink-0" />
@@ -119,6 +133,54 @@ export default async function DashboardPage() {
         verticalBreakdown={verticalBreakdown}
       />
       <RecentProjects projects={projects} />
-    </div>
+    </>
+  );
+}
+
+function StatsSkeleton() {
+  return (
+    <>
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {[...Array(4)].map((_, i) => (
+          <Card key={i}>
+            <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="size-8 rounded-md" />
+            </CardHeader>
+            <CardContent>
+              <Skeleton className="h-8 w-20 mt-1" />
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>ICP Match Rate</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-center h-48">
+            <Skeleton className="size-40 rounded-full" />
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Recent Projects</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="flex items-center justify-between">
+              <div className="space-y-1.5">
+                <Skeleton className="h-4 w-40" />
+                <Skeleton className="h-3 w-56" />
+              </div>
+              <Skeleton className="h-3 w-12" />
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+    </>
   );
 }

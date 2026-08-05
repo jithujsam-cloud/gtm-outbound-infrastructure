@@ -17,12 +17,15 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ICPValidationButton } from "./icp-validation-button";
+import { EmailValidationButton } from "./email-validation-button";
 import { toast } from "sonner";
 import {
   ChevronLeft, ChevronRight, ArrowUpDown, Search,
   Upload, Columns3, X, CheckCircle2, XCircle, HelpCircle,
   ShieldCheck, ShieldX, Filter, Download, Trash2,
   ChevronDown, Globe, Building2, MapPin, Link2,
+  Brain, Mail,
 } from "lucide-react";
 
 const VERTICAL_COLORS: Record<string, string> = {
@@ -140,7 +143,7 @@ function makeColumns(
     },
     {
       id: "source",
-      header: () => <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Source</span>,
+      header: () => <span className="text-[10px] uppercase tracking-wider text-muted-foreground">&nbsp;</span>,
       columns: [
         {
           accessorKey: "full_name", header: "Name", size: 150,
@@ -391,6 +394,9 @@ export function LeadsTable({ projectId, initialData, initialTotal, refreshKey }:
             className="pl-8 h-8 text-xs"
           />
         </div>
+
+        <ICPValidationButton projectId={projectId} />
+        <EmailValidationButton projectId={projectId} />
 
         <div className="flex items-center gap-1">
           {FILTER_CHIPS.map((chip) => (

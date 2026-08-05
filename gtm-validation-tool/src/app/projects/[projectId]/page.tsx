@@ -1,7 +1,8 @@
+import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { AlertTriangle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ProjectLeads } from "@/components/import/project-leads";
+import { Skeleton } from "@/components/ui/skeleton";
 import type { Lead } from "@/types";
 
 export const dynamic = "force-dynamic";
@@ -34,7 +35,19 @@ async function getProjectWithLeads(projectId: string) {
   }
 }
 
-export default async function ProjectPage({
+export default function ProjectPage({
+  params,
+}: {
+  params: Promise<{ projectId: string }>;
+}) {
+  return (
+    <Suspense fallback={<ProjectShellSkeleton />}>
+      <ProjectContent params={params} />
+    </Suspense>
+  );
+}
+
+async function ProjectContent({
   params,
 }: {
   params: Promise<{ projectId: string }>;
@@ -46,7 +59,7 @@ export default async function ProjectPage({
 
   if (!result.configured) {
     return (
-      <div className="max-w-4xl mx-auto space-y-6">
+      <div className="space-y-6">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Project</h1>
         </div>
@@ -71,9 +84,10 @@ export default async function ProjectPage({
   }
 
   const { project, leads, total } = result;
+  const { ProjectLeads } = await import("@/components/import/project-leads");
 
   return (
-    <div className="max-w-full space-y-6">
+    <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">{project.name}</h1>
         {project.description && (
@@ -91,6 +105,37 @@ export default async function ProjectPage({
             initialLeads={leads}
             initialTotal={total}
           />
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+function ProjectShellSkeleton() {
+  return (
+    <div className="space-y-6">
+      <div>
+        <Skeleton className="h-8 w-64 mb-2" />
+        <Skeleton className="h-4 w-96" />
+      </div>
+
+      <Card>
+        <CardHeader>
+          <Skeleton className="h-5 w-24" />
+        </CardHeader>
+        <CardContent>
+          <Skeleton className="h-6 w-64 mb-4" />
+          <div className="space-y-2">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="flex gap-4">
+                <Skeleton className="h-4 w-36" />
+                <Skeleton className="h-4 w-48" />
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-4 w-40" />
+                <Skeleton className="h-4 w-20" />
+              </div>
+            ))}
+          </div>
         </CardContent>
       </Card>
     </div>

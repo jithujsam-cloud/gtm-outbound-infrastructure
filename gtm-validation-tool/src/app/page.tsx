@@ -87,7 +87,7 @@ export default async function DashboardPage() {
   const { stats, projects, verticalBreakdown, configured } = await getDashboardData();
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6">
+    <div className="space-y-8">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
         <p className="text-sm text-muted-foreground mt-1">

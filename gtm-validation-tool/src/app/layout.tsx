@@ -19,10 +19,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.variable} antialiased`}>
+      <body className={`${inter.variable} antialiased min-h-screen bg-neutral-50 text-neutral-900`}>
         <SupabaseProvider>
           <Header />
-          <main className="flex-1 p-4 md:p-6">{children}</main>
+          <main className="max-w-6xl mx-auto px-6 py-8">{children}</main>
           <Toaster position="bottom-right" />
         </SupabaseProvider>
       </body>

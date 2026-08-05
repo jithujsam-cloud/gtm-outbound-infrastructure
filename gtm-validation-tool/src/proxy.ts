@@ -1,17 +1,39 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-export default async function proxy(request: NextRequest) {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const PUBLIC_PATHS = ["/auth", "/integrations", "/api/integrations"];
 
-  if (!supabaseUrl || !supabaseAnonKey) {
+function isPublicPath(pathname: string) {
+  return PUBLIC_PATHS.some((p) => pathname.startsWith(p));
+}
+
+function getCredentials(request: NextRequest) {
+  const url =
+    process.env.NEXT_PUBLIC_SUPABASE_URL ||
+    request.cookies.get("gtm_supabase_url")?.value;
+  const anonKey =
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+    request.cookies.get("gtm_supabase_anon_key")?.value;
+
+  if (!url || !anonKey) return null;
+  return { url, anonKey };
+}
+
+export default async function proxy(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
+  if (isPublicPath(pathname)) {
     return NextResponse.next();
+  }
+
+  const credentials = getCredentials(request);
+  if (!credentials) {
+    return NextResponse.redirect(new URL("/integrations", request.url));
   }
 
   let supabaseResponse = NextResponse.next({ request });
 
-  const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
+  const supabase = createServerClient(credentials.url, credentials.anonKey, {
     cookies: {
       getAll() {
         return request.cookies.getAll();
@@ -33,12 +55,8 @@ export default async function proxy(request: NextRequest) {
       data: { user },
     } = await supabase.auth.getUser();
 
-    if (!user && !request.nextUrl.pathname.startsWith("/auth")) {
+    if (!user) {
       return NextResponse.redirect(new URL("/auth/login", request.url));
-    }
-
-    if (user && request.nextUrl.pathname.startsWith("/auth/login")) {
-      return NextResponse.redirect(new URL("/", request.url));
     }
   } catch {
     // Supabase unavailable — let the request through

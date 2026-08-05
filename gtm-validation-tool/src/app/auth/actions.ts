@@ -6,6 +6,9 @@ import { createClient } from "@/lib/supabase/server";
 
 export async function login(formData: FormData) {
   const supabase = await createClient();
+  if (!supabase) {
+    return { error: "Supabase is not configured. Go to Integrations to set it up." };
+  }
 
   const { error } = await supabase.auth.signInWithPassword({
     email: formData.get("email") as string,
@@ -22,6 +25,9 @@ export async function login(formData: FormData) {
 
 export async function signup(formData: FormData) {
   const supabase = await createClient();
+  if (!supabase) {
+    return { error: "Supabase is not configured. Go to Integrations to set it up." };
+  }
 
   const { error } = await supabase.auth.signUp({
     email: formData.get("email") as string,
@@ -39,7 +45,9 @@ export async function signup(formData: FormData) {
 export async function logout() {
   const supabase = await createClient();
 
-  await supabase.auth.signOut();
+  if (supabase) {
+    await supabase.auth.signOut();
+  }
 
   revalidatePath("/", "layout");
   redirect("/auth/login");

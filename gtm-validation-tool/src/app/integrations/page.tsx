@@ -6,34 +6,20 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
-import {
-  Database, Link, Key, Shield, CheckCircle, ExternalLink,
-  Brain, Mail,
-} from "lucide-react";
+import { Key, Brain, Mail, CheckCircle, ExternalLink, Database } from "lucide-react";
 import { getLocalConfig, saveLocalConfig, clearLocalConfig } from "@/lib/supabase/config";
 
 export default function IntegrationsPage() {
-  const [supabaseUrl, setSupabaseUrl] = useState("");
-  const [supabaseAnonKey, setSupabaseAnonKey] = useState("");
-  const [supabaseServiceRoleKey, setSupabaseServiceRoleKey] = useState("");
   const [geminiApiKey, setGeminiApiKey] = useState("");
   const [clearoutApiKey, setClearoutApiKey] = useState("");
   const [saving, setSaving] = useState(false);
-  const [supabaseSaved, setSupabaseSaved] = useState(false);
   const [geminiSaved, setGeminiSaved] = useState(false);
   const [clearoutSaved, setClearoutSaved] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
     const config = getLocalConfig();
-    if (config.supabaseUrl) {
-      setSupabaseUrl(config.supabaseUrl);
-      setSupabaseAnonKey(config.supabaseAnonKey);
-      setSupabaseServiceRoleKey(config.supabaseServiceRoleKey);
-      setSupabaseSaved(!!config.supabaseUrl && !!config.supabaseAnonKey);
-    }
     if (config.geminiApiKey) {
       setGeminiApiKey(config.geminiApiKey);
       setGeminiSaved(true);
@@ -46,18 +32,9 @@ export default function IntegrationsPage() {
 
   async function handleSaveAll(e: React.FormEvent) {
     e.preventDefault();
-
-    if (!supabaseUrl.trim() || !supabaseAnonKey.trim()) {
-      toast.error("Supabase URL and Anon Key are required");
-      return;
-    }
-
     setSaving(true);
     try {
       saveLocalConfig({
-        supabaseUrl: supabaseUrl.trim(),
-        supabaseAnonKey: supabaseAnonKey.trim(),
-        supabaseServiceRoleKey: supabaseServiceRoleKey.trim(),
         geminiApiKey: geminiApiKey.trim(),
         clearoutApiKey: clearoutApiKey.trim(),
       });
@@ -66,9 +43,6 @@ export default function IntegrationsPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          supabaseUrl: supabaseUrl.trim(),
-          supabaseAnonKey: supabaseAnonKey.trim(),
-          supabaseServiceRoleKey: supabaseServiceRoleKey.trim(),
           geminiApiKey: geminiApiKey.trim(),
           clearoutApiKey: clearoutApiKey.trim(),
         }),
@@ -76,13 +50,12 @@ export default function IntegrationsPage() {
 
       if (!res.ok) throw new Error("Failed to save");
 
-      setSupabaseSaved(true);
       setGeminiSaved(!!geminiApiKey.trim());
       setClearoutSaved(!!clearoutApiKey.trim());
-      toast.success("All integrations saved");
+      toast.success("API keys saved");
       router.refresh();
     } catch {
-      toast.error("Failed to save configuration");
+      toast.error("Failed to save");
     } finally {
       setSaving(false);
     }
@@ -91,117 +64,62 @@ export default function IntegrationsPage() {
   function handleClearAll() {
     clearLocalConfig();
     fetch("/api/integrations", { method: "DELETE" });
-    setSupabaseUrl("");
-    setSupabaseAnonKey("");
-    setSupabaseServiceRoleKey("");
     setGeminiApiKey("");
     setClearoutApiKey("");
-    setSupabaseSaved(false);
     setGeminiSaved(false);
     setClearoutSaved(false);
-    toast.success("All integration data cleared");
+    toast.success("All API keys cleared");
     router.refresh();
   }
-
-  const hasSupabase = supabaseSaved;
-  const hasGemini = geminiSaved;
-  const hasClearout = clearoutSaved;
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Integrations</h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Connect your services to power the validation pipeline.
+          Connect external APIs to power the validation pipeline.
         </p>
       </div>
 
       <form onSubmit={handleSaveAll} className="space-y-6">
-        {/* Supabase */}
-        <Card>
+        <Card className="border-emerald-200 bg-emerald-50/50">
           <CardHeader>
-            <div className="flex items-center gap-2">
-              <div className="flex size-8 items-center justify-center rounded-md bg-emerald-500/10">
+            <div className="flex items-center gap-3">
+              <div className="flex size-9 items-center justify-center rounded-lg bg-emerald-500/10">
                 <Database className="size-4 text-emerald-500" />
               </div>
               <div>
-                <CardTitle>Supabase</CardTitle>
-                <CardDescription>PostgreSQL database and API for lead storage</CardDescription>
+                <CardTitle className="text-base">Supabase</CardTitle>
+                <CardDescription>Database configured during initial setup</CardDescription>
               </div>
             </div>
           </CardHeader>
-          <CardContent className="space-y-4">
-            {hasSupabase && (
-              <div className="flex items-center gap-2 rounded-md bg-emerald-50 px-3 py-2 text-sm text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
-                <CheckCircle className="size-4" />
-                Connected
-              </div>
-            )}
-            <div className="space-y-2">
-              <Label htmlFor="supabase-url" className="flex items-center gap-1.5">
-                <Link className="size-3.5" />
-                Project URL
-              </Label>
-              <Input
-                id="supabase-url"
-                value={supabaseUrl}
-                onChange={(e) => setSupabaseUrl(e.target.value)}
-                placeholder="https://your-project.supabase.co"
-              />
-              <p className="text-xs text-muted-foreground">
-                Found in Supabase Project Settings → API.
-              </p>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="supabase-anon-key" className="flex items-center gap-1.5">
-                <Key className="size-3.5" />
-                Anon Key
-              </Label>
-              <Input
-                id="supabase-anon-key"
-                value={supabaseAnonKey}
-                onChange={(e) => setSupabaseAnonKey(e.target.value)}
-                placeholder="eyJhbGciOiJIUzI1NiIs..."
-              />
-              <p className="text-xs text-muted-foreground">
-                The <code>anon</code> public key. Safe to expose in the browser.
-              </p>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="supabase-service-key" className="flex items-center gap-1.5">
-                <Shield className="size-3.5" />
-                Service Role Key <span className="text-xs text-muted-foreground font-normal">(optional)</span>
-              </Label>
-              <Input
-                id="supabase-service-key"
-                value={supabaseServiceRoleKey}
-                onChange={(e) => setSupabaseServiceRoleKey(e.target.value)}
-                placeholder="eyJhbGciOiJIUzI1NiIs..."
-                type="password"
-              />
-              <p className="text-xs text-muted-foreground">
-                The <code>service_role</code> key for admin operations. Never exposed to the browser.
-              </p>
-            </div>
+          <CardContent>
+            <p className="text-sm text-emerald-700">
+              Connected and ready. To change your Supabase project, visit{" "}
+              <a href="/auth/setup" className="underline font-medium">
+                Setup
+              </a>
+              .
+            </p>
           </CardContent>
         </Card>
 
-        {/* Gemini */}
         <Card>
           <CardHeader>
-            <div className="flex items-center gap-2">
-              <div className="flex size-8 items-center justify-center rounded-md bg-blue-500/10">
+            <div className="flex items-center gap-3">
+              <div className="flex size-9 items-center justify-center rounded-lg bg-blue-500/10">
                 <Brain className="size-4 text-blue-500" />
               </div>
               <div>
-                <CardTitle>Google Gemini</CardTitle>
+                <CardTitle className="text-base">Google Gemini</CardTitle>
                 <CardDescription>AI-powered ICP vertical matching and email scoring</CardDescription>
               </div>
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
-            {hasGemini && (
-              <div className="flex items-center gap-2 rounded-md bg-emerald-50 px-3 py-2 text-sm text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
+            {geminiSaved && (
+              <div className="flex items-center gap-2 rounded-md bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
                 <CheckCircle className="size-4" />
                 Connected
               </div>
@@ -219,7 +137,7 @@ export default function IntegrationsPage() {
                 type="password"
               />
               <p className="text-xs text-muted-foreground">
-                Get your API key from{" "}
+                Get your key from{" "}
                 <a
                   href="https://aistudio.google.com/apikey"
                   target="_blank"
@@ -229,28 +147,27 @@ export default function IntegrationsPage() {
                   Google AI Studio
                   <ExternalLink className="inline size-3 ml-0.5" />
                 </a>
-                . Required for ICP vertical classification and email scoring.
+                .
               </p>
             </div>
           </CardContent>
         </Card>
 
-        {/* Clearout */}
         <Card>
           <CardHeader>
-            <div className="flex items-center gap-2">
-              <div className="flex size-8 items-center justify-center rounded-md bg-purple-500/10">
+            <div className="flex items-center gap-3">
+              <div className="flex size-9 items-center justify-center rounded-lg bg-purple-500/10">
                 <Mail className="size-4 text-purple-500" />
               </div>
               <div>
-                <CardTitle>Clearout</CardTitle>
+                <CardTitle className="text-base">Clearout</CardTitle>
                 <CardDescription>Email deliverability verification and SMTP validation</CardDescription>
               </div>
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
-            {hasClearout && (
-              <div className="flex items-center gap-2 rounded-md bg-emerald-50 px-3 py-2 text-sm text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
+            {clearoutSaved && (
+              <div className="flex items-center gap-2 rounded-md bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
                 <CheckCircle className="size-4" />
                 Connected
               </div>
@@ -268,7 +185,7 @@ export default function IntegrationsPage() {
                 type="password"
               />
               <p className="text-xs text-muted-foreground">
-                Get your API key from{" "}
+                Get your key from{" "}
                 <a
                   href="https://app.clearout.io/settings/api"
                   target="_blank"
@@ -278,20 +195,20 @@ export default function IntegrationsPage() {
                   Clearout Dashboard
                   <ExternalLink className="inline size-3 ml-0.5" />
                 </a>
-                . Required for email deliverability checks.
+                .
               </p>
             </div>
           </CardContent>
         </Card>
 
         <div className="flex items-center justify-end gap-2">
-          {(hasSupabase || hasGemini || hasClearout) && (
+          {(geminiSaved || clearoutSaved) && (
             <Button type="button" variant="outline" onClick={handleClearAll}>
               Clear All
             </Button>
           )}
           <Button type="submit" disabled={saving}>
-            {saving ? "Saving..." : "Save All"}
+            {saving ? "Saving..." : "Save API Keys"}
           </Button>
         </div>
       </form>

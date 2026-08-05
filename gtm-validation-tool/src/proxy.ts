@@ -1,12 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-const PUBLIC_PATHS = ["/auth", "/integrations", "/api/integrations"];
-
-function isPublicPath(pathname: string) {
-  return PUBLIC_PATHS.some((p) => pathname.startsWith(p));
-}
-
 function getCredentials(request: NextRequest) {
   const url =
     process.env.NEXT_PUBLIC_SUPABASE_URL ||
@@ -22,13 +16,16 @@ function getCredentials(request: NextRequest) {
 export default async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  if (isPublicPath(pathname)) {
+  // Auth pages are always accessible
+  if (pathname.startsWith("/auth")) {
     return NextResponse.next();
   }
 
   const credentials = getCredentials(request);
+
+  // No Supabase configured — send to setup
   if (!credentials) {
-    return NextResponse.redirect(new URL("/integrations", request.url));
+    return NextResponse.redirect(new URL("/auth/setup", request.url));
   }
 
   let supabaseResponse = NextResponse.next({ request });
@@ -59,7 +56,7 @@ export default async function proxy(request: NextRequest) {
       return NextResponse.redirect(new URL("/auth/login", request.url));
     }
   } catch {
-    // Supabase unavailable — let the request through
+    // Supabase unavailable
   }
 
   return supabaseResponse;

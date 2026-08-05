@@ -116,10 +116,10 @@ async function DashboardContent() {
             <p className="text-sm font-medium">Supabase is not configured</p>
             <p className="text-xs text-amber-700 dark:text-amber-300 mt-0.5">
               Go to{" "}
-              <a href="/integrations" className="underline underline-offset-2 font-medium hover:text-amber-900 dark:hover:text-amber-100">
-                Integrations
+              <a href="/auth/setup" className="underline underline-offset-2 font-medium hover:text-amber-900 dark:hover:text-amber-100">
+                Supabase Setup
               </a>{" "}
-              and paste your Supabase project URL, anon key, and service role key.
+              and enter your Supabase project credentials.
             </p>
           </div>
         </div>

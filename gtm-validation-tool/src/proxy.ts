@@ -25,16 +25,20 @@ export default async function proxy(request: NextRequest) {
     }
   );
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  try {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
-  if (!user && !request.nextUrl.pathname.startsWith("/auth")) {
-    return NextResponse.redirect(new URL("/auth/login", request.url));
-  }
+    if (!user && !request.nextUrl.pathname.startsWith("/auth")) {
+      return NextResponse.redirect(new URL("/auth/login", request.url));
+    }
 
-  if (user && request.nextUrl.pathname.startsWith("/auth/login")) {
-    return NextResponse.redirect(new URL("/", request.url));
+    if (user && request.nextUrl.pathname.startsWith("/auth/login")) {
+      return NextResponse.redirect(new URL("/", request.url));
+    }
+  } catch {
+    // Supabase unavailable — let the request through
   }
 
   return supabaseResponse;

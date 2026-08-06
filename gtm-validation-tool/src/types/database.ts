@@ -12,6 +12,7 @@ export interface Database {
       projects: {
         Row: {
           id: string
+          user_id: string | null
           name: string
           description: string | null
           created_at: string
@@ -19,6 +20,7 @@ export interface Database {
         }
         Insert: {
           id?: string
+          user_id: string
           name: string
           description?: string | null
           created_at?: string
@@ -26,6 +28,7 @@ export interface Database {
         }
         Update: {
           id?: string
+          user_id?: string
           name?: string
           description?: string | null
           created_at?: string
@@ -36,6 +39,7 @@ export interface Database {
         Row: {
           id: string
           project_id: string
+          user_id: string | null
           full_name: string
           company_name: string
           position: string
@@ -68,6 +72,7 @@ export interface Database {
         Insert: {
           id?: string
           project_id: string
+          user_id: string
           full_name: string
           company_name: string
           position: string
@@ -100,6 +105,7 @@ export interface Database {
         Update: {
           id?: string
           project_id?: string
+          user_id?: string
           full_name?: string
           company_name?: string
           position?: string
@@ -133,22 +139,34 @@ export interface Database {
       integration_settings: {
         Row: {
           id: string
-          provider: string
-          api_key: string
+          user_id: string
+          clearout_api_key: string | null
+          gemini_api_key: string | null
+          supabase_url: string | null
+          supabase_anon_key: string | null
+          supabase_service_role_key: string | null
           created_at: string
           updated_at: string
         }
         Insert: {
           id?: string
-          provider: string
-          api_key: string
+          user_id: string
+          clearout_api_key?: string | null
+          gemini_api_key?: string | null
+          supabase_url?: string | null
+          supabase_anon_key?: string | null
+          supabase_service_role_key?: string | null
           created_at?: string
           updated_at?: string
         }
         Update: {
           id?: string
-          provider?: string
-          api_key?: string
+          user_id?: string
+          clearout_api_key?: string | null
+          gemini_api_key?: string | null
+          supabase_url?: string | null
+          supabase_anon_key?: string | null
+          supabase_service_role_key?: string | null
           created_at?: string
           updated_at?: string
         }

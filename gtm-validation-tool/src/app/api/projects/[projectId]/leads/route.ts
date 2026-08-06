@@ -1,18 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createAdminClient } from "@/lib/supabase/admin";
-
-const notConfigured = NextResponse.json(
-  { error: "Supabase is not configured. Go to /integrations to set it up." },
-  { status: 503 }
-);
+import { createClient } from "@/lib/supabase/server";
 
 export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ projectId: string }> }
 ) {
   const { projectId } = await params;
-  const supabase = await createAdminClient();
-  if (!supabase) return notConfigured;
+  const supabase = await createClient();
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
   const url = new URL(_request.url);
   const page = parseInt(url.searchParams.get("page") ?? "1");
@@ -44,8 +42,22 @@ export async function POST(
   { params }: { params: Promise<{ projectId: string }> }
 ) {
   const { projectId } = await params;
-  const supabase = await createAdminClient();
-  if (!supabase) return notConfigured;
+  const supabase = await createClient();
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  // Verify project exists and belongs to user
+  const { data: project, error: projectError } = await supabase
+    .from("projects")
+    .select("id")
+    .eq("id", projectId)
+    .single();
+
+  if (projectError || !project) {
+    return NextResponse.json({ error: "Project not found" }, { status: 404 });
+  }
 
   const body = await request.json();
 
@@ -54,6 +66,7 @@ export async function POST(
   const leadsWithProject = leads.map((lead) => ({
     ...lead,
     project_id: projectId,
+    user_id: user.id,
   }));
 
   const { data, error } = await supabase

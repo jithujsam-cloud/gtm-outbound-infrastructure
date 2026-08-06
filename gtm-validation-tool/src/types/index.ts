@@ -6,9 +6,11 @@ export type ProjectInsert = Database["public"]["Tables"]["projects"]["Insert"];
 export type Lead = Database["public"]["Tables"]["leads"]["Row"];
 export type LeadInsert = Database["public"]["Tables"]["leads"]["Insert"];
 
+export type IntegrationSettings = Database["public"]["Tables"]["integration_settings"]["Row"];
+
 export type LeadFormData = Omit<
   LeadInsert,
-  "id" | "project_id" | "created_at" | "updated_at"
+  "id" | "project_id" | "user_id" | "created_at" | "updated_at"
 >;
 
 export const ICP_VERTICALS = [

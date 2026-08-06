@@ -22,6 +22,7 @@ CREATE TABLE IF NOT EXISTS integration_settings (
 );
 
 -- updated_at trigger on integration_settings
+DROP TRIGGER IF EXISTS update_integration_settings_updated_at ON integration_settings;
 CREATE TRIGGER update_integration_settings_updated_at
   BEFORE UPDATE ON integration_settings
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();

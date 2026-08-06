@@ -23,9 +23,9 @@ import { toast } from "sonner";
 import {
   ChevronLeft, ChevronRight, ArrowUpDown, Search,
   Upload, Columns3, X, CheckCircle2, XCircle, HelpCircle,
-  ShieldCheck, ShieldX, Filter, Download, Trash2,
+  ShieldCheck, ShieldX, Download, Trash2,
   ChevronDown, Globe, Building2, MapPin, Link2,
-  Brain, Mail,
+  Brain, Mail, ListFilter,
 } from "lucide-react";
 
 const VERTICAL_COLORS: Record<string, string> = {
@@ -294,6 +294,7 @@ export function LeadsTable({ projectId, initialData, initialTotal, refreshKey }:
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
   const [totalCount, setTotalCount] = useState(initialTotal);
   const [loading, setLoading] = useState(false);
+  const [showFilterDropdown, setShowFilterDropdown] = useState(false);
   const [showColumnPicker, setShowColumnPicker] = useState(false);
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const initialLoadRef = useRef(false);
@@ -395,23 +396,37 @@ export function LeadsTable({ projectId, initialData, initialTotal, refreshKey }:
           />
         </div>
 
-        <ICPValidationButton projectId={projectId} />
-        <EmailValidationButton projectId={projectId} />
-
-        <div className="flex items-center gap-1">
-          {FILTER_CHIPS.map((chip) => (
-            <button key={chip.key}
-              onClick={() => setActiveFilter(activeFilter === chip.key ? null : chip.key)}
-              className={`inline-flex items-center gap-1 rounded-md border px-2.5 py-1 text-xs transition-colors ${
-                activeFilter === chip.key
-                  ? "bg-primary text-primary-foreground border-primary"
-                  : "bg-background hover:bg-muted text-muted-foreground border-border"
-              }`}>
-              <Filter className="size-3" />
-              {chip.label}
-              {activeFilter === chip.key && <X className="size-3" />}
-            </button>
-          ))}
+        {/* Filter & Actions dropdown */}
+        <div className="relative">
+          <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => setShowFilterDropdown(!showFilterDropdown)}>
+            <ListFilter className="size-3.5" /> Filter & Actions
+            {activeFilter && (
+              <span className="ml-1 flex size-4 items-center justify-center rounded-full bg-primary text-[10px] text-primary-foreground">1</span>
+            )}
+          </Button>
+          {showFilterDropdown && (
+            <div className="absolute right-0 top-full mt-1 z-50 w-56 rounded-md border bg-popover p-2 shadow-md"
+              onMouseLeave={() => setShowFilterDropdown(false)}>
+              <div className="space-y-1">
+                <p className="px-2 py-1 text-[10px] uppercase tracking-wider text-muted-foreground">Quick Filters</p>
+                {FILTER_CHIPS.map((chip) => (
+                  <button key={chip.key}
+                    onClick={() => { setActiveFilter(activeFilter === chip.key ? null : chip.key); setShowFilterDropdown(false); }}
+                    className={`w-full flex items-center gap-2 rounded-sm px-2 py-1.5 text-xs transition-colors text-left ${
+                      activeFilter === chip.key
+                        ? "bg-primary/10 text-primary"
+                        : "hover:bg-muted"
+                    }`}>
+                    {activeFilter === chip.key ? <X className="size-3" /> : <div className="size-3" />}
+                    {chip.label}
+                  </button>
+                ))}
+                <div className="border-t my-1" />
+                <ICPValidationButton projectId={projectId} variant="dropdown" />
+                <EmailValidationButton projectId={projectId} variant="dropdown" />
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="relative">

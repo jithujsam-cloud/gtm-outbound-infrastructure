@@ -28,7 +28,7 @@ export function Header() {
         <nav className="absolute left-1/2 -translate-x-1/2 flex items-center gap-1 bg-neutral-100/80 rounded-full p-1 backdrop-blur">
           {links.map((label) => {
             const href = label === "Dashboard" ? "/" : `/${label.toLowerCase()}`;
-            const active = pathname === href;
+            const active = href === "/" ? pathname === "/" : pathname.startsWith(href);
             return (
               <Link
                 key={label}

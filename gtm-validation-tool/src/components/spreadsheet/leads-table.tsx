@@ -37,10 +37,10 @@ const VERTICAL_COLORS: Record<string, string> = {
 };
 
 const FILTER_CHIPS = [
-  { key: "valid_email", label: "Valid Email", fn: (l: Lead) => l.email_check === "Valid" },
-  { key: "invalid_email", label: "Invalid Email", fn: (l: Lead) => l.email_check === "Invalid" },
-  { key: "icp_match", label: "ICP Match", fn: (l: Lead) => l.vertical_match === true },
-  { key: "safe", label: "Safe to Send", fn: (l: Lead) => l.safe_to_send === true },
+  { key: "valid_email", label: "Valid Email", col: "email_check" as const, val: "Valid" },
+  { key: "invalid_email", label: "Invalid Email", col: "email_check" as const, val: "Invalid" },
+  { key: "icp_match", label: "ICP Match", col: "vertical_match" as const, val: "true" },
+  { key: "safe", label: "Safe to Send", col: "safe_to_send" as const, val: "true" },
 ] as const;
 
 /* ── Inline editor ──────────────────────────────────────────── */
@@ -317,15 +317,17 @@ export function LeadsTable({ projectId, initialData, initialTotal, refreshKey }:
 
   useEffect(() => {
     if (!initialLoadRef.current) { initialLoadRef.current = true; return; }
+    setData([]);
     fetchPage(0);
   }, [refreshKey]);
 
-  const filteredData = activeFilter
-    ? data.filter(FILTER_CHIPS.find((c) => c.key === activeFilter)!.fn)
-    : data;
+  useEffect(() => {
+    setData([]);
+    fetchPage(0);
+  }, [activeFilter]);
 
   const table = useReactTable({
-    data: filteredData,
+    data,
     columns,
     state: { sorting, globalFilter, columnVisibility, rowSelection },
     onSortingChange: setSorting,
@@ -341,8 +343,13 @@ export function LeadsTable({ projectId, initialData, initialTotal, refreshKey }:
 
   async function fetchPage(pageIndex: number) {
     setLoading(true);
+    const chip = FILTER_CHIPS.find((c) => c.key === activeFilter);
     const page = pageIndex + 1;
-    const res = await fetch(`/api/projects/${projectId}/leads?page=${page}&limit=50`);
+    let url = `/api/projects/${projectId}/leads?page=${page}&limit=50`;
+    if (chip) {
+      url += `&filter_col=${chip.col}&filter_val=${chip.val}`;
+    }
+    const res = await fetch(url);
     const json = await res.json();
     setData(json.data);
     setTotalCount(json.total);
@@ -378,7 +385,7 @@ export function LeadsTable({ projectId, initialData, initialTotal, refreshKey }:
 
   const leafColumns = table.getAllLeafColumns();
   const visibleLeafColumns = leafColumns.filter((c) => c.getIsVisible());
-  const hasData = filteredData.length > 0;
+  const hasData = data.length > 0;
   const isEmpty = !loading && !hasData;
   const selectedCount = Object.keys(rowSelection).length;
 
@@ -449,7 +456,7 @@ export function LeadsTable({ projectId, initialData, initialTotal, refreshKey }:
           )}
         </div>
 
-        <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => exportCsv(filteredData)} disabled={!hasData}>
+        <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => exportCsv(data)} disabled={!hasData}>
           <Download className="size-3.5" /> Export
         </Button>
 

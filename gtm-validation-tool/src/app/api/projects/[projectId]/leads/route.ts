@@ -16,11 +16,23 @@ export async function GET(
   const page = parseInt(url.searchParams.get("page") ?? "1");
   const limit = parseInt(url.searchParams.get("limit") ?? "50");
   const offset = (page - 1) * limit;
+  const filterCol = url.searchParams.get("filter_col");
+  const filterVal = url.searchParams.get("filter_val");
 
-  const { data, error, count } = await supabase
+  let query = supabase
     .from("leads")
     .select("*", { count: "exact" })
-    .eq("project_id", projectId)
+    .eq("project_id", projectId);
+
+  if (filterCol && filterVal) {
+    if (filterVal === "true" || filterVal === "false") {
+      query = query.eq(filterCol, filterVal === "true");
+    } else {
+      query = query.eq(filterCol, filterVal);
+    }
+  }
+
+  const { data, error, count } = await query
     .order("created_at", { ascending: false })
     .range(offset, offset + limit - 1);
 

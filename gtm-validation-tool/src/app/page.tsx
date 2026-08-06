@@ -2,7 +2,6 @@ import { Suspense } from "react";
 import { StatsCards } from "@/components/dashboard/stats-cards";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AlertTriangle } from "lucide-react";
 import type { DashboardStats } from "@/types";
 import type { Project } from "@/types";
 
@@ -17,20 +16,10 @@ async function getDashboardData(): Promise<{
   stats: DashboardStats;
   projects: (Project & { lead_count: number })[];
   verticalBreakdown: VerticalCount[];
-  configured: boolean;
 }> {
   try {
     const { createClient } = await import("@/lib/supabase/server");
     const supabase = await createClient();
-
-    if (!supabase) {
-      return {
-        stats: { totalProjects: 0, totalLeads: 0, validatedLeads: 0, icpMatchRate: 0 },
-        projects: [],
-        verticalBreakdown: [],
-        configured: false,
-      };
-    }
 
     const [
       { count: totalProjects },
@@ -72,14 +61,12 @@ async function getDashboardData(): Promise<{
       },
       projects,
       verticalBreakdown,
-      configured: true,
     };
   } catch {
     return {
       stats: { totalProjects: 0, totalLeads: 0, validatedLeads: 0, icpMatchRate: 0 },
       projects: [],
       verticalBreakdown: [],
-      configured: false,
     };
   }
 }
@@ -102,28 +89,13 @@ export default function DashboardPage() {
 }
 
 async function DashboardContent() {
-  const { stats, projects, verticalBreakdown, configured } = await getDashboardData();
+  const { stats, projects, verticalBreakdown } = await getDashboardData();
 
   const { DashboardCharts } = await import("@/components/charts/dashboard-charts");
   const { RecentProjects } = await import("@/components/dashboard/recent-projects");
 
   return (
     <>
-      {!configured && (
-        <div className="flex items-center gap-3 rounded-lg border border-amber-200 bg-amber-50 p-4 text-amber-800 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-200">
-          <AlertTriangle className="size-5 shrink-0" />
-          <div>
-            <p className="text-sm font-medium">Supabase is not configured</p>
-            <p className="text-xs text-amber-700 dark:text-amber-300 mt-0.5">
-              Go to{" "}
-              <a href="/auth/setup" className="underline underline-offset-2 font-medium hover:text-amber-900 dark:hover:text-amber-100">
-                Supabase Setup
-              </a>{" "}
-              and enter your Supabase project credentials.
-            </p>
-          </div>
-        </div>
-      )}
 
       <StatsCards stats={stats} />
       <DashboardCharts

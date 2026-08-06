@@ -1,76 +1,58 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Key, Brain, Mail, CheckCircle, ExternalLink, Database } from "lucide-react";
-import { getLocalConfig, saveLocalConfig, clearLocalConfig } from "@/lib/supabase/config";
+import { loadSettings, saveSettings } from "@/app/settings/actions";
 
 export default function IntegrationsPage() {
   const [geminiApiKey, setGeminiApiKey] = useState("");
   const [clearoutApiKey, setClearoutApiKey] = useState("");
+  const [supabaseUrl, setSupabaseUrl] = useState("");
+  const [supabaseAnonKey, setSupabaseAnonKey] = useState("");
+  const [supabaseServiceRoleKey, setSupabaseServiceRoleKey] = useState("");
   const [saving, setSaving] = useState(false);
-  const [geminiSaved, setGeminiSaved] = useState(false);
-  const [clearoutSaved, setClearoutSaved] = useState(false);
-  const router = useRouter();
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
-    const config = getLocalConfig();
-    if (config.geminiApiKey) {
-      setGeminiApiKey(config.geminiApiKey);
-      setGeminiSaved(true);
-    }
-    if (config.clearoutApiKey) {
-      setClearoutApiKey(config.clearoutApiKey);
-      setClearoutSaved(true);
-    }
+    loadSettings().then((r) => {
+      if (r.settings) {
+        if (r.settings.gemini_api_key) setGeminiApiKey(r.settings.gemini_api_key);
+        if (r.settings.clearout_api_key) setClearoutApiKey(r.settings.clearout_api_key);
+        if (r.settings.supabase_url) setSupabaseUrl(r.settings.supabase_url);
+        if (r.settings.supabase_anon_key) setSupabaseAnonKey(r.settings.supabase_anon_key);
+        if (r.settings.supabase_service_role_key) setSupabaseServiceRoleKey(r.settings.supabase_service_role_key);
+      }
+      setLoaded(true);
+    });
   }, []);
 
   async function handleSaveAll(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
     try {
-      saveLocalConfig({
-        geminiApiKey: geminiApiKey.trim(),
-        clearoutApiKey: clearoutApiKey.trim(),
-      });
+      const formData = new FormData();
+      if (geminiApiKey.trim()) formData.set("gemini_api_key", geminiApiKey.trim());
+      if (clearoutApiKey.trim()) formData.set("clearout_api_key", clearoutApiKey.trim());
+      if (supabaseUrl.trim()) formData.set("supabase_url", supabaseUrl.trim());
+      if (supabaseAnonKey.trim()) formData.set("supabase_anon_key", supabaseAnonKey.trim());
+      if (supabaseServiceRoleKey.trim()) formData.set("supabase_service_role_key", supabaseServiceRoleKey.trim());
 
-      const res = await fetch("/api/integrations", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          geminiApiKey: geminiApiKey.trim(),
-          clearoutApiKey: clearoutApiKey.trim(),
-        }),
-      });
-
-      if (!res.ok) throw new Error("Failed to save");
-
-      setGeminiSaved(!!geminiApiKey.trim());
-      setClearoutSaved(!!clearoutApiKey.trim());
-      toast.success("API keys saved");
-      router.refresh();
+      const result = await saveSettings(formData);
+      if (result?.error) throw new Error(result.error);
+      toast.success("Settings saved");
     } catch {
-      toast.error("Failed to save");
+      toast.error("Failed to save settings");
     } finally {
       setSaving(false);
     }
   }
 
-  function handleClearAll() {
-    clearLocalConfig();
-    fetch("/api/integrations", { method: "DELETE" });
-    setGeminiApiKey("");
-    setClearoutApiKey("");
-    setGeminiSaved(false);
-    setClearoutSaved(false);
-    toast.success("All API keys cleared");
-    router.refresh();
-  }
+  if (!loaded) return null;
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
@@ -90,18 +72,23 @@ export default function IntegrationsPage() {
               </div>
               <div>
                 <CardTitle className="text-base">Supabase</CardTitle>
-                <CardDescription>Database configured during initial setup</CardDescription>
+                <CardDescription>Your per-user Supabase project credentials</CardDescription>
               </div>
             </div>
           </CardHeader>
-          <CardContent>
-            <p className="text-sm text-emerald-700">
-              Connected and ready. To change your Supabase project, visit{" "}
-              <a href="/auth/setup" className="underline font-medium">
-                Setup
-              </a>
-              .
-            </p>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="supabase-url" className="text-xs">Project URL</Label>
+              <Input id="supabase-url" value={supabaseUrl} onChange={(e) => setSupabaseUrl(e.target.value)} placeholder="https://your-project.supabase.co" className="h-9 text-sm" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="supabase-anon-key" className="text-xs">Anon Key</Label>
+              <Input id="supabase-anon-key" value={supabaseAnonKey} onChange={(e) => setSupabaseAnonKey(e.target.value)} placeholder="eyJhbGciOiJIUzI1NiIs..." className="h-9 text-sm" type="password" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="supabase-service-key" className="text-xs">Service Role Key</Label>
+              <Input id="supabase-service-key" value={supabaseServiceRoleKey} onChange={(e) => setSupabaseServiceRoleKey(e.target.value)} placeholder="eyJhbGciOiJIUzI1NiIs..." className="h-9 text-sm" type="password" />
+            </div>
           </CardContent>
         </Card>
 
@@ -118,7 +105,7 @@ export default function IntegrationsPage() {
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
-            {geminiSaved && (
+            {geminiApiKey && (
               <div className="flex items-center gap-2 rounded-md bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
                 <CheckCircle className="size-4" />
                 Connected
@@ -129,21 +116,10 @@ export default function IntegrationsPage() {
                 <Key className="size-3.5" />
                 API Key
               </Label>
-              <Input
-                id="gemini-api-key"
-                value={geminiApiKey}
-                onChange={(e) => setGeminiApiKey(e.target.value)}
-                placeholder="AIza..."
-                type="password"
-              />
+              <Input id="gemini-api-key" value={geminiApiKey} onChange={(e) => setGeminiApiKey(e.target.value)} placeholder="AIza..." type="password" />
               <p className="text-xs text-muted-foreground">
                 Get your key from{" "}
-                <a
-                  href="https://aistudio.google.com/apikey"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="underline underline-offset-2"
-                >
+                <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">
                   Google AI Studio
                   <ExternalLink className="inline size-3 ml-0.5" />
                 </a>
@@ -166,7 +142,7 @@ export default function IntegrationsPage() {
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
-            {clearoutSaved && (
+            {clearoutApiKey && (
               <div className="flex items-center gap-2 rounded-md bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
                 <CheckCircle className="size-4" />
                 Connected
@@ -177,21 +153,10 @@ export default function IntegrationsPage() {
                 <Key className="size-3.5" />
                 API Key
               </Label>
-              <Input
-                id="clearout-api-key"
-                value={clearoutApiKey}
-                onChange={(e) => setClearoutApiKey(e.target.value)}
-                placeholder="Clearout API key"
-                type="password"
-              />
+              <Input id="clearout-api-key" value={clearoutApiKey} onChange={(e) => setClearoutApiKey(e.target.value)} placeholder="Clearout API key" type="password" />
               <p className="text-xs text-muted-foreground">
                 Get your key from{" "}
-                <a
-                  href="https://app.clearout.io/settings/api"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="underline underline-offset-2"
-                >
+                <a href="https://app.clearout.io/settings/api" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">
                   Clearout Dashboard
                   <ExternalLink className="inline size-3 ml-0.5" />
                 </a>
@@ -201,14 +166,9 @@ export default function IntegrationsPage() {
           </CardContent>
         </Card>
 
-        <div className="flex items-center justify-end gap-2">
-          {(geminiSaved || clearoutSaved) && (
-            <Button type="button" variant="outline" onClick={handleClearAll}>
-              Clear All
-            </Button>
-          )}
+        <div className="flex items-center justify-end">
           <Button type="submit" disabled={saving}>
-            {saving ? "Saving..." : "Save API Keys"}
+            {saving ? "Saving..." : "Save Settings"}
           </Button>
         </div>
       </form>

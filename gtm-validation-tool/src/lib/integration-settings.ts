@@ -19,9 +19,6 @@ export async function upsertIntegrationSettings(
   settings: {
     clearout_api_key?: string;
     gemini_api_key?: string;
-    supabase_url?: string;
-    supabase_anon_key?: string;
-    supabase_service_role_key?: string;
   }
 ): Promise<IntegrationSettings> {
   const supabase = await createClient();

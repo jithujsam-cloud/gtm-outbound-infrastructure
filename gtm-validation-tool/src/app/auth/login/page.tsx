@@ -6,8 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { LogIn, UserPlus, ArrowLeft } from "lucide-react";
-import Link from "next/link";
+import { LogIn, UserPlus } from "lucide-react";
 
 export default function LoginPage() {
   const [isSignup, setIsSignup] = useState(false);
@@ -124,16 +123,6 @@ export default function LoginPage() {
           >
             {isSignup ? "Already have an account? Sign in" : "Don't have an account? Create one"}
           </button>
-        </div>
-
-        <div className="text-center mt-3">
-          <Link
-            href="/auth/setup"
-            className="inline-flex items-center gap-1 text-xs text-neutral-400 hover:text-neutral-600 transition-colors"
-          >
-            <ArrowLeft className="size-3" />
-            Change Supabase connection
-          </Link>
         </div>
       </div>
     </div>

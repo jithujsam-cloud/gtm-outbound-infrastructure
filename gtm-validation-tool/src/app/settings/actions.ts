@@ -7,9 +7,6 @@ export async function saveSettings(formData: FormData) {
   const settings = {
     clearout_api_key: (formData.get("clearout_api_key") as string) || undefined,
     gemini_api_key: (formData.get("gemini_api_key") as string) || undefined,
-    supabase_url: (formData.get("supabase_url") as string) || undefined,
-    supabase_anon_key: (formData.get("supabase_anon_key") as string) || undefined,
-    supabase_service_role_key: (formData.get("supabase_service_role_key") as string) || undefined,
   };
 
   try {

@@ -103,20 +103,37 @@ export function ProjectCard({ project, onUpdated, onDeleted }: {
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>Edit Project</DialogTitle>
-            <DialogDescription>Update the project details.</DialogDescription>
+            <DialogDescription>
+              Update the project details.
+            </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleEdit} className="space-y-4 mt-2">
             <div className="space-y-2">
               <Label htmlFor="edit-name">Name</Label>
-              <Input id="edit-name" value={editName} onChange={(e) => setEditName(e.target.value)} required />
+              <Input
+                id="edit-name"
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+                placeholder="Q4 D2C Campaign"
+                required
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="edit-desc">Description</Label>
-              <Input id="edit-desc" value={editDesc} onChange={(e) => setEditDesc(e.target.value)} />
+              <Input
+                id="edit-desc"
+                value={editDesc}
+                onChange={(e) => setEditDesc(e.target.value)}
+                placeholder="Optional description"
+              />
             </div>
             <div className="flex justify-end gap-2">
-              <Button type="button" variant="outline" onClick={() => setEditOpen(false)}>Cancel</Button>
-              <Button type="submit" disabled={saving || !editName.trim()}>{saving ? "Saving..." : "Save"}</Button>
+              <Button type="button" variant="outline" onClick={() => setEditOpen(false)}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={saving || !editName.trim()}>
+                {saving ? "Saving..." : "Save"}
+              </Button>
             </div>
           </form>
         </DialogContent>

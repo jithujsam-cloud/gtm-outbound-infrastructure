@@ -14,6 +14,7 @@ export default function IntegrationsPage() {
   const [clearoutApiKey, setClearoutApiKey] = useState("");
   const [saving, setSaving] = useState(false);
   const [loaded, setLoaded] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
     loadSettings().then((r) => {
@@ -21,6 +22,7 @@ export default function IntegrationsPage() {
         if (r.settings.gemini_api_key) setGeminiApiKey(r.settings.gemini_api_key);
         if (r.settings.clearout_api_key) setClearoutApiKey(r.settings.clearout_api_key);
       }
+      if (r.error) setLoadError(r.error);
       setLoaded(true);
     });
   }, []);
@@ -43,7 +45,8 @@ export default function IntegrationsPage() {
     }
   }
 
-  if (!loaded) return null;
+  if (!loaded) return <p className="text-sm text-muted-foreground py-8 text-center">Loading...</p>;
+  if (loadError) return <p className="text-sm text-red-600 py-8 text-center">Failed to load settings: {loadError}</p>;
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">

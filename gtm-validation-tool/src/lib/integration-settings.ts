@@ -10,7 +10,7 @@ export async function getIntegrationSettings(): Promise<IntegrationSettings | nu
     .from("integration_settings")
     .select("*")
     .eq("user_id", user.id)
-    .single();
+    .maybeSingle();
 
   return data;
 }
@@ -29,7 +29,7 @@ export async function upsertIntegrationSettings(
     .from("integration_settings")
     .select("id")
     .eq("user_id", user.id)
-    .single();
+    .maybeSingle();
 
   if (existing) {
     const { data, error } = await supabase

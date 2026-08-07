@@ -45,7 +45,7 @@ export default function ProjectsPage() {
         {loading
           ? [...Array(3)].map((_, i) => <ProjectCardSkeleton key={i} />)
           : projects?.map((project) => (
-              <ProjectCard key={project.id} project={project} />
+              <ProjectCard key={project.id} project={project} onUpdated={loadProjects} onDeleted={loadProjects} />
             ))}
       </div>
 

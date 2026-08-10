@@ -20,6 +20,7 @@ export async function POST(
     leadIds?: string[];
     prompt?: string;
     model?: string;
+    provider?: string;
   };
 
   try {
@@ -91,6 +92,7 @@ export async function POST(
       leadIds,
       prompt: body.prompt,
       model: body.model,
+      llmProvider: body.provider,
     });
 
     return NextResponse.json(result, { status: 201 });

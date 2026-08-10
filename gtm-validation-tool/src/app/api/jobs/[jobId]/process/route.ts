@@ -26,14 +26,14 @@ export async function POST(
 
   const { data: settings } = await supabase
     .from("integration_settings")
-    .select("gemini_api_key")
+    .select("llm_api_key")
     .eq("user_id", user.id)
     .maybeSingle();
 
-  const geminiKey = settings?.gemini_api_key;
-  if (!geminiKey) {
+  const llmApiKey = settings?.llm_api_key;
+  if (!llmApiKey) {
     return NextResponse.json(
-      { error: "Gemini API key not configured" },
+      { error: "LLM API key not configured" },
       { status: 400 }
     );
   }
@@ -47,7 +47,7 @@ export async function POST(
   }
 
   try {
-    const result = await processJobBatch(jobId, geminiKey, prompt);
+    const result = await processJobBatch(jobId, llmApiKey, prompt);
     return NextResponse.json(result);
   } catch (err: any) {
     return NextResponse.json(

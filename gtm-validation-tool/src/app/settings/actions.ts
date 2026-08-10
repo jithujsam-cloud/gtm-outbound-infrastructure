@@ -8,7 +8,8 @@ import { createClient } from "@/lib/supabase/server";
 export async function saveSettings(formData: FormData) {
   const settings = {
     clearout_api_key: (formData.get("clearout_api_key") as string) || undefined,
-    gemini_api_key: (formData.get("gemini_api_key") as string) || undefined,
+    llm_api_key: (formData.get("llm_api_key") as string) || undefined,
+    llm_provider: (formData.get("llm_provider") as string) || undefined,
   };
 
   try {

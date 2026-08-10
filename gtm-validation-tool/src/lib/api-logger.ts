@@ -6,7 +6,7 @@ export interface ApiLogEntry {
   lead_id?: string | null;
   job_id?: string | null;
   job_item_id?: string | null;
-  provider: "gemini" | "clearout";
+  provider: "gemini" | "clearout" | "openai";
   operation: string;
   status: "success" | "failed" | "retryable_error" | "fatal_error";
   attempt?: number;

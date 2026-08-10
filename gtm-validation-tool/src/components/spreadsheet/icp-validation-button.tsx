@@ -3,11 +3,17 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Brain, CheckCircle2, XCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Select } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { VARIABLE_OPTIONS } from "@/lib/validation/variables";
 import { getIcpPrompt } from "@/app/settings/actions";
 import { toast } from "sonner";
+
+const LLM_PROVIDERS = [
+  { value: "gemini", label: "Gemini", models: ["gemini-3.6-flash", "gemini-3.5-flash", "gemini-2.5-flash"] },
+  { value: "openai", label: "OpenAI", models: ["gpt-5.6-luna", "gpt-5.4-mini"] },
+] as const;
 
 export interface IcpValidationDialogProps {
   projectId: string;
@@ -43,6 +49,8 @@ export function IcpValidationDialog({
   const [selectedVarIndex, setSelectedVarIndex] = useState(0);
   const [progress, setProgress] = useState<JobProgress | null>(null);
   const [jobId, setJobId] = useState<string | null>(null);
+  const [provider, setProvider] = useState("gemini");
+  const [model, setModel] = useState("gemini-3.6-flash");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -51,6 +59,14 @@ export function IcpValidationDialog({
       v.variable.toLowerCase().includes(variableFilter.toLowerCase()) ||
       v.label.toLowerCase().includes(variableFilter.toLowerCase())
   );
+
+  const currentModels = LLM_PROVIDERS.find((p) => p.value === provider)?.models ?? LLM_PROVIDERS[0].models;
+
+  const handleProviderChange = (value: string) => {
+    setProvider(value);
+    const newModels = LLM_PROVIDERS.find((p) => p.value === value)?.models ?? LLM_PROVIDERS[0].models;
+    setModel(newModels[0]);
+  };
 
   useEffect(() => {
     if (!open) return;
@@ -168,6 +184,8 @@ export function IcpValidationDialog({
         type: "icp",
         mode: all ? "continuous" : "selected",
         prompt,
+        provider,
+        model,
       };
       if (!all) body.leadIds = ids;
 
@@ -262,6 +280,35 @@ export function IcpValidationDialog({
             </div>
           ) : (
             <>
+              <div className="flex flex-wrap items-end gap-3">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-muted-foreground">Provider</label>
+                  <Select
+                    className="h-8 text-xs w-[120px]"
+                    value={provider}
+                    onChange={(e) => handleProviderChange(e.target.value)}
+                    disabled={validating}
+                  >
+                    {LLM_PROVIDERS.map((p) => (
+                      <option key={p.value} value={p.value}>{p.label}</option>
+                    ))}
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-muted-foreground">Model</label>
+                  <Select
+                    className="h-8 text-xs w-[180px]"
+                    value={model}
+                    onChange={(e) => setModel(e.target.value)}
+                    disabled={validating}
+                  >
+                    {currentModels.map((m) => (
+                      <option key={m} value={m}>{m}</option>
+                    ))}
+                  </Select>
+                </div>
+              </div>
+
               <div className="space-y-2 relative">
                 <label className="text-sm font-medium">Prompt</label>
                 <textarea

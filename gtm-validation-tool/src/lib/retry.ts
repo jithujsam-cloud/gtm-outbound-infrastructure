@@ -5,7 +5,9 @@ export function classifyError(errorMessage: string): ErrorClass {
     errorMessage.includes("401") ||
     errorMessage.includes("403") ||
     errorMessage.includes("not configured") ||
-    errorMessage.includes("API key")
+    errorMessage.includes("API key") ||
+    errorMessage.includes("insufficient_quota") ||
+    errorMessage.includes("invalid_api_key")
   ) {
     return "system";
   }
@@ -21,9 +23,12 @@ export function classifyError(errorMessage: string): ErrorClass {
     errorMessage.includes("ETIMEDOUT") ||
     errorMessage.includes("ENOTFOUND") ||
     errorMessage.includes("network") ||
+    errorMessage.includes("rate_limit_exceeded") ||
     errorMessage.includes("Empty Gemini") ||
+    errorMessage.includes("Empty OpenAI") ||
     errorMessage.includes("Invalid JSON") ||
     errorMessage.includes("Invalid Gemini response") ||
+    errorMessage.includes("Invalid OpenAI response") ||
     errorMessage.includes("Invalid vertical_match") ||
     errorMessage.includes("Invalid reasoning") ||
     errorMessage.includes("Invalid matched_vertical") ||

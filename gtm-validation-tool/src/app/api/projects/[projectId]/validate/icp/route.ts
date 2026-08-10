@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { callGemini } from "@/lib/validation/gemini";
+import { callOpenAI } from "@/lib/validation/openai";
 import { resolvePrompt } from "@/lib/validation/variables";
 import { saveValidationPrompt } from "@/lib/validation-prompts";
 import { createApiLog, updateApiLog } from "@/lib/api-logger";
@@ -37,17 +38,19 @@ export async function POST(
 
   const { data: settings } = await supabase
     .from("integration_settings")
-    .select("gemini_api_key")
+    .select("llm_api_key, llm_provider")
     .eq("user_id", user.id)
     .maybeSingle();
 
-  const geminiKey = settings?.gemini_api_key;
-  if (!geminiKey) {
+  const llmApiKey = settings?.llm_api_key;
+  if (!llmApiKey) {
     return NextResponse.json(
-      { error: "Gemini API key not configured" },
+      { error: "LLM API key not configured" },
       { status: 400 }
     );
   }
+
+  const provider = settings?.llm_provider ?? "gemini";
 
   const { data: leads, error: fetchErr } = await supabase
     .from("leads")
@@ -101,13 +104,15 @@ export async function POST(
         user_id: user.id,
         project_id: projectId,
         lead_id: lead.id,
-        provider: "gemini",
+        provider: provider as "gemini" | "openai",
         operation: "icp_validation",
         status: "success",
-        request_metadata: { model: "gemini-3.6-flash", lead_count: 1 },
+        request_metadata: { model: provider === "openai" ? "gpt-5.6-luna" : "gemini-3.6-flash", lead_count: 1 },
       });
 
-      const result = await callGemini(geminiKey, resolved);
+      const result = provider === "openai"
+        ? await callOpenAI(llmApiKey, "gpt-5.6-luna", resolved)
+        : await callGemini(llmApiKey, resolved);
 
       const { error: updateErr } = await supabase
         .from("leads")

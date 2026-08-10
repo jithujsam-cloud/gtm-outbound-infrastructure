@@ -8,8 +8,9 @@ export async function createValidationJob(params: {
   leadIds: string[];
   prompt?: string;
   model?: string;
+  llmProvider?: string;
 }): Promise<{ jobId: string; totalLeads: number; skippedLeads: number }> {
-  const { userId, projectId, type, mode, leadIds, prompt, model } = params;
+  const { userId, projectId, type, mode, leadIds, prompt, model, llmProvider } = params;
   const supabase = await createClient();
 
   const { data: leads, error: fetchErr } = await supabase
@@ -44,6 +45,7 @@ export async function createValidationJob(params: {
       mode,
       prompt: prompt ?? null,
       model: model ?? null,
+      llm_provider: llmProvider ?? null,
       total_leads: pendingLeads.length,
       skipped_leads: skippedLeads.length,
       status: "queued",

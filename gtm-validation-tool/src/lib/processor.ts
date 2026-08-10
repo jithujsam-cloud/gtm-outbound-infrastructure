@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { callGemini, callGeminiBatch, type BatchLeadInput } from "@/lib/validation/gemini";
+import { callOpenAI, callOpenAIBatch, OPENAI_DEFAULT_MODEL } from "@/lib/validation/openai";
 import { resolvePrompt } from "@/lib/validation/variables";
 import { createApiLog, updateApiLog } from "@/lib/api-logger";
 import { classifyError, backoffDelay, shouldPauseJob } from "@/lib/retry";
@@ -15,7 +16,7 @@ export function getMaxJobSize(): number {
 
 export async function processJobBatch(
   jobId: string,
-  geminiKey: string,
+  llmApiKey: string,
   prompt: string
 ): Promise<{
   processed: number;
@@ -93,14 +94,20 @@ export async function processJobBatch(
     }
   }
 
+  const provider = job.llm_provider ?? "gemini";
+  const model = job.model || (provider === "openai" ? OPENAI_DEFAULT_MODEL : "gemini-3.6-flash");
+  const isOpenAI = provider === "openai";
+
+  const batchGroupSize = isOpenAI ? 3 : GEMINI_BATCH_SIZE;
+
   let processed = 0;
   let matched = 0;
   const errors: string[] = [];
   let batchFailures = 0;
 
   const batches: BatchLeadInput[][] = [];
-  for (let i = 0; i < batchInputs.length; i += GEMINI_BATCH_SIZE) {
-    batches.push(batchInputs.slice(i, i + GEMINI_BATCH_SIZE));
+  for (let i = 0; i < batchInputs.length; i += batchGroupSize) {
+    batches.push(batchInputs.slice(i, i + batchGroupSize));
   }
 
   const processBatchFn = async (batch: BatchLeadInput[]) => {
@@ -112,11 +119,11 @@ export async function processJobBatch(
       lead_id: null,
       job_id: job.id,
       job_item_id: null,
-      provider: "gemini",
+      provider: provider as "gemini" | "openai",
       operation: "icp_validation_batch",
       status: "success",
       request_metadata: {
-        model: "gemini-3.6-flash",
+        model,
         lead_count: batch.length,
         lead_ids: batch.map((b) => b.leadId),
       },
@@ -126,9 +133,13 @@ export async function processJobBatch(
       const results = batch.length === 1
         ? [{
             leadId: batch[0].leadId,
-            ...(await callGemini(geminiKey, batch[0].resolvedPrompt)),
+            ...(isOpenAI
+              ? await callOpenAI(llmApiKey, model, batch[0].resolvedPrompt)
+              : await callGemini(llmApiKey, batch[0].resolvedPrompt)),
           }]
-        : await callGeminiBatch(geminiKey, batch);
+        : isOpenAI
+          ? await callOpenAIBatch(llmApiKey, model, batch)
+          : await callGeminiBatch(llmApiKey, batch);
 
       const resultMap = new Map(results.map((r) => [r.leadId, r]));
 

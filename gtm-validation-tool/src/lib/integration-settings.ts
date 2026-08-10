@@ -16,7 +16,8 @@ export async function getIntegrationSettings(): Promise<IntegrationSettings | nu
 }
 
 export async function getIntegrationStatus(): Promise<{
-  gemini_configured: boolean;
+  llm_configured: boolean;
+  llm_provider: string | null;
   clearout_configured: boolean;
 }> {
   const supabase = await createClient();
@@ -25,12 +26,13 @@ export async function getIntegrationStatus(): Promise<{
 
   const { data } = await supabase
     .from("integration_settings")
-    .select("gemini_api_key, clearout_api_key")
+    .select("llm_api_key, llm_provider, clearout_api_key")
     .eq("user_id", user.id)
     .maybeSingle();
 
   return {
-    gemini_configured: !!(data?.gemini_api_key),
+    llm_configured: !!(data?.llm_api_key),
+    llm_provider: data?.llm_provider ?? null,
     clearout_configured: !!(data?.clearout_api_key),
   };
 }
@@ -38,7 +40,8 @@ export async function getIntegrationStatus(): Promise<{
 export async function upsertIntegrationSettings(
   settings: {
     clearout_api_key?: string;
-    gemini_api_key?: string;
+    llm_api_key?: string;
+    llm_provider?: string;
   }
 ): Promise<IntegrationSettings> {
   const supabase = await createClient();

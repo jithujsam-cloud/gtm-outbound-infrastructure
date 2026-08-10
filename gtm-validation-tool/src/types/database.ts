@@ -141,7 +141,8 @@ export interface Database {
           id: string
           user_id: string
           clearout_api_key: string | null
-          gemini_api_key: string | null
+          llm_api_key: string | null
+          llm_provider: string
           supabase_url: string | null
           supabase_anon_key: string | null
           supabase_service_role_key: string | null
@@ -152,7 +153,8 @@ export interface Database {
           id?: string
           user_id: string
           clearout_api_key?: string | null
-          gemini_api_key?: string | null
+          llm_api_key?: string | null
+          llm_provider?: string
           supabase_url?: string | null
           supabase_anon_key?: string | null
           supabase_service_role_key?: string | null
@@ -163,7 +165,8 @@ export interface Database {
           id?: string
           user_id?: string
           clearout_api_key?: string | null
-          gemini_api_key?: string | null
+          llm_api_key?: string | null
+          llm_provider?: string
           supabase_url?: string | null
           supabase_anon_key?: string | null
           supabase_service_role_key?: string | null
@@ -271,6 +274,7 @@ export interface Database {
           mode: string
           prompt: string | null
           model: string | null
+          llm_provider: string | null
           status: string
           total_leads: number
           completed_leads: number
@@ -290,6 +294,7 @@ export interface Database {
           mode: string
           prompt?: string | null
           model?: string | null
+          llm_provider?: string | null
           status?: string
           total_leads?: number
           completed_leads?: number
@@ -309,6 +314,7 @@ export interface Database {
           mode?: string
           prompt?: string | null
           model?: string | null
+          llm_provider?: string | null
           status?: string
           total_leads?: number
           completed_leads?: number

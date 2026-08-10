@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createValidationJob } from "@/lib/jobs";
+import { getMaxJobSize } from "@/lib/processor";
 
 export async function POST(
   _request: NextRequest,
@@ -71,6 +72,14 @@ export async function POST(
       );
     }
     leadIds = body.leadIds;
+  }
+
+  const maxSize = getMaxJobSize();
+  if (leadIds.length > maxSize) {
+    return NextResponse.json(
+      { error: `Cannot process more than ${maxSize} leads per job. Selected: ${leadIds.length}` },
+      { status: 400 }
+    );
   }
 
   try {

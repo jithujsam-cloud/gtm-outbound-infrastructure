@@ -104,7 +104,7 @@ export function ImportLeadsDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="max-w-[calc(100%-1rem)] sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Import Leads</DialogTitle>
           <DialogDescription>
@@ -115,7 +115,7 @@ export function ImportLeadsDialog({
         <div className="space-y-4">
           {!file ? (
             <div
-              className="border-2 border-dashed rounded-lg p-8 text-center cursor-pointer hover:border-muted-foreground/50 transition-colors"
+              className="border-2 border-dashed rounded-lg p-4 sm:p-8 text-center cursor-pointer hover:border-muted-foreground/50 transition-colors"
               onClick={() => inputRef.current?.click()}
               onDragOver={(e) => e.preventDefault()}
               onDrop={(e) => {

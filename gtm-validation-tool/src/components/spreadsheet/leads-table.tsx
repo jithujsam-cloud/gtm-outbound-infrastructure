@@ -344,7 +344,7 @@ export function LeadsTable({ projectId, initialData, initialTotal, refreshKey, o
     <div className="space-y-2">
       {/* Toolbar */}
       <div className="flex flex-wrap items-center gap-2">
-        <div className="relative flex-1 min-w-[180px] max-w-sm">
+        <div className="relative flex-1 min-w-[120px] sm:min-w-[180px] max-w-sm">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
           <Input
             placeholder="Search leads..."
@@ -368,7 +368,7 @@ export function LeadsTable({ projectId, initialData, initialTotal, refreshKey, o
             trigger={
               <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5 relative">
                 <ListFilter className="size-3.5" />
-                Filters
+                <span className="hidden sm:inline">Filters</span>
                 {activeFilterCount > 0 && (
                   <span className="absolute -top-1 -right-1 size-4 rounded-full bg-primary text-[9px] font-bold text-primary-foreground flex items-center justify-center">
                     {activeFilterCount}
@@ -437,7 +437,7 @@ export function LeadsTable({ projectId, initialData, initialTotal, refreshKey, o
             trigger={
               <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5">
                 <Columns3 className="size-3.5" />
-                Columns
+                <span className="hidden sm:inline">Columns</span>
               </Button>
             }
             align="end"
@@ -471,7 +471,7 @@ export function LeadsTable({ projectId, initialData, initialTotal, refreshKey, o
           {/* Import */}
           <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5" onClick={() => setImportOpen(true)}>
             <Upload className="size-3.5" />
-            Import
+            <span className="hidden sm:inline">Import</span>
           </Button>
 
           {/* ICP Validate */}
@@ -483,7 +483,7 @@ export function LeadsTable({ projectId, initialData, initialTotal, refreshKey, o
             onClick={() => setIcpDialogOpen(true)}
           >
             <CheckCircle2 className="size-3.5" />
-            {validating === "icp" ? "ICP…" : "ICP"}
+            <span className="hidden sm:inline">{validating === "icp" ? "ICP…" : "ICP"}</span>
           </Button>
 
           {/* Email Validate */}
@@ -496,7 +496,7 @@ export function LeadsTable({ projectId, initialData, initialTotal, refreshKey, o
                 disabled={validating !== null}
               >
                 <MailCheck className="size-3.5" />
-                {validating === "email" ? "Email…" : "Email"}
+                <span className="hidden sm:inline">{validating === "email" ? "Email…" : "Email"}</span>
               </Button>
             }
             align="end"
@@ -626,9 +626,9 @@ export function LeadsTable({ projectId, initialData, initialTotal, refreshKey, o
             disabled={pageIndex === 0}
           >
             <ChevronLeft className="size-3.5" />
-            Prev
+            <span className="hidden sm:inline">Prev</span>
           </Button>
-          <span className="text-xs text-muted-foreground px-1 min-w-[60px] text-center tabular-nums">
+          <span className="text-xs text-muted-foreground px-1 min-w-[40px] sm:min-w-[60px] text-center tabular-nums">
             {pageIndex + 1} / {Math.max(Math.ceil(totalCount / pageSize), 1)}
           </span>
           <Button
@@ -638,7 +638,7 @@ export function LeadsTable({ projectId, initialData, initialTotal, refreshKey, o
             onClick={() => { setPageIndex((p) => p + 1); }}
             disabled={pageIndex + 1 >= Math.ceil(totalCount / pageSize)}
           >
-            Next
+            <span className="hidden sm:inline">Next</span>
             <ChevronRight className="size-3.5" />
           </Button>
         </div>

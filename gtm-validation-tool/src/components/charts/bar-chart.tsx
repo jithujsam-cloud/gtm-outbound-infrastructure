@@ -20,7 +20,7 @@ export function BarChart({ items, height = 120 }: BarChartProps) {
         const pct = (item.value / max) * 100;
         return (
           <div key={i} className="flex items-center gap-2 text-xs">
-            <span className="w-24 text-right text-muted-foreground truncate">{item.label}</span>
+            <span className="w-16 sm:w-24 text-right text-muted-foreground truncate">{item.label}</span>
             <div className="flex-1 h-5 bg-muted rounded-sm overflow-hidden">
               <div
                 className="h-full rounded-sm transition-all duration-500 flex items-center pl-1.5 min-w-[2px]"

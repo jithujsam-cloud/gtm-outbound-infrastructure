@@ -50,11 +50,11 @@ function DialogOverlay({ className, ...props }: React.ComponentProps<"div">) {
 
 function DialogContent({ className, children, ...props }: React.ComponentProps<"div">) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <DialogOverlay />
       <div
         className={cn(
-          "relative z-50 bg-background max-w-lg rounded-lg border p-6 shadow-lg",
+          "relative z-50 bg-background w-full max-w-[calc(100%-1rem)] rounded-lg border p-4 shadow-lg sm:max-w-lg sm:p-6",
           className
         )}
         onClick={(e) => e.stopPropagation()}

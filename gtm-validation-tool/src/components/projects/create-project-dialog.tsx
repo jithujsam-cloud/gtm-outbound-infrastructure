@@ -52,7 +52,7 @@ export function CreateProjectDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="max-w-[calc(100%-1rem)] sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Create Project</DialogTitle>
           <DialogDescription>

@@ -28,14 +28,14 @@ export default function ProjectsPage() {
 
   return (
     <>
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Projects</h1>
           <p className="text-sm text-muted-foreground mt-1">
             Manage your lead validation projects.
           </p>
         </div>
-        <Button onClick={() => setDialogOpen(true)}>
+        <Button onClick={() => setDialogOpen(true)} className="self-start sm:self-auto">
           <Plus className="size-4" />
           New Project
         </Button>

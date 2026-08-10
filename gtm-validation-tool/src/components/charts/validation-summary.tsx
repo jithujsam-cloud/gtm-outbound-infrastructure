@@ -71,10 +71,10 @@ export function ValidationSummary({ projectId, refreshKey }: ValidationSummaryPr
 
   if (!stats) {
     return (
-      <div className="flex items-center gap-6 py-2">
+      <div className="flex flex-wrap items-center gap-4 sm:gap-6 py-2">
         {[...Array(3)].map((_, i) => (
           <div key={i} className="flex items-center gap-3">
-            <div className="size-14 rounded-full bg-muted animate-pulse" />
+            <div className="size-12 sm:size-14 rounded-full bg-muted animate-pulse" />
             <div className="space-y-1.5">
               <div className="h-3 w-12 bg-muted rounded animate-pulse" />
               <div className="h-3 w-8 bg-muted rounded animate-pulse" />
@@ -103,7 +103,7 @@ export function ValidationSummary({ projectId, refreshKey }: ValidationSummaryPr
   ];
 
   return (
-    <div className="flex items-center gap-8 py-1.5">
+    <div className="flex flex-wrap items-center gap-4 sm:gap-6 py-1.5">
       <div className="flex items-center gap-3">
         <MiniDonut slices={emailSlices} center={String(stats.total)} />
         <div className="text-xs leading-relaxed">
@@ -128,13 +128,13 @@ export function ValidationSummary({ projectId, refreshKey }: ValidationSummaryPr
         </div>
       </div>
 
-      <div className="flex items-center gap-3 ml-4 pl-4 border-l border-border">
-        <div className="flex items-center justify-center size-14 rounded-full bg-emerald-50 border-2 border-emerald-200">
-          <Shield className="size-5 text-emerald-600" />
+      <div className="flex items-center gap-3 sm:ml-4 sm:pl-4 sm:border-l border-border">
+        <div className="flex items-center justify-center size-12 sm:size-14 rounded-full bg-emerald-50 border-2 border-emerald-200">
+          <Shield className="size-4 sm:size-5 text-emerald-600" />
         </div>
         <div className="text-xs leading-relaxed">
           <div className="font-medium text-muted-foreground mb-0.5">Safe to Send</div>
-          <div className="text-lg font-bold tabular-nums text-emerald-600">{stats.safeToSend}</div>
+          <div className="text-base sm:text-lg font-bold tabular-nums text-emerald-600">{stats.safeToSend}</div>
           <div className="text-[10px] text-muted-foreground">
             {stats.total > 0 ? `${Math.round((stats.safeToSend / stats.total) * 100)}% of total` : "0% of total"}
           </div>

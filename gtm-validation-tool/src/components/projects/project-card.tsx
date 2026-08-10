@@ -100,7 +100,7 @@ export function ProjectCard({ project, onUpdated, onDeleted }: {
 
       {/* Edit Dialog */}
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="max-w-[calc(100%-1rem)] sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>Edit Project</DialogTitle>
             <DialogDescription>
@@ -141,7 +141,7 @@ export function ProjectCard({ project, onUpdated, onDeleted }: {
 
       {/* Delete Confirmation */}
       <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-        <DialogContent className="sm:max-w-[400px]">
+        <DialogContent className="max-w-[calc(100%-1rem)] sm:max-w-[400px]">
           <DialogHeader>
             <DialogTitle>Delete Project</DialogTitle>
             <DialogDescription>

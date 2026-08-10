@@ -41,7 +41,7 @@ function EmailDialog({ open, onOpenChange, projectId }: { open: boolean; onOpenC
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[440px]">
+      <DialogContent className="max-w-[calc(100%-1rem)] sm:max-w-[440px]">
         <DialogHeader>
           <DialogTitle>Email Validation</DialogTitle>
           <DialogDescription>

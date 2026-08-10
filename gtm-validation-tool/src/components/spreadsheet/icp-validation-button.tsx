@@ -188,7 +188,7 @@ export function IcpValidationDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="max-w-[calc(100%-1rem)] sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle>ICP Validation</DialogTitle>
           <DialogDescription>
@@ -217,7 +217,7 @@ export function IcpValidationDialog({
                 />
 
                 {showVariables && filteredVariables.length > 0 && (
-                  <div className="absolute left-0 top-full z-50 mt-1 w-64 rounded-md border bg-popover p-1 shadow-md max-h-48 overflow-y-auto">
+                  <div className="absolute left-0 top-full z-50 mt-1 w-full sm:w-64 rounded-md border bg-popover p-1 shadow-md max-h-48 overflow-y-auto">
                     {filteredVariables.map((v, i) => (
                       <button
                         key={v.variable}
@@ -267,7 +267,7 @@ export function IcpValidationDialog({
             </>
           )}
 
-          <div className="flex justify-end gap-2 pt-2 border-t">
+          <div className="flex flex-wrap justify-end gap-2 pt-2 border-t">
             <Button
               variant="outline"
               size="sm"

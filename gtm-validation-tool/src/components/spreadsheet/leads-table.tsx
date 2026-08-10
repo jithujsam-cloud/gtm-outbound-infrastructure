@@ -111,12 +111,45 @@ const ALL_COLUMNS: ColumnDef<Lead>[] = [
   {
     accessorKey: "vertical_match",
     header: "ICP",
-    size: 80,
-    minSize: 70,
-    cell: ({ getValue }) => {
-      const val = getValue<boolean | null>();
+    size: 160,
+    minSize: 100,
+    cell: ({ row }) => {
+      const val = row.getValue<boolean | null>("vertical_match");
+      const vertical = row.getValue<string | null>("matched_vertical");
+      const reasoning = row.getValue<string | null>("reasoning");
+
       if (val === null) return <span className="text-muted-foreground text-xs">—</span>;
-      return <Badge variant={val ? "default" : "outline"} className="text-[10px] px-1.5 py-0">{val ? "Yes" : "No"}</Badge>;
+
+      const trigger = (
+        <span className="cursor-pointer inline-flex items-center gap-1">
+          <Badge variant={val ? "default" : "outline"} className="text-[10px] px-1.5 py-0">
+            {val ? "✓" : "✕"}
+          </Badge>
+          {vertical && (
+            <span className="text-[11px] text-muted-foreground truncate max-w-[100px]">{vertical}</span>
+          )}
+        </span>
+      );
+
+      if (!reasoning && !vertical) return trigger;
+
+      return (
+        <IcpReasonPopover trigger={trigger}>
+          <div className="space-y-1.5">
+            <div className="flex items-center gap-1.5">
+              <Badge variant={val ? "default" : "destructive"} className="text-[10px] px-1.5 py-0">
+                {val ? "ICP Match" : "Does not fit"}
+              </Badge>
+              {vertical && (
+                <span className="text-xs font-medium">{vertical}</span>
+              )}
+            </div>
+            {reasoning && (
+              <p className="text-xs text-muted-foreground leading-relaxed">{reasoning}</p>
+            )}
+          </div>
+        </IcpReasonPopover>
+      );
     },
   },
   {
@@ -664,5 +697,33 @@ export function LeadsTable({ projectId, initialData, initialTotal, refreshKey, o
         fetchAllIds={fetchAllIds}
       />
     </div>
+  );
+}
+
+function IcpReasonPopover({ trigger, children }: { trigger: React.ReactNode; children: React.ReactNode }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [open]);
+
+  return (
+    <span className="relative inline-block">
+      <span onClick={() => setOpen(!open)}>{trigger}</span>
+      {open && (
+        <div
+          ref={ref}
+          className="absolute z-50 left-0 top-full mt-1 w-72 rounded-md border bg-popover p-3 shadow-md"
+        >
+          {children}
+        </div>
+      )}
+    </span>
   );
 }

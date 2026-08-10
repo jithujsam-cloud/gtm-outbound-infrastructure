@@ -164,15 +164,17 @@ export function IcpValidationDialog({
     setProgress({ completed: 0, failed: 0, pending: ids.length, total: ids.length });
 
     try {
+      const body: any = {
+        type: "icp",
+        mode: all ? "continuous" : "selected",
+        prompt,
+      };
+      if (!all) body.leadIds = ids;
+
       const jobRes = await fetch(`/api/projects/${projectId}/jobs`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          type: "icp",
-          mode: all ? "continuous" : "selected",
-          leadIds: ids,
-          prompt,
-        }),
+        body: JSON.stringify(body),
       });
 
       if (!jobRes.ok) {

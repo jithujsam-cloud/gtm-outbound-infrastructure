@@ -203,6 +203,65 @@ export interface Database {
           updated_at?: string
         }
       }
+      api_operation_logs: {
+        Row: {
+          id: string
+          user_id: string
+          project_id: string
+          lead_id: string | null
+          job_id: string | null
+          job_item_id: string | null
+          provider: string
+          operation: string
+          status: string
+          attempt: number
+          duration_ms: number | null
+          http_status: number | null
+          error_code: string | null
+          error_message: string | null
+          request_metadata: Record<string, unknown> | null
+          response_metadata: Record<string, unknown> | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          project_id: string
+          lead_id?: string | null
+          job_id?: string | null
+          job_item_id?: string | null
+          provider: string
+          operation: string
+          status: string
+          attempt?: number
+          duration_ms?: number | null
+          http_status?: number | null
+          error_code?: string | null
+          error_message?: string | null
+          request_metadata?: Record<string, unknown> | null
+          response_metadata?: Record<string, unknown> | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          project_id?: string
+          lead_id?: string | null
+          job_id?: string | null
+          job_item_id?: string | null
+          provider?: string
+          operation?: string
+          status?: string
+          attempt?: number
+          duration_ms?: number | null
+          http_status?: number | null
+          error_code?: string | null
+          error_message?: string | null
+          request_metadata?: Record<string, unknown> | null
+          response_metadata?: Record<string, unknown> | null
+          created_at?: string
+        }
+      }
     }
     Views: {}
     Functions: {}

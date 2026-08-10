@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { createApiLog, updateApiLog } from "@/lib/api-logger";
 
 export async function POST(
   _request: NextRequest,
@@ -62,9 +63,22 @@ export async function POST(
   const errors: string[] = [];
 
   for (const lead of leads) {
+    let logId: string | null = null;
+    const startedAt = Date.now();
+
     try {
       const result = await callClearout(clearoutKey, lead.email);
       const check = parseClearout(result);
+
+      logId = await createApiLog({
+        user_id: user.id,
+        project_id: projectId,
+        lead_id: lead.id,
+        provider: "clearout",
+        operation: "email_verification",
+        status: "success",
+        request_metadata: { email_provided: true },
+      });
 
       const { error: updateErr } = await supabase
         .from("leads")
@@ -81,14 +95,40 @@ export async function POST(
         .eq("id", lead.id);
 
       if (updateErr) {
+        await updateApiLog(logId, {
+          status: "failed",
+          duration_ms: Date.now() - startedAt,
+          error_message: "database update failed",
+        });
         errors.push(`${lead.email}: database update failed`);
         continue;
       }
+
+      await updateApiLog(logId, {
+        status: "success",
+        duration_ms: Date.now() - startedAt,
+        response_metadata: { status: check.status, safe_to_send: check.safe_to_send },
+      });
 
       processed++;
       if (check.status === "valid") valid++;
       else if (check.status === "invalid") invalid++;
     } catch (err: any) {
+      if (logId) {
+        const isRetryable =
+          err.message?.includes("429") ||
+          err.message?.includes("500") ||
+          err.message?.includes("502") ||
+          err.message?.includes("503") ||
+          err.message?.includes("timeout") ||
+          err.message?.includes("ECONNREFUSED");
+
+        await updateApiLog(logId, {
+          status: isRetryable ? "retryable_error" : "fatal_error",
+          duration_ms: Date.now() - startedAt,
+          error_message: err.message?.slice(0, 500),
+        });
+      }
       errors.push(`${lead.email}: ${err.message}`);
     }
   }

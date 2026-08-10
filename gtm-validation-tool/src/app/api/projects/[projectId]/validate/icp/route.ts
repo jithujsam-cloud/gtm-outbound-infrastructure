@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { callGemini } from "@/lib/validation/gemini";
 import { resolvePrompt } from "@/lib/validation/variables";
 import { saveValidationPrompt } from "@/lib/validation-prompts";
+import { createApiLog, updateApiLog } from "@/lib/api-logger";
 
 export async function POST(
   _request: NextRequest,
@@ -90,8 +91,21 @@ export async function POST(
   const errors: string[] = [];
 
   for (const lead of pendingLeads) {
+    let logId: string | null = null;
+    const startedAt = Date.now();
+
     try {
       const resolved = resolvePrompt(prompt, lead);
+
+      logId = await createApiLog({
+        user_id: user.id,
+        project_id: projectId,
+        lead_id: lead.id,
+        provider: "gemini",
+        operation: "icp_validation",
+        status: "success",
+        request_metadata: { model: "gemini-3.6-flash", lead_count: 1 },
+      });
 
       const result = await callGemini(geminiKey, resolved);
 
@@ -106,13 +120,42 @@ export async function POST(
         .eq("id", lead.id);
 
       if (updateErr) {
+        await updateApiLog(logId, {
+          status: "failed",
+          duration_ms: Date.now() - startedAt,
+          error_message: "database update failed",
+        });
         errors.push(`${lead.full_name}: database update failed`);
         continue;
       }
 
+      await updateApiLog(logId, {
+        status: "success",
+        duration_ms: Date.now() - startedAt,
+        response_metadata: {
+          vertical_match: result.vertical_match,
+          matched_vertical: result.matched_vertical,
+        },
+      });
+
       processed++;
       if (result.vertical_match) matched++;
     } catch (err: any) {
+      if (logId) {
+        const isRetryable =
+          err.message?.includes("429") ||
+          err.message?.includes("500") ||
+          err.message?.includes("502") ||
+          err.message?.includes("503") ||
+          err.message?.includes("timeout") ||
+          err.message?.includes("ECONNREFUSED");
+
+        await updateApiLog(logId, {
+          status: isRetryable ? "retryable_error" : "fatal_error",
+          duration_ms: Date.now() - startedAt,
+          error_message: err.message?.slice(0, 500),
+        });
+      }
       errors.push(`${lead.full_name}: ${err.message}`);
     }
   }

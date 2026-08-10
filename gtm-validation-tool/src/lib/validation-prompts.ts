@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { ICP_VERTICALS } from "@/types";
 
 export async function getValidationPrompt(
   userId: string,
@@ -6,7 +7,7 @@ export async function getValidationPrompt(
   type: string
 ): Promise<string | null> {
   const supabase = await createClient();
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("validation_prompts")
     .select("prompt")
     .eq("user_id", userId)
@@ -14,6 +15,7 @@ export async function getValidationPrompt(
     .eq("type", type)
     .maybeSingle();
 
+  if (error) throw error;
   return data?.prompt ?? null;
 }
 
@@ -26,35 +28,26 @@ export async function saveValidationPrompt(
 ): Promise<void> {
   const supabase = await createClient();
 
-  const { data: existing } = await supabase
+  const { error } = await supabase
     .from("validation_prompts")
-    .select("id")
-    .eq("user_id", userId)
-    .eq("project_id", projectId)
-    .eq("type", type)
-    .maybeSingle();
-
-  if (existing) {
-    await supabase
-      .from("validation_prompts")
-      .update({
+    .upsert(
+      {
+        user_id: userId,
+        project_id: projectId,
+        type,
         prompt,
         model: model ?? null,
         updated_at: new Date().toISOString(),
-      })
-      .eq("id", existing.id);
-  } else {
-    await supabase.from("validation_prompts").insert({
-      user_id: userId,
-      project_id: projectId,
-      type,
-      prompt,
-      model: model ?? null,
-    });
-  }
+      },
+      { onConflict: "user_id,project_id,type" }
+    );
+
+  if (error) throw error;
 }
 
 export function getDefaultIcpPrompt(): string {
+  const verticals = ICP_VERTICALS.map((v) => `- ${v}`).join("\n");
+
   return `You are an ICP classification engine.
 
 Determine whether this company matches our target ICP.
@@ -70,11 +63,7 @@ Website: /website
 
 Target verticals:
 
-- D2C / E-commerce
-- Defense / Aviation
-- Fintech
-- Pharma
-- Semiconductor / Data Center
+${verticals}
 
 Evaluate the company primarily using its business, products, industry, company description, website and domain.
 

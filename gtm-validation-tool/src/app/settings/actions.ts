@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { upsertIntegrationSettings, getIntegrationSettings } from "@/lib/integration-settings";
+import { upsertIntegrationSettings, getIntegrationStatus } from "@/lib/integration-settings";
 import { getValidationPrompt, saveValidationPrompt, getDefaultIcpPrompt } from "@/lib/validation-prompts";
 import { createClient } from "@/lib/supabase/server";
 
@@ -13,7 +13,7 @@ export async function saveSettings(formData: FormData) {
 
   try {
     await upsertIntegrationSettings(settings);
-    revalidatePath("/settings");
+    revalidatePath("/integrations");
     return { success: true };
   } catch (e) {
     return { error: e instanceof Error ? e.message : "Failed to save settings" };
@@ -22,8 +22,8 @@ export async function saveSettings(formData: FormData) {
 
 export async function loadSettings() {
   try {
-    const settings = await getIntegrationSettings();
-    return { settings, error: null };
+    const status = await getIntegrationStatus();
+    return { settings: status, error: null };
   } catch (e) {
     return { settings: null, error: e instanceof Error ? e.message : "Failed to load settings" };
   }

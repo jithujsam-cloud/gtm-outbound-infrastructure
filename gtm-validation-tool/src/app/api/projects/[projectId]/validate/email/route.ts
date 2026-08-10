@@ -39,10 +39,21 @@ export async function POST(
     .from("leads")
     .select("id, email, full_name")
     .eq("project_id", projectId)
+    .eq("user_id", user.id)
     .in("id", leadIds);
 
   if (fetchErr || !leads) {
     return NextResponse.json({ error: "Failed to fetch leads" }, { status: 500 });
+  }
+
+  const verifiedIds = new Set(leads.map((l) => l.id));
+  for (const id of leadIds) {
+    if (!verifiedIds.has(id)) {
+      return NextResponse.json(
+        { error: `Lead ${id} does not belong to this project` },
+        { status: 403 }
+      );
+    }
   }
 
   let processed = 0;
@@ -55,7 +66,7 @@ export async function POST(
       const result = await callClearout(clearoutKey, lead.email);
       const check = parseClearout(result);
 
-      await supabase
+      const { error: updateErr } = await supabase
         .from("leads")
         .update({
           email_check: check.status === "valid" ? "Valid" : check.status === "invalid" ? "Invalid" : "Unknown",
@@ -68,6 +79,11 @@ export async function POST(
           clearout_domain: check.domain,
         })
         .eq("id", lead.id);
+
+      if (updateErr) {
+        errors.push(`${lead.email}: database update failed`);
+        continue;
+      }
 
       processed++;
       if (check.status === "valid") valid++;

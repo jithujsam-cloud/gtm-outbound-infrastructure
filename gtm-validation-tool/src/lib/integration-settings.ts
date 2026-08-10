@@ -15,6 +15,26 @@ export async function getIntegrationSettings(): Promise<IntegrationSettings | nu
   return data;
 }
 
+export async function getIntegrationStatus(): Promise<{
+  gemini_configured: boolean;
+  clearout_configured: boolean;
+}> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
+
+  const { data } = await supabase
+    .from("integration_settings")
+    .select("gemini_api_key, clearout_api_key")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  return {
+    gemini_configured: !!(data?.gemini_api_key),
+    clearout_configured: !!(data?.clearout_api_key),
+  };
+}
+
 export async function upsertIntegrationSettings(
   settings: {
     clearout_api_key?: string;

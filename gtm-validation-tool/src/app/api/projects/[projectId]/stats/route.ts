@@ -15,7 +15,8 @@ export async function GET(
   const { data: allLeads, error } = await supabase
     .from("leads")
     .select("email_check, vertical_match, safe_to_send")
-    .eq("project_id", projectId);
+    .eq("project_id", projectId)
+    .eq("user_id", user.id);
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });

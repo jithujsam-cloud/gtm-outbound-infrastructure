@@ -26,6 +26,7 @@ export async function GET(
     .from("leads")
     .select(idsonly ? "id" : "*", { count: "exact" })
     .eq("project_id", projectId)
+    .eq("user_id", user.id)
     .order("created_at", { ascending: false });
 
   if (search) {

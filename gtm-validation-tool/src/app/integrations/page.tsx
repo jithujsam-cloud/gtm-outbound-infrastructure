@@ -15,12 +15,14 @@ export default function IntegrationsPage() {
   const [saving, setSaving] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [geminiConfigured, setGeminiConfigured] = useState(false);
+  const [clearoutConfigured, setClearoutConfigured] = useState(false);
 
   useEffect(() => {
     loadSettings().then((r) => {
       if (r.settings) {
-        if (r.settings.gemini_api_key) setGeminiApiKey(r.settings.gemini_api_key);
-        if (r.settings.clearout_api_key) setClearoutApiKey(r.settings.clearout_api_key);
+        setGeminiConfigured(r.settings.gemini_configured);
+        setClearoutConfigured(r.settings.clearout_configured);
       }
       if (r.error) setLoadError(r.error);
       setLoaded(true);
@@ -71,7 +73,7 @@ export default function IntegrationsPage() {
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
-            {geminiApiKey && (
+            {geminiConfigured && (
               <div className="flex items-center gap-2 rounded-md bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
                 <CheckCircle className="size-4" />
                 Connected
@@ -108,7 +110,7 @@ export default function IntegrationsPage() {
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
-            {clearoutApiKey && (
+            {clearoutConfigured && (
               <div className="flex items-center gap-2 rounded-md bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
                 <CheckCircle className="size-4" />
                 Connected

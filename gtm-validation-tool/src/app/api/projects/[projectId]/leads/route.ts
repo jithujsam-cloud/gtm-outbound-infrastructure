@@ -13,14 +13,18 @@ export async function GET(
   }
 
   const url = new URL(_request.url);
+  const idsonly = url.searchParams.get("idsonly") === "true";
   const page = parseInt(url.searchParams.get("page") ?? "1");
-  const limit = parseInt(url.searchParams.get("limit") ?? "50");
+  const limit = parseInt(url.searchParams.get("limit") ?? "10");
   const search = url.searchParams.get("search")?.trim();
+  const emailCheck = url.searchParams.get("email_check")?.trim();
+  const verticalMatch = url.searchParams.get("vertical_match")?.trim();
+  const industry = url.searchParams.get("industry")?.trim();
   const offset = (page - 1) * limit;
 
   let query = supabase
     .from("leads")
-    .select("*", { count: "exact" })
+    .select(idsonly ? "id" : "*", { count: "exact" })
     .eq("project_id", projectId)
     .order("created_at", { ascending: false });
 
@@ -29,6 +33,26 @@ export async function GET(
     query = query.or(
       `full_name.ilike.${ilike},company_name.ilike.${ilike},email.ilike.${ilike},position.ilike.${ilike},industry.ilike.${ilike},matched_vertical.ilike.${ilike}`
     );
+  }
+
+  if (emailCheck) {
+    if (emailCheck === "null") query = query.is("email_check", null);
+    else query = query.eq("email_check", emailCheck);
+  }
+
+  if (verticalMatch) {
+    if (verticalMatch === "null") query = query.is("vertical_match", null);
+    else query = query.eq("vertical_match", verticalMatch === "true");
+  }
+
+  if (industry) {
+    query = query.ilike("industry", `%${industry}%`);
+  }
+
+  if (idsonly) {
+    const { data: idRows, error: idErr } = await query;
+    if (idErr) return NextResponse.json({ error: idErr.message }, { status: 500 });
+    return NextResponse.json({ ids: idRows?.map((r: any) => r.id) ?? [] });
   }
 
   const { data, error, count } = await query.range(offset, offset + limit - 1);

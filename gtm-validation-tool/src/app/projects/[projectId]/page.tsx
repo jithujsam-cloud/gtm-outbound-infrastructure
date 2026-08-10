@@ -1,6 +1,8 @@
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import Link from "next/link";
+import { ChevronLeft } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Lead } from "@/types";
 
@@ -24,7 +26,7 @@ async function getProjectWithLeads(projectId: string) {
       .select("*", { count: "exact" })
       .eq("project_id", projectId)
       .order("created_at", { ascending: false })
-      .limit(50);
+      .limit(10);
 
     return { project, leads: (leads ?? []) as Lead[], total: count ?? 0 };
   } catch {
@@ -55,23 +57,26 @@ async function ProjectContent({
   if (!result) notFound();
 
   const { project, leads, total } = result;
-  const { ProjectLeads } = await import("@/components/import/project-leads");
+  const { ProjectLeadsClient } = await import("./project-leads-client");
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
+      <Link
+        href="/projects"
+        className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
+      >
+        <ChevronLeft className="size-3.5" />
+        Projects
+      </Link>
+
       <div>
         <h1 className="text-2xl font-bold tracking-tight">{project.name}</h1>
-        {project.description && (
-          <p className="text-sm text-muted-foreground mt-1">{project.description}</p>
-        )}
+        <p className="text-sm text-muted-foreground">{total} lead{total !== 1 ? "s" : ""}</p>
       </div>
 
       <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Leads ({total})</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ProjectLeads
+        <CardContent className="pt-4 pb-2">
+          <ProjectLeadsClient
             projectId={projectId}
             initialLeads={leads}
             initialTotal={total}
@@ -84,18 +89,15 @@ async function ProjectContent({
 
 function ProjectShellSkeleton() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
+      <Skeleton className="h-4 w-20" />
       <div>
-        <Skeleton className="h-8 w-64 mb-2" />
-        <Skeleton className="h-4 w-96" />
+        <Skeleton className="h-8 w-48 mb-2" />
+        <Skeleton className="h-4 w-24" />
       </div>
 
       <Card>
-        <CardHeader>
-          <Skeleton className="h-5 w-24" />
-        </CardHeader>
-        <CardContent>
-          <Skeleton className="h-6 w-64 mb-4" />
+        <CardContent className="pt-4">
           <div className="space-y-2">
             {[...Array(5)].map((_, i) => (
               <div key={i} className="flex gap-4">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useEffect, useCallback } from "react";
+import { useMemo, useState, useEffect, useCallback, useRef } from "react";
 import {
   useReactTable,
   getCoreRowModel,
@@ -16,6 +16,7 @@ import type { Lead } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Select } from "@/components/ui/select";
 import { Popover, PopoverItem } from "@/components/ui/popover";
 import { ImportLeadsDialog } from "@/components/spreadsheet/import-leads-dialog";
 import { toast } from "sonner";
@@ -44,9 +45,11 @@ const ALL_COLUMNS: ColumnDef<Lead>[] = [
       <input
         type="checkbox"
         className="size-3.5 rounded border-input cursor-pointer"
-        checked={table.getIsAllRowsSelected()}
-        ref={(el) => { if (el) el.indeterminate = table.getIsSomeRowsSelected(); }}
-        onChange={table.getToggleAllRowsSelectedHandler()}
+        checked={table.getIsAllPageRowsSelected()}
+        ref={(el) => {
+          if (el) el.indeterminate = table.getIsSomePageRowsSelected() && !table.getIsAllPageRowsSelected();
+        }}
+        onChange={table.getToggleAllPageRowsSelectedHandler()}
         onClick={(e) => e.stopPropagation()}
       />
     ),
@@ -60,22 +63,43 @@ const ALL_COLUMNS: ColumnDef<Lead>[] = [
       />
     ),
     size: 36,
+    minSize: 36,
     enableSorting: false,
     enableHiding: false,
   },
-  { accessorKey: "full_name", header: "Full Name", size: 170 },
-  { accessorKey: "company_name", header: "Company", size: 180 },
-  { accessorKey: "position", header: "Position", size: 150 },
-  { accessorKey: "email", header: "Email", size: 230 },
-  { accessorKey: "industry", header: "Industry", size: 140 },
-  { accessorKey: "state", header: "State", size: 90 },
-  { accessorKey: "domain", header: "Domain", size: 180 },
-  { accessorKey: "employee_size", header: "Employees", size: 100 },
-  { accessorKey: "country", header: "Country", size: 110 },
+  {
+    accessorKey: "full_name",
+    header: "Name",
+    size: 150,
+    minSize: 100,
+    cell: ({ getValue }) => <span className="truncate block max-w-[150px]" title={getValue<string>()}>{getValue<string>()}</span>,
+  },
+  {
+    accessorKey: "company_name",
+    header: "Company",
+    size: 160,
+    minSize: 100,
+    cell: ({ getValue }) => <span className="truncate block max-w-[160px]" title={getValue<string>()}>{getValue<string>()}</span>,
+  },
+  {
+    accessorKey: "email",
+    header: "Email",
+    size: 210,
+    minSize: 140,
+    cell: ({ getValue }) => <span className="truncate block max-w-[210px]" title={getValue<string>()}>{getValue<string>()}</span>,
+  },
+  {
+    accessorKey: "industry",
+    header: "Industry",
+    size: 130,
+    minSize: 80,
+    cell: ({ getValue }) => <span className="truncate block max-w-[130px]" title={getValue<string>()}>{getValue<string>()}</span>,
+  },
   {
     accessorKey: "email_check",
     header: "Email Check",
-    size: 115,
+    size: 100,
+    minSize: 80,
     cell: ({ getValue }) => {
       const val = getValue<string | null>();
       if (!val) return <span className="text-muted-foreground text-xs">—</span>;
@@ -85,28 +109,40 @@ const ALL_COLUMNS: ColumnDef<Lead>[] = [
   },
   {
     accessorKey: "vertical_match",
-    header: "ICP Match",
-    size: 100,
+    header: "ICP",
+    size: 80,
+    minSize: 70,
     cell: ({ getValue }) => {
       const val = getValue<boolean | null>();
       if (val === null) return <span className="text-muted-foreground text-xs">—</span>;
-      return <Badge variant={val ? "default" : "outline"} className="text-[10px] px-1.5 py-0">{val ? "Match" : "No"}</Badge>;
+      return <Badge variant={val ? "default" : "outline"} className="text-[10px] px-1.5 py-0">{val ? "Yes" : "No"}</Badge>;
     },
   },
-  { accessorKey: "matched_vertical", header: "Vertical", size: 150 },
-  { accessorKey: "email_score", header: "Score", size: 70 },
+  {
+    accessorKey: "matched_vertical",
+    header: "Vertical",
+    size: 130,
+    minSize: 80,
+    cell: ({ getValue }) => <span className="truncate block max-w-[130px]" title={getValue<string | null>() ?? ""}>{getValue<string | null>() ?? "—"}</span>,
+  },
+  { accessorKey: "position", header: "Position", size: 130, minSize: 80 },
+  { accessorKey: "state", header: "State", size: 80, minSize: 60 },
+  { accessorKey: "domain", header: "Domain", size: 150, minSize: 100 },
+  { accessorKey: "employee_size", header: "Emp.", size: 60, minSize: 50 },
+  { accessorKey: "country", header: "Country", size: 90, minSize: 70 },
+  { accessorKey: "email_score", header: "Score", size: 60, minSize: 50 },
   {
     accessorKey: "status",
     header: "Status",
-    size: 110,
-    cell: ({ getValue }) => (
-      <span className="text-muted-foreground">{getValue<string | null>() ?? "—"}</span>
-    ),
+    size: 90,
+    minSize: 70,
+    cell: ({ getValue }) => <span className="text-muted-foreground">{getValue<string | null>() ?? "—"}</span>,
   },
   {
     accessorKey: "safe_to_send",
     header: "Safe",
-    size: 70,
+    size: 60,
+    minSize: 50,
     cell: ({ getValue }) => {
       const val = getValue<boolean | null>();
       if (val === null) return <span className="text-muted-foreground text-xs">—</span>;
@@ -119,28 +155,46 @@ const DEFAULT_VISIBLE: Record<string, boolean> = {
   select: true,
   full_name: true,
   company_name: true,
-  position: false,
   email: true,
   industry: true,
+  email_check: true,
+  vertical_match: true,
+  matched_vertical: true,
+  position: false,
   state: false,
   domain: false,
   employee_size: false,
   country: false,
-  email_check: true,
-  vertical_match: true,
-  matched_vertical: true,
   email_score: false,
-  status: true,
-  safe_to_send: true,
+  status: false,
+  safe_to_send: false,
+};
+
+const PAGE_SIZES = [10, 20, 50, 100];
+
+const FILTER_OPTIONS = {
+  email_check: [
+    { label: "Valid", value: "Valid" },
+    { label: "Invalid", value: "Invalid" },
+    { label: "Unknown", value: "Unknown" },
+    { label: "Not validated", value: "null" },
+  ],
+  vertical_match: [
+    { label: "ICP Match", value: "true" },
+    { label: "No Match", value: "false" },
+    { label: "Not validated", value: "null" },
+  ],
 };
 
 interface LeadsTableProps {
   projectId: string;
   initialData: Lead[];
   initialTotal: number;
+  refreshKey?: number;
+  onValidationComplete?: () => void;
 }
 
-export function LeadsTable({ projectId, initialData, initialTotal }: LeadsTableProps) {
+export function LeadsTable({ projectId, initialData, initialTotal, refreshKey, onValidationComplete }: LeadsTableProps) {
   const [data, setData] = useState<Lead[]>(initialData);
   const [sorting, setSorting] = useState<SortingState>([]);
   const [globalFilter, setGlobalFilter] = useState("");
@@ -149,6 +203,9 @@ export function LeadsTable({ projectId, initialData, initialTotal }: LeadsTableP
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
   const [validating, setValidating] = useState<"icp" | "email" | null>(null);
   const [importOpen, setImportOpen] = useState(false);
+  const [pageSize, setPageSize] = useState(10);
+  const [pageIndex, setPageIndex] = useState(0);
+  const [filters, setFilters] = useState<Record<string, string>>({});
 
   const storageKey = STORAGE_KEY_PREFIX + projectId;
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(() => {
@@ -160,6 +217,8 @@ export function LeadsTable({ projectId, initialData, initialTotal }: LeadsTableP
     return DEFAULT_VISIBLE;
   });
 
+  const fetchRef = useRef(false);
+
   useEffect(() => {
     try { localStorage.setItem(storageKey, JSON.stringify(columnVisibility)); } catch {}
   }, [columnVisibility, storageKey]);
@@ -167,9 +226,8 @@ export function LeadsTable({ projectId, initialData, initialTotal }: LeadsTableP
   const table = useReactTable({
     data,
     columns: ALL_COLUMNS,
-    state: { sorting, globalFilter, columnVisibility, rowSelection },
+    state: { sorting, globalFilter, columnVisibility, rowSelection, pagination: { pageIndex, pageSize } },
     onSortingChange: setSorting,
-    onGlobalFilterChange: setGlobalFilter,
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
     getCoreRowModel: getCoreRowModel(),
@@ -178,25 +236,54 @@ export function LeadsTable({ projectId, initialData, initialTotal }: LeadsTableP
     getRowId: (row) => row.id,
     enableRowSelection: true,
     globalFilterFn: "includesString",
+    manualPagination: true,
+    pageCount: Math.max(Math.ceil(totalCount / pageSize), 1),
   });
 
-  const selectedIds = Object.keys(rowSelection).map((idx) => data[Number(idx)]?.id).filter(Boolean);
+  const selectedIds = useMemo(() => {
+    return table.getSelectedRowModel().rows.map((r) => r.original.id);
+  }, [rowSelection, data]);
 
-  const fetchPage = useCallback(async (pageIndex: number) => {
+  const fetchPage = useCallback(async (page: number, size: number) => {
     setLoading(true);
-    const page = pageIndex + 1;
-    const params = new URLSearchParams({ page: String(page), limit: "50" });
+    const params = new URLSearchParams({ page: String(page + 1), limit: String(size) });
     if (globalFilter) params.set("search", globalFilter);
+    Object.entries(filters).forEach(([k, v]) => { if (v) params.set(k, v); });
     const res = await fetch(`/api/projects/${projectId}/leads?${params}`);
     const json = await res.json();
     setData(json.data);
     setTotalCount(json.total);
+    setPageIndex(Math.min(page, Math.max(0, Math.ceil(json.total / size) - 1)));
     setRowSelection({});
     setLoading(false);
-  }, [projectId, globalFilter]);
+  }, [projectId, globalFilter, filters]);
+
+  useEffect(() => {
+    if (fetchRef.current) return;
+    fetchRef.current = true;
+    fetchPage(0, pageSize);
+  }, []);
+
+  useEffect(() => {
+    if (!fetchRef.current) return;
+    fetchPage(pageIndex, pageSize);
+  }, [pageIndex, pageSize, globalFilter, filters, refreshKey]);
+
+  const activeFilterCount = Object.values(filters).filter(Boolean).length;
 
   const runValidation = async (type: "icp" | "email", all: boolean) => {
-    const ids = all ? data.map((l) => l.id) : selectedIds;
+    let ids: string[];
+    if (all) {
+      const params = new URLSearchParams();
+      if (globalFilter) params.set("search", globalFilter);
+      Object.entries(filters).forEach(([k, v]) => { if (v) params.set(k, v); });
+      params.set("idsonly", "true");
+      const res = await fetch(`/api/projects/${projectId}/leads?${params}`);
+      const json = await res.json();
+      ids = json.ids ?? [];
+    } else {
+      ids = selectedIds;
+    }
     if (ids.length === 0) return;
     setValidating(type);
     const label = type === "icp" ? "ICP" : "email";
@@ -209,8 +296,8 @@ export function LeadsTable({ projectId, initialData, initialTotal }: LeadsTableP
       if (!res.ok) throw new Error(await res.text());
       const json = await res.json();
       toast.success(`${label} validation done — ${json.processed ?? ids.length} processed`);
-      const pageIdx = table.getState().pagination.pageIndex;
-      fetchPage(pageIdx);
+      onValidationComplete?.();
+      fetchPage(pageIndex, pageSize);
     } catch (err: any) {
       toast.error(`${label} validation failed: ${err.message}`);
     } finally {
@@ -218,16 +305,42 @@ export function LeadsTable({ projectId, initialData, initialTotal }: LeadsTableP
     }
   };
 
+  const handlePageSizeChange = (size: number) => {
+    setPageSize(size);
+    setPageIndex(0);
+  };
+
+  const handleFilterChange = (key: string, value: string) => {
+    setFilters((prev) => {
+      const next = { ...prev };
+      if (prev[key] === value) {
+        delete next[key];
+      } else {
+        next[key] = value;
+      }
+      return next;
+    });
+    setPageIndex(0);
+  };
+
+  const clearFilters = () => {
+    setFilters({});
+    setPageIndex(0);
+  };
+
+  const start = totalCount === 0 ? 0 : pageIndex * pageSize + 1;
+  const end = Math.min((pageIndex + 1) * pageSize, totalCount);
+
   return (
-    <div className="space-y-3">
+    <div className="space-y-2">
       {/* Toolbar */}
       <div className="flex flex-wrap items-center gap-2">
-        <div className="relative flex-1 min-w-[200px] max-w-md">
+        <div className="relative flex-1 min-w-[180px] max-w-sm">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
           <Input
             placeholder="Search leads..."
             value={globalFilter}
-            onChange={(e) => setGlobalFilter(e.target.value)}
+            onChange={(e) => { setGlobalFilter(e.target.value); setPageIndex(0); }}
             className="pl-8 h-8 text-xs"
           />
           {globalFilter && (
@@ -241,6 +354,75 @@ export function LeadsTable({ projectId, initialData, initialTotal }: LeadsTableP
         </div>
 
         <div className="flex items-center gap-1.5">
+          {/* Filters */}
+          <Popover
+            trigger={
+              <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5 relative">
+                <ListFilter className="size-3.5" />
+                Filters
+                {activeFilterCount > 0 && (
+                  <span className="absolute -top-1 -right-1 size-4 rounded-full bg-primary text-[9px] font-bold text-primary-foreground flex items-center justify-center">
+                    {activeFilterCount}
+                  </span>
+                )}
+              </Button>
+            }
+            align="end"
+          >
+            <div className="space-y-3 p-1 min-w-[200px]">
+              <div>
+                <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-1 px-1">Email Check</p>
+                {FILTER_OPTIONS.email_check.map((opt) => (
+                  <label key={opt.value} className="flex items-center gap-2 rounded-sm px-2 py-1 text-xs hover:bg-muted cursor-pointer">
+                    <input
+                      type="radio"
+                      name="email_check"
+                      className="size-3"
+                      checked={filters.email_check === opt.value}
+                      onChange={() => handleFilterChange("email_check", opt.value)}
+                    />
+                    {opt.label}
+                  </label>
+                ))}
+              </div>
+              <div>
+                <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-1 px-1">ICP Match</p>
+                {FILTER_OPTIONS.vertical_match.map((opt) => (
+                  <label key={opt.value} className="flex items-center gap-2 rounded-sm px-2 py-1 text-xs hover:bg-muted cursor-pointer">
+                    <input
+                      type="radio"
+                      name="vertical_match"
+                      className="size-3"
+                      checked={filters.vertical_match === opt.value}
+                      onChange={() => handleFilterChange("vertical_match", opt.value)}
+                    />
+                    {opt.label}
+                  </label>
+                ))}
+              </div>
+              <div>
+                <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-1 px-1">Industry</p>
+                <div className="px-1">
+                  <input
+                    type="text"
+                    placeholder="Filter industry..."
+                    className="w-full rounded border border-input bg-transparent px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-ring"
+                    value={filters.industry ?? ""}
+                    onChange={(e) => handleFilterChange("industry", e.target.value || "")}
+                  />
+                </div>
+              </div>
+              {activeFilterCount > 0 && (
+                <button
+                  onClick={clearFilters}
+                  className="w-full text-xs text-muted-foreground hover:text-foreground py-1 border-t border-border mt-1"
+                >
+                  Clear all filters
+                </button>
+              )}
+            </div>
+          </Popover>
+
           {/* Columns toggle */}
           <Popover
             trigger={
@@ -287,7 +469,7 @@ export function LeadsTable({ projectId, initialData, initialTotal }: LeadsTableP
           <Popover
             trigger={
               <Button
-                variant="outline"
+                variant="default"
                 size="sm"
                 className="h-8 text-xs gap-1.5"
                 disabled={validating !== null}
@@ -301,7 +483,7 @@ export function LeadsTable({ projectId, initialData, initialTotal }: LeadsTableP
             <PopoverItem onClick={() => runValidation("icp", false)} disabled={selectedIds.length === 0}>
               Validate Selected ({selectedIds.length})
             </PopoverItem>
-            <PopoverItem onClick={() => runValidation("icp", true)} disabled={data.length === 0}>
+            <PopoverItem onClick={() => runValidation("icp", true)} disabled={totalCount === 0}>
               Validate All ({totalCount})
             </PopoverItem>
           </Popover>
@@ -310,7 +492,7 @@ export function LeadsTable({ projectId, initialData, initialTotal }: LeadsTableP
           <Popover
             trigger={
               <Button
-                variant="outline"
+                variant="default"
                 size="sm"
                 className="h-8 text-xs gap-1.5"
                 disabled={validating !== null}
@@ -324,14 +506,14 @@ export function LeadsTable({ projectId, initialData, initialTotal }: LeadsTableP
             <PopoverItem onClick={() => runValidation("email", false)} disabled={selectedIds.length === 0}>
               Validate Selected ({selectedIds.length})
             </PopoverItem>
-            <PopoverItem onClick={() => runValidation("email", true)} disabled={data.length === 0}>
+            <PopoverItem onClick={() => runValidation("email", true)} disabled={totalCount === 0}>
               Validate All ({totalCount})
             </PopoverItem>
           </Popover>
         </div>
       </div>
 
-      {/* Column header dropdown triggers — Clay-style: click header for sort + filter menu */}
+      {/* Table */}
       <div className="rounded-md border overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
@@ -344,12 +526,12 @@ export function LeadsTable({ projectId, initialData, initialTotal }: LeadsTableP
                     <th
                       key={header.id}
                       className="px-3 py-1.5 text-left font-medium text-muted-foreground whitespace-nowrap"
-                      style={{ width: header.getSize(), minWidth: header.getSize() }}
+                      style={{ width: header.getSize(), minWidth: header.column.columnDef.minSize ?? header.getSize() }}
                     >
                       {canSort ? (
                         <Popover
                           trigger={
-                            <button className="inline-flex items-center gap-1 hover:text-foreground text-xs">
+                            <button className="inline-flex items-center gap-1 hover:text-foreground text-[11px]">
                               {flexRender(header.column.columnDef.header, header.getContext())}
                               {isSorted === "asc" ? (
                                 <ArrowUp className="size-3" />
@@ -371,12 +553,9 @@ export function LeadsTable({ projectId, initialData, initialTotal }: LeadsTableP
                           <PopoverItem onClick={() => header.column.toggleVisibility(false)}>
                             <EyeOff className="size-3" /> Hide Column
                           </PopoverItem>
-                          <PopoverItem onClick={() => header.column.setFilterValue("")}>
-                            <ListFilter className="size-3" /> Clear Filter
-                          </PopoverItem>
                         </Popover>
                       ) : (
-                        <span className="text-xs">
+                        <span className="text-[11px]">
                           {flexRender(header.column.columnDef.header, header.getContext())}
                         </span>
                       )}
@@ -405,6 +584,7 @@ export function LeadsTable({ projectId, initialData, initialTotal }: LeadsTableP
                     <td
                       key={cell.id}
                       className="px-3 py-1.5 text-xs whitespace-nowrap"
+                      style={{ maxWidth: cell.column.columnDef.size }}
                     >
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </td>
@@ -417,38 +597,48 @@ export function LeadsTable({ projectId, initialData, initialTotal }: LeadsTableP
       </div>
 
       {/* Pagination */}
-      <div className="flex items-center justify-between">
-        <p className="text-xs text-muted-foreground">
-          {selectedIds.length > 0
-            ? `${selectedIds.length} of ${totalCount} selected`
-            : `${totalCount} lead${totalCount !== 1 ? "s" : ""} total`}
-        </p>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex items-center gap-3">
+          <p className="text-xs text-muted-foreground">
+            Showing {start}–{end} of {totalCount}
+          </p>
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <span>Rows per page</span>
+            <Select
+              className="h-7 text-xs w-[70px]"
+              value={String(pageSize)}
+              onChange={(e) => handlePageSizeChange(Number(e.target.value))}
+            >
+              {PAGE_SIZES.map((s) => (
+                <option key={s} value={s}>{s}</option>
+              ))}
+            </Select>
+          </div>
+        </div>
+
         <div className="flex items-center gap-1.5">
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-7 text-xs"
-            onClick={() => {
-              table.previousPage();
-              fetchPage(table.getState().pagination.pageIndex - 1);
-            }}
-            disabled={!table.getCanPreviousPage()}
-          >
-            <ChevronLeft className="size-3.5" />
-            Prev
-          </Button>
-          <span className="text-xs text-muted-foreground px-1 min-w-[60px] text-center">
-            {table.getState().pagination.pageIndex + 1} / {Math.max(table.getPageCount(), 1)}
+          <span className="text-xs text-muted-foreground min-w-[60px] text-center">
+            {selectedIds.length > 0 ? `${selectedIds.length} selected` : "0 selected"}
           </span>
           <Button
             variant="outline"
             size="sm"
             className="h-7 text-xs"
-            onClick={() => {
-              table.nextPage();
-              fetchPage(table.getState().pagination.pageIndex + 1);
-            }}
-            disabled={!table.getCanNextPage()}
+            onClick={() => { setPageIndex((p) => Math.max(0, p - 1)); }}
+            disabled={pageIndex === 0}
+          >
+            <ChevronLeft className="size-3.5" />
+            Prev
+          </Button>
+          <span className="text-xs text-muted-foreground px-1 min-w-[60px] text-center tabular-nums">
+            {pageIndex + 1} / {Math.max(Math.ceil(totalCount / pageSize), 1)}
+          </span>
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-7 text-xs"
+            onClick={() => { setPageIndex((p) => p + 1); }}
+            disabled={pageIndex + 1 >= Math.ceil(totalCount / pageSize)}
           >
             Next
             <ChevronRight className="size-3.5" />
@@ -460,7 +650,7 @@ export function LeadsTable({ projectId, initialData, initialTotal }: LeadsTableP
         projectId={projectId}
         open={importOpen}
         onOpenChange={setImportOpen}
-        onImported={() => fetchPage(0)}
+        onImported={() => { fetchPage(0, pageSize); onValidationComplete?.(); }}
       />
     </div>
   );

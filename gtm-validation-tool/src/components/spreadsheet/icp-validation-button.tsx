@@ -152,7 +152,30 @@ export function IcpValidationDialog({
 
     setValidating(true);
     try {
-      const res = await fetch(
+      const jobRes = await fetch(
+        `/api/projects/${projectId}/jobs`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            type: "icp",
+            mode: all ? "continuous" : "selected",
+            leadIds: ids,
+            prompt,
+          }),
+        }
+      );
+
+      if (!jobRes.ok) {
+        const text = await jobRes.text();
+        let msg = text;
+        try { msg = JSON.parse(text).error || text; } catch {}
+        throw new Error(msg);
+      }
+
+      const jobJson = await jobRes.json();
+
+      const validateRes = await fetch(
         `/api/projects/${projectId}/validate/icp`,
         {
           method: "POST",
@@ -161,16 +184,14 @@ export function IcpValidationDialog({
         }
       );
 
-      if (!res.ok) {
-        const text = await res.text();
+      if (!validateRes.ok) {
+        const text = await validateRes.text();
         let msg = text;
-        try {
-          msg = JSON.parse(text).error || text;
-        } catch {}
+        try { msg = JSON.parse(text).error || text; } catch {}
         throw new Error(msg);
       }
 
-      const json = await res.json();
+      const json = await validateRes.json();
       const msg = `ICP done — ${json.processed ?? 0} processed, ${json.matched ?? 0} matched`;
       const extra = [];
       if (json.skipped) extra.push(`${json.skipped} skipped (already validated)`);

@@ -262,6 +262,106 @@ export interface Database {
           created_at?: string
         }
       }
+      validation_jobs: {
+        Row: {
+          id: string
+          user_id: string
+          project_id: string
+          type: string
+          mode: string
+          prompt: string | null
+          model: string | null
+          status: string
+          total_leads: number
+          completed_leads: number
+          failed_leads: number
+          skipped_leads: number
+          error_message: string | null
+          created_at: string
+          started_at: string | null
+          completed_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          project_id: string
+          type: string
+          mode: string
+          prompt?: string | null
+          model?: string | null
+          status?: string
+          total_leads?: number
+          completed_leads?: number
+          failed_leads?: number
+          skipped_leads?: number
+          error_message?: string | null
+          created_at?: string
+          started_at?: string | null
+          completed_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          project_id?: string
+          type?: string
+          mode?: string
+          prompt?: string | null
+          model?: string | null
+          status?: string
+          total_leads?: number
+          completed_leads?: number
+          failed_leads?: number
+          skipped_leads?: number
+          error_message?: string | null
+          created_at?: string
+          started_at?: string | null
+          completed_at?: string | null
+          updated_at?: string
+        }
+      }
+      validation_job_items: {
+        Row: {
+          id: string
+          job_id: string
+          lead_id: string
+          status: string
+          attempt: number
+          max_attempts: number
+          error_message: string | null
+          lease_expires_at: string | null
+          started_at: string | null
+          completed_at: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          job_id: string
+          lead_id: string
+          status?: string
+          attempt?: number
+          max_attempts?: number
+          error_message?: string | null
+          lease_expires_at?: string | null
+          started_at?: string | null
+          completed_at?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          job_id?: string
+          lead_id?: string
+          status?: string
+          attempt?: number
+          max_attempts?: number
+          error_message?: string | null
+          lease_expires_at?: string | null
+          started_at?: string | null
+          completed_at?: string | null
+          created_at?: string
+        }
+      }
     }
     Views: {}
     Functions: {}

@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { callGemini } from "@/lib/validation/gemini";
 import { resolvePrompt } from "@/lib/validation/variables";
 import { createApiLog, updateApiLog } from "@/lib/api-logger";
+import { classifyError, backoffDelay, shouldPauseJob } from "@/lib/retry";
 
 const BATCH_SIZE = 10;
 
@@ -14,6 +15,8 @@ export async function processJobBatch(
   matched: number;
   errors: string[];
   complete: boolean;
+  paused?: boolean;
+  pausedReason?: string;
 }> {
   const supabase = await createClient();
 
@@ -52,12 +55,21 @@ export async function processJobBatch(
       return { processed: 0, matched: 0, errors: [], complete: true };
     }
 
+    await supabase
+      .from("validation_job_items")
+      .update({ status: "pending", lease_expires_at: null })
+      .eq("job_id", jobId)
+      .eq("status", "processing")
+      .lt("lease_expires_at", new Date().toISOString());
+
     return { processed: 0, matched: 0, errors: [], complete: false };
   }
 
   let processed = 0;
   let matched = 0;
+  let systemFailure = false;
   const errors: string[] = [];
+  let batchFailures = 0;
 
   for (const item of claimed) {
     try {
@@ -80,20 +92,60 @@ export async function processJobBatch(
       processed++;
       if (result.vertical_match) matched++;
     } catch (err: any) {
-      const isRetryable =
-        err.message?.includes("429") ||
-        err.message?.includes("500") ||
-        err.message?.includes("502") ||
-        err.message?.includes("503") ||
-        err.message?.includes("timeout") ||
-        err.message?.includes("ECONNREFUSED");
+      const errorClass = classifyError(err.message);
 
-      if (isRetryable && item.attempt < item.max_attempts) {
+      if (errorClass === "system") {
+        const logId = await createApiLog({
+          user_id: job.user_id,
+          project_id: job.project_id,
+          lead_id: item.lead_id,
+          job_id: job.id,
+          job_item_id: item.id,
+          provider: "gemini",
+          operation: "icp_validation",
+          status: "fatal_error",
+          attempt: item.attempt,
+          error_message: err.message?.slice(0, 500),
+        });
+        await updateApiLog(logId, {});
+
+        await supabase
+          .from("validation_job_items")
+          .update({
+            status: "failed",
+            error_message: err.message?.slice(0, 500),
+            completed_at: new Date().toISOString(),
+          })
+          .eq("id", item.id);
+
+        await supabase
+          .from("validation_jobs")
+          .update({
+            status: "paused",
+            error_message: `System error: ${err.message?.slice(0, 300)}`,
+          })
+          .eq("id", jobId);
+
+        return {
+          processed,
+          matched,
+          errors: [...errors, `System error: ${err.message?.slice(0, 200)}`],
+          complete: false,
+          paused: true,
+          pausedReason: err.message?.slice(0, 200),
+        };
+      }
+
+      if (errorClass === "retryable" && item.attempt < item.max_attempts) {
+        const delayMs = backoffDelay(item.attempt);
+        await new Promise((resolve) => setTimeout(resolve, delayMs));
+
         await supabase
           .from("validation_job_items")
           .update({
             status: "pending",
             error_message: err.message?.slice(0, 500),
+            lease_expires_at: null,
           })
           .eq("id", item.id);
       } else {
@@ -105,6 +157,8 @@ export async function processJobBatch(
             completed_at: new Date().toISOString(),
           })
           .eq("id", item.id);
+
+        batchFailures++;
       }
 
       errors.push(`Lead ${item.lead_id}: ${err.message?.slice(0, 200)}`);
@@ -112,6 +166,25 @@ export async function processJobBatch(
   }
 
   await recalculateJobProgress(supabase, jobId);
+
+  if (shouldPauseJob(job.failed_leads + batchFailures, job.completed_leads + processed)) {
+    await supabase
+      .from("validation_jobs")
+      .update({
+        status: "paused",
+        error_message: "Auto-paused: failure rate exceeded 50%",
+      })
+      .eq("id", jobId);
+
+    return {
+      processed,
+      matched,
+      errors: errors.slice(0, 5),
+      complete: false,
+      paused: true,
+      pausedReason: "Auto-paused: failure rate exceeded 50%",
+    };
+  }
 
   const { data: remaining } = await supabase
     .from("validation_job_items")

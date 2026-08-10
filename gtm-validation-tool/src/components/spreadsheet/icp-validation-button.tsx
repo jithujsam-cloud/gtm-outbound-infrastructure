@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Brain } from "lucide-react";
+import { Brain, CheckCircle2, XCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
@@ -19,6 +19,13 @@ export interface IcpValidationDialogProps {
   fetchAllIds: () => Promise<string[]>;
 }
 
+interface JobProgress {
+  completed: number;
+  failed: number;
+  pending: number;
+  total: number;
+}
+
 export function IcpValidationDialog({
   projectId,
   open,
@@ -34,7 +41,10 @@ export function IcpValidationDialog({
   const [showVariables, setShowVariables] = useState(false);
   const [variableFilter, setVariableFilter] = useState("");
   const [selectedVarIndex, setSelectedVarIndex] = useState(0);
+  const [progress, setProgress] = useState<JobProgress | null>(null);
+  const [jobId, setJobId] = useState<string | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const filteredVariables = VARIABLE_OPTIONS.filter(
     (v) =>
@@ -151,20 +161,19 @@ export function IcpValidationDialog({
     if (ids.length === 0) return;
 
     setValidating(true);
+    setProgress({ completed: 0, failed: 0, pending: ids.length, total: ids.length });
+
     try {
-      const jobRes = await fetch(
-        `/api/projects/${projectId}/jobs`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            type: "icp",
-            mode: all ? "continuous" : "selected",
-            leadIds: ids,
-            prompt,
-          }),
-        }
-      );
+      const jobRes = await fetch(`/api/projects/${projectId}/jobs`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "icp",
+          mode: all ? "continuous" : "selected",
+          leadIds: ids,
+          prompt,
+        }),
+      });
 
       if (!jobRes.ok) {
         const text = await jobRes.text();
@@ -174,11 +183,26 @@ export function IcpValidationDialog({
       }
 
       const jobJson = await jobRes.json();
-      toast.success(`Job created — ${jobJson.totalLeads} leads queued`);
+      setJobId(jobJson.jobId);
+      setProgress((p) => p ? { ...p, total: jobJson.totalLeads, pending: jobJson.totalLeads } : null);
+
+      pollRef.current = setInterval(async () => {
+        const statusRes = await fetch(`/api/jobs/${jobJson.jobId}`);
+        if (!statusRes.ok) return;
+        const status = await statusRes.json();
+        if (status.progress) {
+          setProgress(status.progress);
+          if (status.progress.pending === 0 || status.status === "completed" || status.status === "completed_with_errors" || status.status === "failed" || status.status === "cancelled" || status.status === "paused") {
+            if (pollRef.current) clearInterval(pollRef.current);
+          }
+        }
+      }, 2000);
 
       const processRes = await fetch(`/api/jobs/${jobJson.jobId}/process`, {
         method: "POST",
       });
+
+      if (pollRef.current) clearInterval(pollRef.current);
 
       if (!processRes.ok) {
         const text = await processRes.text();
@@ -188,18 +212,32 @@ export function IcpValidationDialog({
       }
 
       const result = await processRes.json();
+
+      const finalStatus = await fetch(`/api/jobs/${jobJson.jobId}`).then((r) => r.json());
+      if (finalStatus.progress) setProgress(finalStatus.progress);
+
+      if (result.paused) {
+        toast.error(`Job paused: ${result.pausedReason || "Unknown error"}`);
+        return;
+      }
+
       const msg = `ICP done — ${result.processed ?? 0} processed, ${result.matched ?? 0} matched`;
       const extra = [];
       if (result.errors?.length) extra.push(`${result.errors.length} failed`);
       toast.success(msg + (extra.length ? ` (${extra.join(", ")})` : ""));
       onValidationComplete();
-      onOpenChange(false);
+      setTimeout(() => onOpenChange(false), 500);
     } catch (err: any) {
       toast.error(`ICP validation failed: ${err.message}`);
     } finally {
       setValidating(false);
+      if (pollRef.current) clearInterval(pollRef.current);
     }
   };
+
+  useEffect(() => {
+    return () => { if (pollRef.current) clearInterval(pollRef.current); };
+  }, []);
 
   const validateCount = selectedIds.length > 0 ? selectedIds.length : totalCount;
 
@@ -282,6 +320,38 @@ export function IcpValidationDialog({
                 )}
               </div>
             </>
+          )}
+
+          {progress && (
+            <div className="space-y-2 pt-2 border-t">
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-muted-foreground">
+                  {progress.completed + progress.failed} / {progress.total} processed
+                </span>
+                <span className="flex items-center gap-2 tabular-nums">
+                  <span className="flex items-center gap-1">
+                    <CheckCircle2 className="size-3 text-emerald-500" />
+                    {progress.completed}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <XCircle className="size-3 text-red-500" />
+                    {progress.failed}
+                  </span>
+                  <span className="flex items-center gap-1 text-muted-foreground">
+                    <Loader2 className="size-3 animate-spin" />
+                    {progress.pending}
+                  </span>
+                </span>
+              </div>
+              <div className="h-2 bg-muted rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-primary rounded-full transition-all duration-500"
+                  style={{
+                    width: `${progress.total > 0 ? ((progress.completed + progress.failed) / progress.total) * 100 : 0}%`,
+                  }}
+                />
+              </div>
+            </div>
           )}
 
           <div className="flex flex-wrap justify-end gap-2 pt-2 border-t">

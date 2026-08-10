@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 import { useSupabase } from "@/components/providers/supabase-provider";
 import { logout } from "@/app/auth/actions";
 
-const links = ["Dashboard", "Projects", "Integrations"];
+const links = ["Dashboard", "Projects", "Integrations", "Logs"];
 
 export function Header() {
   const pathname = usePathname();

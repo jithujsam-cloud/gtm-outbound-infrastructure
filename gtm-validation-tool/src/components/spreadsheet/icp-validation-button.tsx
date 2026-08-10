@@ -171,10 +171,11 @@ export function IcpValidationDialog({
       }
 
       const json = await res.json();
-      toast.success(
-        `ICP done — ${json.processed ?? ids.length} processed, ${json.matched ?? 0} matched` +
-          (json.errors?.length ? ` (${json.errors.length} failed)` : "")
-      );
+      const msg = `ICP done — ${json.processed ?? 0} processed, ${json.matched ?? 0} matched`;
+      const extra = [];
+      if (json.skipped) extra.push(`${json.skipped} skipped (already validated)`);
+      if (json.errors?.length) extra.push(`${json.errors.length} failed`);
+      toast.success(msg + (extra.length ? ` (${extra.join(", ")})` : ""));
       onValidationComplete();
       onOpenChange(false);
     } catch (err: any) {

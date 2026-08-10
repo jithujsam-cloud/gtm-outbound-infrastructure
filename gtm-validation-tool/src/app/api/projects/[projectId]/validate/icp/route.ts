@@ -72,6 +72,10 @@ export async function POST(
     }
   }
 
+  const alreadyValidated = leads.filter((l) => l.vertical_match !== null);
+  const pendingLeads = leads.filter((l) => l.vertical_match === null);
+  const skipped = alreadyValidated.length;
+
   try {
     await saveValidationPrompt(user.id, projectId, "icp", prompt);
   } catch (e: any) {
@@ -85,7 +89,7 @@ export async function POST(
   let matched = 0;
   const errors: string[] = [];
 
-  for (const lead of leads) {
+  for (const lead of pendingLeads) {
     try {
       const resolved = resolvePrompt(prompt, lead);
 
@@ -116,6 +120,7 @@ export async function POST(
   return NextResponse.json({
     processed,
     matched,
+    skipped,
     errors: errors.length > 0 ? errors.slice(0, 5) : undefined,
   });
 }

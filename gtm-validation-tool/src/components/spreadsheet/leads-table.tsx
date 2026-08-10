@@ -217,7 +217,7 @@ export function LeadsTable({ projectId, initialData, initialTotal, refreshKey, o
     return DEFAULT_VISIBLE;
   });
 
-  const fetchRef = useRef(false);
+  const mountedRef = useRef(false);
 
   useEffect(() => {
     try { localStorage.setItem(storageKey, JSON.stringify(columnVisibility)); } catch {}
@@ -259,13 +259,10 @@ export function LeadsTable({ projectId, initialData, initialTotal, refreshKey, o
   }, [projectId, globalFilter, filters]);
 
   useEffect(() => {
-    if (fetchRef.current) return;
-    fetchRef.current = true;
-    fetchPage(0, pageSize);
-  }, []);
-
-  useEffect(() => {
-    if (!fetchRef.current) return;
+    if (!mountedRef.current) {
+      mountedRef.current = true;
+      return;
+    }
     fetchPage(pageIndex, pageSize);
   }, [pageIndex, pageSize, globalFilter, filters, refreshKey]);
 
@@ -313,7 +310,7 @@ export function LeadsTable({ projectId, initialData, initialTotal, refreshKey, o
   const handleFilterChange = (key: string, value: string) => {
     setFilters((prev) => {
       const next = { ...prev };
-      if (prev[key] === value) {
+      if (!value || prev[key] === value) {
         delete next[key];
       } else {
         next[key] = value;
@@ -329,7 +326,7 @@ export function LeadsTable({ projectId, initialData, initialTotal, refreshKey, o
   };
 
   const start = totalCount === 0 ? 0 : pageIndex * pageSize + 1;
-  const end = Math.min((pageIndex + 1) * pageSize, totalCount);
+  const end = totalCount === 0 ? 0 : Math.min((pageIndex + 1) * pageSize, totalCount);
 
   return (
     <div className="space-y-2">
@@ -600,7 +597,7 @@ export function LeadsTable({ projectId, initialData, initialTotal, refreshKey, o
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-3">
           <p className="text-xs text-muted-foreground">
-            Showing {start}–{end} of {totalCount}
+            {totalCount === 0 ? "No leads" : `Showing ${start}–${end} of ${totalCount}`}
           </p>
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
             <span>Rows per page</span>

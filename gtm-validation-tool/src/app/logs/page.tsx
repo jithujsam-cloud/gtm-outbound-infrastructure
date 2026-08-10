@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/select";
@@ -30,6 +30,7 @@ export default function LogsPage() {
   const [pageSize, setPageSize] = useState(25);
   const [providerFilter, setProviderFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+  const [expandedRow, setExpandedRow] = useState<string | null>(null);
 
   const fetchLogs = useCallback(async () => {
     setLoading(true);
@@ -112,36 +113,61 @@ export default function LogsPage() {
               </tr>
             ) : (
               data.map((log) => (
-                <tr key={log.id} className="border-b last:border-0 hover:bg-muted/30">
-                  <td className="px-3 py-1.5 text-xs tabular-nums whitespace-nowrap text-muted-foreground">
-                    {new Date(log.created_at).toLocaleString()}
-                  </td>
-                  <td className="px-3 py-1.5 text-xs">
-                    <Badge variant={log.provider === "gemini" ? "default" : "secondary"} className="text-[10px] px-1.5 py-0">
-                      {log.provider}
-                    </Badge>
-                  </td>
-                  <td className="px-3 py-1.5 text-xs">{log.operation}</td>
-                  <td className="px-3 py-1.5 text-xs">
-                    <Badge
-                      variant={
-                        log.status === "success" ? "default" :
-                        log.status === "failed" ? "destructive" :
-                        "outline"
-                      }
-                      className="text-[10px] px-1.5 py-0"
-                    >
-                      {log.status}
-                    </Badge>
-                  </td>
-                  <td className="px-3 py-1.5 text-xs tabular-nums">{log.attempt}</td>
-                  <td className="px-3 py-1.5 text-xs tabular-nums text-muted-foreground">
-                    {log.duration_ms ? `${log.duration_ms}ms` : "—"}
-                  </td>
-                  <td className="px-3 py-1.5 text-xs max-w-[200px] truncate text-muted-foreground" title={log.error_message}>
-                    {log.error_message || "—"}
-                  </td>
-                </tr>
+                <React.Fragment key={log.id}>
+                  <tr
+                    className={`border-b last:border-0 hover:bg-muted/30 cursor-pointer ${expandedRow === log.id ? "bg-muted/50" : ""}`}
+                    onClick={() => setExpandedRow(expandedRow === log.id ? null : log.id)}
+                  >
+                    <td className="px-3 py-1.5 text-xs tabular-nums whitespace-nowrap text-muted-foreground">
+                      {new Date(log.created_at).toLocaleString()}
+                    </td>
+                    <td className="px-3 py-1.5 text-xs">
+                      <Badge variant={log.provider === "gemini" ? "default" : "secondary"} className="text-[10px] px-1.5 py-0">
+                        {log.provider}
+                      </Badge>
+                    </td>
+                    <td className="px-3 py-1.5 text-xs">{log.operation}</td>
+                    <td className="px-3 py-1.5 text-xs">
+                      <Badge
+                        variant={
+                          log.status === "success" ? "default" :
+                          log.status === "failed" || log.status === "fatal_error" ? "destructive" :
+                          "outline"
+                        }
+                        className="text-[10px] px-1.5 py-0"
+                      >
+                        {log.status}
+                      </Badge>
+                    </td>
+                    <td className="px-3 py-1.5 text-xs tabular-nums">{log.attempt}</td>
+                    <td className="px-3 py-1.5 text-xs tabular-nums text-muted-foreground">
+                      {log.duration_ms ? `${log.duration_ms}ms` : "—"}
+                    </td>
+                    <td className="px-3 py-1.5 text-xs max-w-[250px] truncate text-muted-foreground">
+                      {log.error_message || "—"}
+                    </td>
+                  </tr>
+                  {expandedRow === log.id && log.error_message && (
+                    <tr className="bg-muted/30">
+                      <td colSpan={7} className="px-3 py-2">
+                        <div className="text-xs font-medium text-muted-foreground mb-1">Error Details:</div>
+                        <pre className="text-xs whitespace-pre-wrap break-all font-mono text-red-600 dark:text-red-400 max-h-48 overflow-y-auto">
+                          {log.error_message}
+                        </pre>
+                        {log.request_metadata && (
+                          <div className="mt-2 text-xs text-muted-foreground">
+                            <span className="font-medium">Request:</span> {JSON.stringify(log.request_metadata)}
+                          </div>
+                        )}
+                        {log.response_metadata && (
+                          <div className="text-xs text-muted-foreground">
+                            <span className="font-medium">Response:</span> {JSON.stringify(log.response_metadata)}
+                          </div>
+                        )}
+                      </td>
+                    </tr>
+                  )}
+                </React.Fragment>
               ))
             )}
           </tbody>

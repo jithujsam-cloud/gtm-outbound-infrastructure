@@ -4,9 +4,8 @@ export function classifyError(errorMessage: string): ErrorClass {
   if (
     errorMessage.includes("401") ||
     errorMessage.includes("403") ||
-    errorMessage.includes("invalid") ||
-    errorMessage.includes("not found") ||
-    errorMessage.includes("not configured")
+    errorMessage.includes("not configured") ||
+    errorMessage.includes("API key")
   ) {
     return "system";
   }
@@ -23,7 +22,15 @@ export function classifyError(errorMessage: string): ErrorClass {
     errorMessage.includes("ENOTFOUND") ||
     errorMessage.includes("network") ||
     errorMessage.includes("Empty Gemini") ||
-    errorMessage.includes("Invalid JSON")
+    errorMessage.includes("Invalid JSON") ||
+    errorMessage.includes("Invalid Gemini response") ||
+    errorMessage.includes("Invalid vertical_match") ||
+    errorMessage.includes("Invalid reasoning") ||
+    errorMessage.includes("Invalid matched_vertical") ||
+    errorMessage.includes("Batch size mismatch") ||
+    errorMessage.includes("Unknown lead_id") ||
+    errorMessage.includes("Duplicate lead_id") ||
+    errorMessage.includes("Missing lead_id")
   ) {
     return "retryable";
   }

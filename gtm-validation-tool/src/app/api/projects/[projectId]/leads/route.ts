@@ -16,6 +16,7 @@ export async function GET(
   const page = parseInt(url.searchParams.get("page") ?? "1");
   const limit = parseInt(url.searchParams.get("limit") ?? "50");
   const offset = (page - 1) * limit;
+  const search = url.searchParams.get("search")?.trim();
   const filterCol = url.searchParams.get("filter_col");
   const filterVal = url.searchParams.get("filter_val");
 
@@ -23,6 +24,13 @@ export async function GET(
     .from("leads")
     .select("*", { count: "exact" })
     .eq("project_id", projectId);
+
+  if (search) {
+    const ilike = `%${search}%`;
+    query = query.or(
+      `full_name.ilike.${ilike},company_name.ilike.${ilike},email.ilike.${ilike},position.ilike.${ilike},industry.ilike.${ilike},matched_vertical.ilike.${ilike}`
+    );
+  }
 
   if (filterCol && filterVal) {
     if (filterVal === "true" || filterVal === "false") {

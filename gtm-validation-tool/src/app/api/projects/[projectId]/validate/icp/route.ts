@@ -27,6 +27,13 @@ export async function POST(
     return NextResponse.json({ error: "leadIds required" }, { status: 400 });
   }
 
+  if (!prompt || prompt.trim().length === 0) {
+    return NextResponse.json(
+      { error: "ICP validation prompt cannot be empty." },
+      { status: 400 }
+    );
+  }
+
   const { data: settings } = await supabase
     .from("integration_settings")
     .select("gemini_api_key")
@@ -35,7 +42,10 @@ export async function POST(
 
   const geminiKey = settings?.gemini_api_key;
   if (!geminiKey) {
-    return NextResponse.json({ error: "Gemini API key not configured" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Gemini API key not configured" },
+      { status: 400 }
+    );
   }
 
   const { data: leads, error: fetchErr } = await supabase
@@ -46,7 +56,10 @@ export async function POST(
     .in("id", leadIds);
 
   if (fetchErr || !leads) {
-    return NextResponse.json({ error: "Failed to fetch leads" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to fetch leads" },
+      { status: 500 }
+    );
   }
 
   const verifiedIds = new Set(leads.map((l) => l.id));
@@ -59,8 +72,13 @@ export async function POST(
     }
   }
 
-  if (prompt) {
-    await saveValidationPrompt(user.id, projectId, "icp", prompt).catch(() => {});
+  try {
+    await saveValidationPrompt(user.id, projectId, "icp", prompt);
+  } catch (e: any) {
+    return NextResponse.json(
+      { error: `Failed to save prompt: ${e.message}` },
+      { status: 500 }
+    );
   }
 
   let processed = 0;
@@ -69,13 +87,11 @@ export async function POST(
 
   for (const lead of leads) {
     try {
-      const resolved = prompt
-        ? resolvePrompt(prompt, lead)
-        : resolvePrompt("", lead);
+      const resolved = resolvePrompt(prompt, lead);
 
       const result = await callGemini(geminiKey, resolved);
 
-      await supabase
+      const { error: updateErr } = await supabase
         .from("leads")
         .update({
           vertical_match: result.vertical_match,
@@ -84,6 +100,11 @@ export async function POST(
           ai_response: JSON.stringify(result),
         })
         .eq("id", lead.id);
+
+      if (updateErr) {
+        errors.push(`${lead.full_name}: database update failed`);
+        continue;
+      }
 
       processed++;
       if (result.vertical_match) matched++;

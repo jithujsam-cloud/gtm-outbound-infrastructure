@@ -174,28 +174,23 @@ export function IcpValidationDialog({
       }
 
       const jobJson = await jobRes.json();
+      toast.success(`Job created — ${jobJson.totalLeads} leads queued`);
 
-      const validateRes = await fetch(
-        `/api/projects/${projectId}/validate/icp`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ leadIds: ids, prompt }),
-        }
-      );
+      const processRes = await fetch(`/api/jobs/${jobJson.jobId}/process`, {
+        method: "POST",
+      });
 
-      if (!validateRes.ok) {
-        const text = await validateRes.text();
+      if (!processRes.ok) {
+        const text = await processRes.text();
         let msg = text;
         try { msg = JSON.parse(text).error || text; } catch {}
         throw new Error(msg);
       }
 
-      const json = await validateRes.json();
-      const msg = `ICP done — ${json.processed ?? 0} processed, ${json.matched ?? 0} matched`;
+      const result = await processRes.json();
+      const msg = `ICP done — ${result.processed ?? 0} processed, ${result.matched ?? 0} matched`;
       const extra = [];
-      if (json.skipped) extra.push(`${json.skipped} skipped (already validated)`);
-      if (json.errors?.length) extra.push(`${json.errors.length} failed`);
+      if (result.errors?.length) extra.push(`${result.errors.length} failed`);
       toast.success(msg + (extra.length ? ` (${extra.join(", ")})` : ""));
       onValidationComplete();
       onOpenChange(false);

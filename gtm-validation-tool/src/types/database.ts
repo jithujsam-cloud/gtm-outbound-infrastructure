@@ -171,6 +171,38 @@ export interface Database {
           updated_at?: string
         }
       }
+      validation_prompts: {
+        Row: {
+          id: string
+          user_id: string
+          project_id: string
+          type: string
+          prompt: string
+          model: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          project_id: string
+          type: string
+          prompt: string
+          model?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          project_id?: string
+          type?: string
+          prompt?: string
+          model?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
     }
     Views: {}
     Functions: {}

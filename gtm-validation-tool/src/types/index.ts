@@ -8,6 +8,8 @@ export type LeadInsert = Database["public"]["Tables"]["leads"]["Insert"];
 
 export type IntegrationSettings = Database["public"]["Tables"]["integration_settings"]["Row"];
 
+export type ValidationPrompt = Database["public"]["Tables"]["validation_prompts"]["Row"];
+
 export type LeadFormData = Omit<
   LeadInsert,
   "id" | "project_id" | "user_id" | "created_at" | "updated_at"

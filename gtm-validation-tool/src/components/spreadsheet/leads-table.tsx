@@ -19,6 +19,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select } from "@/components/ui/select";
 import { Popover, PopoverItem } from "@/components/ui/popover";
 import { ImportLeadsDialog } from "@/components/spreadsheet/import-leads-dialog";
+import { IcpValidationDialog } from "@/components/spreadsheet/icp-validation-button";
 import { toast } from "sonner";
 import {
   ChevronLeft,
@@ -202,6 +203,7 @@ export function LeadsTable({ projectId, initialData, initialTotal, refreshKey, o
   const [loading, setLoading] = useState(false);
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
   const [validating, setValidating] = useState<"icp" | "email" | null>(null);
+  const [icpDialogOpen, setIcpDialogOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
   const [pageSize, setPageSize] = useState(10);
   const [pageIndex, setPageIndex] = useState(0);
@@ -268,7 +270,17 @@ export function LeadsTable({ projectId, initialData, initialTotal, refreshKey, o
 
   const activeFilterCount = Object.values(filters).filter(Boolean).length;
 
-  const runValidation = async (type: "icp" | "email", all: boolean) => {
+  const fetchAllIds = useCallback(async (): Promise<string[]> => {
+    const params = new URLSearchParams();
+    if (globalFilter) params.set("search", globalFilter);
+    Object.entries(filters).forEach(([k, v]) => { if (v) params.set(k, v); });
+    params.set("idsonly", "true");
+    const res = await fetch(`/api/projects/${projectId}/leads?${params}`);
+    const json = await res.json();
+    return json.ids ?? [];
+  }, [projectId, globalFilter, filters]);
+
+  const runValidation = async (type: "email", all: boolean) => {
     let ids: string[];
     if (all) {
       const params = new URLSearchParams();
@@ -283,7 +295,7 @@ export function LeadsTable({ projectId, initialData, initialTotal, refreshKey, o
     }
     if (ids.length === 0) return;
     setValidating(type);
-    const label = type === "icp" ? "ICP" : "email";
+    const label = type === "email" ? "Email" : "ICP";
     try {
       const res = await fetch(`/api/projects/${projectId}/validate/${type}`, {
         method: "POST",
@@ -463,27 +475,16 @@ export function LeadsTable({ projectId, initialData, initialTotal, refreshKey, o
           </Button>
 
           {/* ICP Validate */}
-          <Popover
-            trigger={
-              <Button
-                variant="default"
-                size="sm"
-                className="h-8 text-xs gap-1.5"
-                disabled={validating !== null}
-              >
-                <CheckCircle2 className="size-3.5" />
-                {validating === "icp" ? "ICP…" : "ICP"}
-              </Button>
-            }
-            align="end"
+          <Button
+            variant="default"
+            size="sm"
+            className="h-8 text-xs gap-1.5"
+            disabled={validating !== null}
+            onClick={() => setIcpDialogOpen(true)}
           >
-            <PopoverItem onClick={() => runValidation("icp", false)} disabled={selectedIds.length === 0}>
-              Validate Selected ({selectedIds.length})
-            </PopoverItem>
-            <PopoverItem onClick={() => runValidation("icp", true)} disabled={totalCount === 0}>
-              Validate All ({totalCount})
-            </PopoverItem>
-          </Popover>
+            <CheckCircle2 className="size-3.5" />
+            {validating === "icp" ? "ICP…" : "ICP"}
+          </Button>
 
           {/* Email Validate */}
           <Popover
@@ -648,6 +649,19 @@ export function LeadsTable({ projectId, initialData, initialTotal, refreshKey, o
         open={importOpen}
         onOpenChange={setImportOpen}
         onImported={() => { fetchPage(0, pageSize); onValidationComplete?.(); }}
+      />
+
+      <IcpValidationDialog
+        projectId={projectId}
+        open={icpDialogOpen}
+        onOpenChange={setIcpDialogOpen}
+        selectedIds={selectedIds}
+        totalCount={totalCount}
+        onValidationComplete={() => {
+          onValidationComplete?.();
+          fetchPage(pageIndex, pageSize);
+        }}
+        fetchAllIds={fetchAllIds}
       />
     </div>
   );

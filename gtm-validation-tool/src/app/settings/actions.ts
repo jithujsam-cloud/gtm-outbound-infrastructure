@@ -2,6 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { upsertIntegrationSettings, getIntegrationSettings } from "@/lib/integration-settings";
+import { getValidationPrompt, saveValidationPrompt, getDefaultIcpPrompt } from "@/lib/validation-prompts";
+import { createClient } from "@/lib/supabase/server";
 
 export async function saveSettings(formData: FormData) {
   const settings = {
@@ -24,5 +26,31 @@ export async function loadSettings() {
     return { settings, error: null };
   } catch (e) {
     return { settings: null, error: e instanceof Error ? e.message : "Failed to load settings" };
+  }
+}
+
+export async function getIcpPrompt(projectId: string) {
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { prompt: null, error: "Not authenticated" };
+
+    const saved = await getValidationPrompt(user.id, projectId, "icp");
+    return { prompt: saved ?? getDefaultIcpPrompt(), error: null };
+  } catch (e) {
+    return { prompt: getDefaultIcpPrompt(), error: null };
+  }
+}
+
+export async function saveIcpPrompt(projectId: string, prompt: string) {
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { success: false, error: "Not authenticated" };
+
+    await saveValidationPrompt(user.id, projectId, "icp", prompt);
+    return { success: true, error: null };
+  } catch (e) {
+    return { success: false, error: e instanceof Error ? e.message : "Failed to save prompt" };
   }
 }

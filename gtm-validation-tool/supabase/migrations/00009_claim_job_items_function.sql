@@ -17,15 +17,16 @@ LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = 'public'
 AS $$
+#variable_conflict use_column
 BEGIN
   RETURN QUERY
   WITH claimed AS (
     UPDATE validation_job_items
     SET status = 'processing',
         lease_expires_at = NOW() + (p_lease_seconds || ' seconds')::INTERVAL,
-        attempt = validation_job_items.attempt + 1,
+        attempt = attempt + 1,
         started_at = NOW()
-    WHERE validation_job_items.id IN (
+    WHERE id IN (
       SELECT vji.id
       FROM validation_job_items vji
       WHERE vji.job_id = p_job_id

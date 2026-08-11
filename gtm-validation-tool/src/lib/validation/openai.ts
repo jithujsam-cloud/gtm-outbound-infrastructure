@@ -36,6 +36,7 @@ function buildIcpSchema() {
       },
     },
     required: ["vertical_match", "matched_vertical", "reasoning"],
+    additionalProperties: false,
   };
 }
 

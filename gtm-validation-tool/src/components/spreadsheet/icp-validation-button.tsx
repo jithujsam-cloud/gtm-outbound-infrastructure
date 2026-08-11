@@ -55,7 +55,6 @@ export function IcpValidationDialog({
   const [temperature, setTemperature] = useState("0.2");
   const [maxTokens, setMaxTokens] = useState("512");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const filteredVariables = VARIABLE_OPTIONS.filter(
     (v) =>
@@ -217,47 +216,77 @@ export function IcpValidationDialog({
       setJobId(jobJson.jobId);
       setProgress((p) => p ? { ...p, total: jobJson.totalLeads, pending: jobJson.totalLeads } : null);
 
-      pollRef.current = setInterval(async () => {
+      // Client-driven processing loop: call /process repeatedly until job is done
+      let totalProcessed = 0;
+      let totalMatched = 0;
+      const allErrors: string[] = [];
+      let paused = false;
+      let pausedReason: string | undefined;
+
+      while (true) {
+        // Check status before processing to avoid unnecessary calls
         const statusRes = await fetch(`/api/jobs/${jobJson.jobId}`);
-        if (!statusRes.ok) return;
-        const status = await statusRes.json();
-        if (status.progress) {
-          setProgress(status.progress);
-          if (status.progress.pending === 0 || status.status === "completed" || status.status === "completed_with_errors" || status.status === "failed" || status.status === "cancelled" || status.status === "paused") {
-            if (pollRef.current) clearInterval(pollRef.current);
+        if (statusRes.ok) {
+          const status = await statusRes.json();
+          if (status.progress) setProgress(status.progress);
+
+          if (
+            status.progress.pending === 0 ||
+            ["completed", "completed_with_errors", "failed", "cancelled", "paused"].includes(status.status)
+          ) {
+            // Terminal state — job is done (possibly completed by another session)
+            if (status.status === "paused") {
+              paused = true;
+              pausedReason = status.error_message;
+            }
+            break;
           }
         }
-      }, 2000);
 
-      const processRes = await fetch(`/api/jobs/${jobJson.jobId}/process`, {
-        method: "POST",
-      });
+        const processRes = await fetch(`/api/jobs/${jobJson.jobId}/process`, {
+          method: "POST",
+        });
 
-      if (pollRef.current) clearInterval(pollRef.current);
+        if (!processRes.ok) {
+          const text = await processRes.text();
+          let msg = text;
+          try { msg = JSON.parse(text).error || text; } catch {}
+          throw new Error(msg);
+        }
 
-      if (!processRes.ok) {
-        const text = await processRes.text();
-        let msg = text;
-        try { msg = JSON.parse(text).error || text; } catch {}
-        throw new Error(msg);
+        const result = await processRes.json();
+
+        totalProcessed += result.processed ?? 0;
+        totalMatched += result.matched ?? 0;
+        if (result.errors?.length) allErrors.push(...result.errors);
+
+        if (result.paused) {
+          paused = true;
+          pausedReason = result.pausedReason;
+          break;
+        }
+
+        if (result.complete) break;
+
+        // Brief pause between batches
+        await new Promise((r) => setTimeout(r, 500));
       }
 
-      const result = await processRes.json();
-
+      // Fetch final status for the definitive progress numbers
       const finalStatus = await fetch(`/api/jobs/${jobJson.jobId}`).then((r) => r.json());
       if (finalStatus.progress) setProgress(finalStatus.progress);
 
-      if (result.paused) {
-        toast.error(`Job paused: ${result.pausedReason || "Unknown error"}`);
+      if (paused) {
+        toast.error(`Job paused: ${pausedReason || "Unknown error"}`);
         return;
       }
 
-      const msg = `ICP done — ${result.processed ?? 0} processed, ${result.matched ?? 0} matched`;
+      const msg = `ICP done — ${totalProcessed} processed, ${totalMatched} matched`;
       const extra = [];
-      if (result.errors?.length) extra.push(`${result.errors.length} failed`);
-      if (result.errors?.[0]) {
+      if (allErrors.length) extra.push(`${allErrors.length} failed`);
+      if (allErrors[0]) {
         toast.success(msg + (extra.length ? ` (${extra.join(", ")})` : ""), {
-          description: result.errors[0].slice(0, 200),
+          description: allErrors[0].slice(0, 200),
         });
       } else {
         toast.success(msg + (extra.length ? ` (${extra.join(", ")})` : ""));
@@ -268,13 +297,8 @@ export function IcpValidationDialog({
       toast.error(`ICP validation failed: ${err.message}`);
     } finally {
       setValidating(false);
-      if (pollRef.current) clearInterval(pollRef.current);
     }
   };
-
-  useEffect(() => {
-    return () => { if (pollRef.current) clearInterval(pollRef.current); };
-  }, []);
 
   const validateCount = selectedIds.length > 0 ? selectedIds.length : totalCount;
 

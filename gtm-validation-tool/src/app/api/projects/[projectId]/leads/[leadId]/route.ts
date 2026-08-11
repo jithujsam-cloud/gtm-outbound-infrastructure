@@ -39,9 +39,26 @@ export async function PUT(
 
   const body = await request.json();
 
+  const UPDATABLE_FIELDS = [
+    "full_name", "company_name", "position", "email", "industry",
+    "state", "domain", "employee_size", "country",
+    "company_description", "company_linkedin", "linkedin_url", "website",
+  ] as const;
+
+  const updates: Record<string, any> = {};
+  for (const field of UPDATABLE_FIELDS) {
+    if (field in body) {
+      updates[field] = body[field];
+    }
+  }
+
+  if (Object.keys(updates).length === 0) {
+    return NextResponse.json({ error: "No valid fields to update" }, { status: 400 });
+  }
+
   const { data, error } = await supabase
     .from("leads")
-    .update({ ...body, updated_at: new Date().toISOString() })
+    .update({ ...updates, updated_at: new Date().toISOString() })
     .eq("id", leadId)
     .eq("project_id", projectId)
     .select()

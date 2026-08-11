@@ -40,6 +40,23 @@ function buildIcpSchema() {
   };
 }
 
+function buildBatchSchema() {
+  return {
+    type: "array",
+    items: {
+      type: "object",
+      properties: {
+        lead_id: { type: "string" },
+        vertical_match: { type: "boolean" },
+        matched_vertical: { type: ["string", "null"] },
+        reasoning: { type: "string" },
+      },
+      required: ["lead_id", "vertical_match", "matched_vertical", "reasoning"],
+      additionalProperties: false,
+    },
+  };
+}
+
 function parseResponse(text: string, leadId?: string): OpenAIIcpResponse {
   const trimmed = text.trim();
 
@@ -178,6 +195,14 @@ Return ONLY a JSON array:
       ],
       temperature: options?.temperature ?? 0.2,
       max_completion_tokens: options?.maxTokens ?? 2048,
+      response_format: {
+        type: "json_schema",
+        json_schema: {
+          name: "icp_classification_batch",
+          schema: buildBatchSchema(),
+          strict: true,
+        },
+      },
     }),
   });
 

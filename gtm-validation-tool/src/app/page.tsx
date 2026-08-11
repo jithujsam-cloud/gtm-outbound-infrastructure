@@ -34,13 +34,14 @@ async function getDashboardData(): Promise<{
       supabase.from("leads").select("*", { count: "exact", head: true }).not("email_check", "is", null),
       supabase.from("leads").select("*", { count: "exact", head: true }).eq("vertical_match", true),
       supabase.from("projects").select("*, leads(count)").order("created_at", { ascending: false }).limit(5),
-      supabase.from("leads").select("matched_vertical").eq("vertical_match", true).not("matched_vertical", "is", null),
+      supabase.rpc("get_dashboard_vertical_breakdown"),
     ]);
 
     const verticalCounts: Record<string, number> = {};
-    for (const row of (verticalRows ?? [])) {
-      const v = row.matched_vertical!;
-      verticalCounts[v] = (verticalCounts[v] ?? 0) + 1;
+    const rpcData = verticalRows as { data?: Array<{ matched_vertical: string; count: number }> } | Array<{ matched_vertical: string; count: number }> | null;
+    const rows = Array.isArray(rpcData) ? rpcData : rpcData?.data ?? [];
+    for (const row of rows) {
+      verticalCounts[row.matched_vertical] = Number(row.count);
     }
 
     const verticalBreakdown: VerticalCount[] = [

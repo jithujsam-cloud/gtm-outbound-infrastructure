@@ -7,7 +7,7 @@ import { Select } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { VARIABLE_OPTIONS } from "@/lib/validation/variables";
-import { getIcpPrompt } from "@/app/settings/actions";
+import { getIcpPrompt, getLlmProvider } from "@/app/settings/actions";
 import { toast } from "sonner";
 
 const LLM_PROVIDERS = [
@@ -73,15 +73,21 @@ export function IcpValidationDialog({
 
     let cancelled = false;
     setLoading(true);
-    getIcpPrompt(projectId)
-      .then((result) => {
-        if (!cancelled && result.prompt) {
-          setPrompt(result.prompt);
-        }
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
+
+    Promise.all([
+      getIcpPrompt(projectId),
+      getLlmProvider(),
+    ]).then(([promptResult, providerResult]) => {
+      if (cancelled) return;
+      if (promptResult.prompt) setPrompt(promptResult.prompt);
+      if (providerResult.provider) {
+        setProvider(providerResult.provider);
+        const newModels = LLM_PROVIDERS.find((p) => p.value === providerResult.provider)?.models ?? LLM_PROVIDERS[0].models;
+        setModel(newModels[0]);
+      }
+    }).finally(() => {
+      if (!cancelled) setLoading(false);
+    });
 
     return () => {
       cancelled = true;

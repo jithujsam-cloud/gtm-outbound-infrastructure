@@ -5,6 +5,24 @@ import { upsertIntegrationSettings, getIntegrationStatus } from "@/lib/integrati
 import { getValidationPrompt, saveValidationPrompt, getDefaultIcpPrompt } from "@/lib/validation-prompts";
 import { createClient } from "@/lib/supabase/server";
 
+export async function getLlmProvider() {
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { provider: null, model: null, error: "Not authenticated" };
+
+    const { data } = await supabase
+      .from("integration_settings")
+      .select("llm_provider")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    return { provider: data?.llm_provider ?? null, model: null, error: null };
+  } catch (e) {
+    return { provider: null, model: null, error: e instanceof Error ? e.message : "Failed" };
+  }
+}
+
 export async function saveSettings(formData: FormData) {
   const settings = {
     clearout_api_key: (formData.get("clearout_api_key") as string) || undefined,

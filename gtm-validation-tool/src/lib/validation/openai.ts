@@ -110,7 +110,7 @@ export async function callOpenAI(
         { role: "user", content: prompt },
       ],
       temperature: 0.2,
-      max_tokens: 512,
+      max_completion_tokens: 512,
       response_format: {
         type: "json_schema",
         json_schema: {
@@ -174,7 +174,7 @@ Return ONLY a JSON array:
         { role: "user", content: batchPrompt },
       ],
       temperature: 0.2,
-      max_tokens: 2048,
+      max_completion_tokens: 2048,
     }),
   });
 

@@ -36,6 +36,26 @@ export async function createValidationJob(params: {
     throw new Error("All selected leads are already validated");
   }
 
+  // Clean up any stale active jobs for this user+project+type before creating a new one
+  const { data: staleJobs } = await supabase
+    .from("validation_jobs")
+    .select("id, status")
+    .eq("user_id", userId)
+    .eq("project_id", projectId)
+    .eq("type", type)
+    .in("status", ["queued", "running", "paused"]);
+
+  if (staleJobs && staleJobs.length > 0) {
+    await supabase
+      .from("validation_jobs")
+      .update({
+        status: "failed",
+        error_message: "Superseded by new validation job",
+        completed_at: new Date().toISOString(),
+      })
+      .in("id", staleJobs.map((j) => j.id));
+  }
+
   const { data: job, error: jobErr } = await supabase
     .from("validation_jobs")
     .insert({

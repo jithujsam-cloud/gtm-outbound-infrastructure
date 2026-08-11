@@ -183,6 +183,30 @@ const ALL_COLUMNS: ColumnDef<Lead>[] = [
       return <Badge variant={val ? "default" : "destructive"} className="text-[10px] px-1.5 py-0">{val ? "Yes" : "No"}</Badge>;
     },
   },
+  {
+    accessorKey: "created_at",
+    header: "Created",
+    size: 140,
+    minSize: 100,
+    cell: ({ getValue }) => {
+      const val = getValue<string | null>();
+      if (!val) return <span className="text-muted-foreground text-xs">—</span>;
+      const d = new Date(val);
+      return <span className="text-xs text-muted-foreground">{d.toLocaleDateString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}</span>;
+    },
+  },
+  {
+    accessorKey: "updated_at",
+    header: "Updated",
+    size: 140,
+    minSize: 100,
+    cell: ({ getValue }) => {
+      const val = getValue<string | null>();
+      if (!val) return <span className="text-muted-foreground text-xs">—</span>;
+      const d = new Date(val);
+      return <span className="text-xs text-muted-foreground">{d.toLocaleDateString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}</span>;
+    },
+  },
 ];
 
 const DEFAULT_VISIBLE: Record<string, boolean> = {
@@ -202,6 +226,8 @@ const DEFAULT_VISIBLE: Record<string, boolean> = {
   email_score: false,
   status: false,
   safe_to_send: false,
+  created_at: false,
+  updated_at: false,
 };
 
 const PAGE_SIZES = [10, 20, 50, 100];
@@ -240,7 +266,7 @@ export function LeadsTable({ projectId, initialData, initialTotal, refreshKey, o
   const [importOpen, setImportOpen] = useState(false);
   const [pageSize, setPageSize] = useState(10);
   const [pageIndex, setPageIndex] = useState(0);
-  const [filters, setFilters] = useState<Record<string, string>>({});
+  const [filters, setFilters] = useState<Record<string, string[]>>({});
 
   const storageKey = STORAGE_KEY_PREFIX + projectId;
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(() => {
@@ -283,7 +309,7 @@ export function LeadsTable({ projectId, initialData, initialTotal, refreshKey, o
     setLoading(true);
     const params = new URLSearchParams({ page: String(page + 1), limit: String(size) });
     if (globalFilter) params.set("search", globalFilter);
-    Object.entries(filters).forEach(([k, v]) => { if (v) params.set(k, v); });
+    Object.entries(filters).forEach(([k, vals]) => { if (vals.length > 0) vals.forEach((v) => params.append(k, v)); });
     const res = await fetch(`/api/projects/${projectId}/leads?${params}`);
     const json = await res.json();
     setData(json.data);
@@ -301,12 +327,12 @@ export function LeadsTable({ projectId, initialData, initialTotal, refreshKey, o
     fetchPage(pageIndex, pageSize);
   }, [pageIndex, pageSize, globalFilter, filters, refreshKey]);
 
-  const activeFilterCount = Object.values(filters).filter(Boolean).length;
+  const activeFilterCount = Object.values(filters).reduce((sum, vals) => sum + vals.length, 0);
 
   const fetchAllIds = useCallback(async (): Promise<string[]> => {
     const params = new URLSearchParams();
     if (globalFilter) params.set("search", globalFilter);
-    Object.entries(filters).forEach(([k, v]) => { if (v) params.set(k, v); });
+    Object.entries(filters).forEach(([k, vals]) => { if (vals.length > 0) vals.forEach((v) => params.append(k, v)); });
     params.set("idsonly", "true");
     const res = await fetch(`/api/projects/${projectId}/leads?${params}`);
     const json = await res.json();
@@ -318,7 +344,7 @@ export function LeadsTable({ projectId, initialData, initialTotal, refreshKey, o
     if (all) {
       const params = new URLSearchParams();
       if (globalFilter) params.set("search", globalFilter);
-      Object.entries(filters).forEach(([k, v]) => { if (v) params.set(k, v); });
+      Object.entries(filters).forEach(([k, vals]) => { if (vals.length > 0) vals.forEach((v) => params.append(k, v)); });
       params.set("idsonly", "true");
       const res = await fetch(`/api/projects/${projectId}/leads?${params}`);
       const json = await res.json();
@@ -354,13 +380,11 @@ export function LeadsTable({ projectId, initialData, initialTotal, refreshKey, o
 
   const handleFilterChange = (key: string, value: string) => {
     setFilters((prev) => {
-      const next = { ...prev };
-      if (!value || prev[key] === value) {
-        delete next[key];
-      } else {
-        next[key] = value;
-      }
-      return next;
+      const current = prev[key] ?? [];
+      const filtered = current.includes(value)
+        ? current.filter((v) => v !== value)
+        : [...current, value];
+      return filtered.length > 0 ? { ...prev, [key]: filtered } : (() => { const { [key]: _, ...rest } = prev; return rest; })();
     });
     setPageIndex(0);
   };
@@ -417,10 +441,9 @@ export function LeadsTable({ projectId, initialData, initialTotal, refreshKey, o
                 {FILTER_OPTIONS.email_check.map((opt) => (
                   <label key={opt.value} className="flex items-center gap-2 rounded-sm px-2 py-1 text-xs hover:bg-muted cursor-pointer">
                     <input
-                      type="radio"
-                      name="email_check"
-                      className="size-3"
-                      checked={filters.email_check === opt.value}
+                      type="checkbox"
+                      className="size-3 rounded"
+                      checked={(filters.email_check ?? []).includes(opt.value)}
                       onChange={() => handleFilterChange("email_check", opt.value)}
                     />
                     {opt.label}
@@ -432,10 +455,9 @@ export function LeadsTable({ projectId, initialData, initialTotal, refreshKey, o
                 {FILTER_OPTIONS.vertical_match.map((opt) => (
                   <label key={opt.value} className="flex items-center gap-2 rounded-sm px-2 py-1 text-xs hover:bg-muted cursor-pointer">
                     <input
-                      type="radio"
-                      name="vertical_match"
-                      className="size-3"
-                      checked={filters.vertical_match === opt.value}
+                      type="checkbox"
+                      className="size-3 rounded"
+                      checked={(filters.vertical_match ?? []).includes(opt.value)}
                       onChange={() => handleFilterChange("vertical_match", opt.value)}
                     />
                     {opt.label}
@@ -449,8 +471,15 @@ export function LeadsTable({ projectId, initialData, initialTotal, refreshKey, o
                     type="text"
                     placeholder="Filter industry..."
                     className="w-full rounded border border-input bg-transparent px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-ring"
-                    value={filters.industry ?? ""}
-                    onChange={(e) => handleFilterChange("industry", e.target.value || "")}
+                    value={filters.industry?.[0] ?? ""}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setFilters((prev) => {
+                        if (!val) { const { industry, ...rest } = prev; return rest; }
+                        return { ...prev, industry: [val] };
+                      });
+                      setPageIndex(0);
+                    }}
                   />
                 </div>
               </div>

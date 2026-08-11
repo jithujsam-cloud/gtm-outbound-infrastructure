@@ -17,8 +17,8 @@ export async function GET(
   const page = parseInt(url.searchParams.get("page") ?? "1");
   const limit = parseInt(url.searchParams.get("limit") ?? "10");
   const search = url.searchParams.get("search")?.trim();
-  const emailCheck = url.searchParams.get("email_check")?.trim();
-  const verticalMatch = url.searchParams.get("vertical_match")?.trim();
+  const emailCheck = url.searchParams.getAll("email_check").filter(Boolean);
+  const verticalMatch = url.searchParams.getAll("vertical_match").filter(Boolean);
   const industry = url.searchParams.get("industry")?.trim();
   const offset = (page - 1) * limit;
 
@@ -36,14 +36,29 @@ export async function GET(
     );
   }
 
-  if (emailCheck) {
-    if (emailCheck === "null") query = query.is("email_check", null);
-    else query = query.eq("email_check", emailCheck);
+  if (emailCheck.length > 0) {
+    const nonNull = emailCheck.filter((v) => v !== "null");
+    const hasNull = emailCheck.includes("null");
+    if (hasNull && nonNull.length > 0) {
+      query = query.or(`email_check.is.null,email_check.in.(${nonNull.map((v) => `"${v}"`).join(",")})`);
+    } else if (hasNull) {
+      query = query.is("email_check", null);
+    } else {
+      query = query.in("email_check", nonNull);
+    }
   }
 
-  if (verticalMatch) {
-    if (verticalMatch === "null") query = query.is("vertical_match", null);
-    else query = query.eq("vertical_match", verticalMatch === "true");
+  if (verticalMatch.length > 0) {
+    const nonNull = verticalMatch.filter((v) => v !== "null");
+    const hasNull = verticalMatch.includes("null");
+    if (hasNull && nonNull.length > 0) {
+      const boolVals = nonNull.map((v) => v === "true");
+      query = query.or(`vertical_match.is.null,vertical_match.in.(${boolVals.join(",")})`);
+    } else if (hasNull) {
+      query = query.is("vertical_match", null);
+    } else {
+      query = query.in("vertical_match", nonNull.map((v) => v === "true"));
+    }
   }
 
   if (industry) {

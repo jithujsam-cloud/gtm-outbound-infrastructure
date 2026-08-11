@@ -20,14 +20,19 @@ export async function GET(
   const emailCheck = url.searchParams.getAll("email_check").filter(Boolean);
   const verticalMatch = url.searchParams.getAll("vertical_match").filter(Boolean);
   const industry = url.searchParams.get("industry")?.trim();
+  const sortCol = url.searchParams.get("sort")?.trim();
+  const sortOrder = url.searchParams.get("order")?.trim() === "desc" ? "desc" : "asc";
   const offset = (page - 1) * limit;
+
+  const ALLOWED_SORT_COLS = ["full_name", "company_name", "email", "industry", "position", "state", "country", "email_check", "vertical_match", "matched_vertical", "email_score", "status", "safe_to_send", "created_at", "updated_at"];
+  const col = sortCol && ALLOWED_SORT_COLS.includes(sortCol) ? sortCol : "created_at";
 
   let query = supabase
     .from("leads")
     .select(idsonly ? "id" : "*", { count: "exact" })
     .eq("project_id", projectId)
     .eq("user_id", user.id)
-    .order("created_at", { ascending: false });
+    .order(col, { ascending: sortOrder === "asc" });
 
   if (search) {
     const ilike = `%${search}%`;

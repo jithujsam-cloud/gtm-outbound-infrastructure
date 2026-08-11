@@ -4,7 +4,6 @@ import { useMemo, useState, useEffect, useCallback, useRef } from "react";
 import {
   useReactTable,
   getCoreRowModel,
-  getSortedRowModel,
   getPaginationRowModel,
   flexRender,
   type ColumnDef,
@@ -291,11 +290,10 @@ export function LeadsTable({ projectId, initialData, initialTotal, refreshKey, o
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
     getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getRowId: (row) => row.id,
     enableRowSelection: true,
-    globalFilterFn: "includesString",
+    manualSorting: true,
     manualPagination: true,
     pageCount: Math.max(Math.ceil(totalCount / pageSize), 1),
   });
@@ -304,11 +302,12 @@ export function LeadsTable({ projectId, initialData, initialTotal, refreshKey, o
     return table.getSelectedRowModel().rows.map((r) => r.original.id);
   }, [rowSelection, data]);
 
-  const fetchPage = useCallback(async (page: number, size: number) => {
+  const fetchPage = useCallback(async (page: number, size: number, sortCol?: string, sortDir?: string) => {
     setLoading(true);
     const params = new URLSearchParams({ page: String(page + 1), limit: String(size) });
     if (globalFilter) params.set("search", globalFilter);
     Object.entries(filters).forEach(([k, vals]) => { if (vals.length > 0) vals.forEach((v) => params.append(k, v)); });
+    if (sortCol) { params.set("sort", sortCol); params.set("order", sortDir ?? "asc"); }
     const res = await fetch(`/api/projects/${projectId}/leads?${params}`);
     const json = await res.json();
     setData(json.data);
@@ -323,8 +322,9 @@ export function LeadsTable({ projectId, initialData, initialTotal, refreshKey, o
       mountedRef.current = true;
       return;
     }
-    fetchPage(pageIndex, pageSize);
-  }, [pageIndex, pageSize, globalFilter, filters, refreshKey]);
+    const c = sorting[0];
+    fetchPage(pageIndex, pageSize, c?.id, c?.desc ? "desc" : "asc");
+  }, [pageIndex, pageSize, globalFilter, filters, sorting, refreshKey]);
 
   const activeFilterCount = Object.values(filters).reduce((sum, vals) => sum + vals.length, 0);
 

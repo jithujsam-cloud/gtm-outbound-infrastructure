@@ -14,12 +14,7 @@ const gitInfo = (() => {
 const nextConfig: NextConfig = {
   env: {
     NEXT_PUBLIC_GIT_HASH: gitInfo.hash,
-    NEXT_PUBLIC_GIT_TIME: new Date(gitInfo.time).toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      hour: "numeric",
-      minute: "2-digit",
-    }),
+    NEXT_PUBLIC_GIT_RAW: gitInfo.time,
   },
   typescript: {
     ignoreBuildErrors: true,

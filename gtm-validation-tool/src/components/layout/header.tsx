@@ -10,6 +10,16 @@ import { logout } from "@/app/auth/actions";
 
 const links = ["Dashboard", "Projects", "Integrations", "Logs"];
 
+function formatIst(raw: string | undefined): string {
+  if (!raw) return "";
+  return new Date(raw).toLocaleString("en-IN", {
+    timeZone: "Asia/Kolkata",
+    day: "numeric", month: "short", hour: "numeric", minute: "2-digit", hour12: true,
+  });
+}
+
+const gitTag = formatIst(process.env.NEXT_PUBLIC_GIT_RAW);
+
 export function Header() {
   const pathname = usePathname();
   const { user } = useSupabase();
@@ -56,9 +66,9 @@ export function Header() {
           </nav>
 
           {/* Minitag — last updated */}
-          {process.env.NEXT_PUBLIC_GIT_TIME && (
+          {gitTag && (
             <span className="hidden sm:inline text-[10px] text-neutral-400 font-mono whitespace-nowrap">
-              v{process.env.NEXT_PUBLIC_GIT_TIME}
+              {gitTag}
             </span>
           )}
 
@@ -133,9 +143,9 @@ export function Header() {
               Sign in
             </Link>
           )}
-          {process.env.NEXT_PUBLIC_GIT_TIME && (
+          {gitTag && (
             <div className="px-3 pt-1 text-[10px] text-neutral-400 font-mono">
-              v{process.env.NEXT_PUBLIC_GIT_TIME}
+              {gitTag}
             </div>
           )}
         </div>

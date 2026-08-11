@@ -1,6 +1,6 @@
--- claim_job_items: atomic batch claim with lease protection
--- Uses SELECT FOR UPDATE-style locking via UPDATE...RETURNING
--- Prevents two processors from claiming the same item
+-- Fix ambiguous column reference in claim_job_items function
+-- The unqualified "id" in the WHERE clause was ambiguous between
+-- validation_job_items.id and the subquery's vji.id
 
 CREATE OR REPLACE FUNCTION claim_job_items(
   p_job_id UUID,

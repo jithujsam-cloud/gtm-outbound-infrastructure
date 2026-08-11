@@ -23,7 +23,7 @@ BEGIN
     UPDATE validation_job_items
     SET status = 'processing',
         lease_expires_at = NOW() + (p_lease_seconds || ' seconds')::INTERVAL,
-        attempt = attempt + 1,
+        attempt = validation_job_items.attempt + 1,
         started_at = NOW()
     WHERE validation_job_items.id IN (
       SELECT vji.id

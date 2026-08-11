@@ -21,6 +21,8 @@ export async function POST(
     prompt?: string;
     model?: string;
     provider?: string;
+    temperature?: number;
+    maxTokens?: number;
   };
 
   try {
@@ -93,6 +95,8 @@ export async function POST(
       prompt: body.prompt,
       model: body.model,
       llmProvider: body.provider,
+      temperature: body.temperature,
+      maxTokens: body.maxTokens,
     });
 
     return NextResponse.json(result, { status: 201 });

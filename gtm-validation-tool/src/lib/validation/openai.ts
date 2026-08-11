@@ -15,8 +15,8 @@ export interface BatchIcpResult extends OpenAIIcpResponse {
   leadId: string;
 }
 
-export const OPENAI_MODELS = ["gpt-5.6-luna", "gpt-5.4-mini"] as const;
-export const OPENAI_DEFAULT_MODEL = "gpt-5.6-luna";
+export const OPENAI_MODELS = ["gpt-4.1-mini-2025-04-14", "gpt-5.6-luna", "gpt-5.4-mini"] as const;
+export const OPENAI_DEFAULT_MODEL = "gpt-4.1-mini-2025-04-14";
 
 function buildIcpSchema() {
   return {
@@ -92,7 +92,8 @@ function parseResponse(text: string, leadId?: string): OpenAIIcpResponse {
 export async function callOpenAI(
   apiKey: string,
   model: string,
-  prompt: string
+  prompt: string,
+  options?: { temperature?: number; maxTokens?: number }
 ): Promise<OpenAIIcpResponse> {
   if (!prompt || prompt.trim().length === 0) {
     throw new Error("Prompt cannot be empty");
@@ -109,8 +110,8 @@ export async function callOpenAI(
       messages: [
         { role: "user", content: prompt },
       ],
-      temperature: 0.2,
-      max_completion_tokens: 512,
+      temperature: options?.temperature ?? 0.2,
+      max_completion_tokens: options?.maxTokens ?? 512,
       response_format: {
         type: "json_schema",
         json_schema: {
@@ -144,7 +145,8 @@ export async function callOpenAI(
 export async function callOpenAIBatch(
   apiKey: string,
   model: string,
-  leads: BatchLeadInput[]
+  leads: BatchLeadInput[],
+  options?: { temperature?: number; maxTokens?: number }
 ): Promise<BatchIcpResult[]> {
   if (leads.length === 0) return [];
 
@@ -173,8 +175,8 @@ Return ONLY a JSON array:
       messages: [
         { role: "user", content: batchPrompt },
       ],
-      temperature: 0.2,
-      max_completion_tokens: 2048,
+      temperature: options?.temperature ?? 0.2,
+      max_completion_tokens: options?.maxTokens ?? 2048,
     }),
   });
 

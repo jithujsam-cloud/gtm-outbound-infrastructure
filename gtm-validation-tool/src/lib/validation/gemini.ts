@@ -17,7 +17,8 @@ export interface BatchIcpResult extends GeminiIcpResponse {
 
 export async function callGemini(
   apiKey: string,
-  prompt: string
+  prompt: string,
+  options?: { temperature?: number; maxTokens?: number }
 ): Promise<GeminiIcpResponse> {
   if (!prompt || prompt.trim().length === 0) {
     throw new Error("Prompt cannot be empty");
@@ -36,8 +37,8 @@ export async function callGemini(
         store: false,
         input: prompt,
         generation_config: {
-          max_output_tokens: 512,
-          temperature: 0.2,
+          max_output_tokens: options?.maxTokens ?? 512,
+          temperature: options?.temperature ?? 0.2,
         },
         response_format: {
           type: "text",
@@ -76,7 +77,8 @@ export async function callGemini(
 
 export async function callGeminiBatch(
   apiKey: string,
-  leads: BatchLeadInput[]
+  leads: BatchLeadInput[],
+  options?: { temperature?: number; maxTokens?: number }
 ): Promise<BatchIcpResult[]> {
   if (leads.length === 0) return [];
 
@@ -107,8 +109,8 @@ Return ONLY a JSON array:
         store: false,
         input: batchPrompt,
         generation_config: {
-          max_output_tokens: 2048,
-          temperature: 0.2,
+          max_output_tokens: options?.maxTokens ?? 2048,
+          temperature: options?.temperature ?? 0.2,
         },
         response_format: {
           type: "text",

@@ -97,6 +97,10 @@ export async function processJobBatch(
   const provider = job.llm_provider ?? "gemini";
   const model = job.model || (provider === "openai" ? OPENAI_DEFAULT_MODEL : "gemini-3.6-flash");
   const isOpenAI = provider === "openai";
+  const llmOptions = {
+    temperature: job.temperature ?? undefined,
+    maxTokens: job.max_tokens ?? undefined,
+  };
 
   const batchGroupSize = isOpenAI ? 3 : GEMINI_BATCH_SIZE;
 
@@ -134,12 +138,12 @@ export async function processJobBatch(
         ? [{
             leadId: batch[0].leadId,
             ...(isOpenAI
-              ? await callOpenAI(llmApiKey, model, batch[0].resolvedPrompt)
-              : await callGemini(llmApiKey, batch[0].resolvedPrompt)),
+              ? await callOpenAI(llmApiKey, model, batch[0].resolvedPrompt, llmOptions)
+              : await callGemini(llmApiKey, batch[0].resolvedPrompt, llmOptions)),
           }]
         : isOpenAI
-          ? await callOpenAIBatch(llmApiKey, model, batch)
-          : await callGeminiBatch(llmApiKey, batch);
+          ? await callOpenAIBatch(llmApiKey, model, batch, llmOptions)
+          : await callGeminiBatch(llmApiKey, batch, llmOptions);
 
       const resultMap = new Map(results.map((r) => [r.leadId, r]));
 

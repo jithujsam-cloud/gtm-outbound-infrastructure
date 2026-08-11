@@ -9,8 +9,10 @@ export async function createValidationJob(params: {
   prompt?: string;
   model?: string;
   llmProvider?: string;
+  temperature?: number;
+  maxTokens?: number;
 }): Promise<{ jobId: string; totalLeads: number; skippedLeads: number }> {
-  const { userId, projectId, type, mode, leadIds, prompt, model, llmProvider } = params;
+  const { userId, projectId, type, mode, leadIds, prompt, model, llmProvider, temperature, maxTokens } = params;
   const supabase = await createClient();
 
   const { data: leads, error: fetchErr } = await supabase
@@ -66,6 +68,8 @@ export async function createValidationJob(params: {
       prompt: prompt ?? null,
       model: model ?? null,
       llm_provider: llmProvider ?? null,
+      temperature: temperature ?? null,
+      max_tokens: maxTokens ?? null,
       total_leads: pendingLeads.length,
       skipped_leads: skippedLeads.length,
       status: "queued",

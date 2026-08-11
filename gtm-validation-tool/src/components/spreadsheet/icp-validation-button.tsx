@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Brain, CheckCircle2, XCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
@@ -12,7 +13,7 @@ import { toast } from "sonner";
 
 const LLM_PROVIDERS = [
   { value: "gemini", label: "Gemini", models: ["gemini-3.6-flash", "gemini-3.5-flash", "gemini-2.5-flash"] },
-  { value: "openai", label: "OpenAI", models: ["gpt-5.6-luna", "gpt-5.4-mini"] },
+  { value: "openai", label: "OpenAI", models: ["gpt-4.1-mini-2025-04-14", "gpt-5.6-luna", "gpt-5.4-mini"] },
 ] as const;
 
 export interface IcpValidationDialogProps {
@@ -51,6 +52,8 @@ export function IcpValidationDialog({
   const [jobId, setJobId] = useState<string | null>(null);
   const [provider, setProvider] = useState("gemini");
   const [model, setModel] = useState("gemini-3.6-flash");
+  const [temperature, setTemperature] = useState("0.2");
+  const [maxTokens, setMaxTokens] = useState("512");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -192,6 +195,8 @@ export function IcpValidationDialog({
         prompt,
         provider,
         model,
+        temperature: parseFloat(temperature) || 0.2,
+        maxTokens: parseInt(maxTokens, 10) || 512,
       };
       if (!all) body.leadIds = ids;
 
@@ -309,7 +314,7 @@ export function IcpValidationDialog({
                 <div className="space-y-1.5">
                   <label className="text-xs font-medium text-muted-foreground">Model</label>
                   <Select
-                    className="h-8 text-xs w-[180px]"
+                    className="h-8 text-xs w-[220px]"
                     value={model}
                     onChange={(e) => setModel(e.target.value)}
                     disabled={validating}
@@ -318,6 +323,26 @@ export function IcpValidationDialog({
                       <option key={m} value={m}>{m}</option>
                     ))}
                   </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-muted-foreground">Temp</label>
+                  <Input
+                    className="h-8 text-xs w-[60px]"
+                    value={temperature}
+                    onChange={(e) => setTemperature(e.target.value)}
+                    disabled={validating}
+                    placeholder="0.2"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-muted-foreground">Max Tokens</label>
+                  <Input
+                    className="h-8 text-xs w-[90px]"
+                    value={maxTokens}
+                    onChange={(e) => setMaxTokens(e.target.value)}
+                    disabled={validating}
+                    placeholder="512"
+                  />
                 </div>
               </div>
 

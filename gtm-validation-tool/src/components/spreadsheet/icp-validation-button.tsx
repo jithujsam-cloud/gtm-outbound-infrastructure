@@ -250,7 +250,13 @@ export function IcpValidationDialog({
       const msg = `ICP done — ${result.processed ?? 0} processed, ${result.matched ?? 0} matched`;
       const extra = [];
       if (result.errors?.length) extra.push(`${result.errors.length} failed`);
-      toast.success(msg + (extra.length ? ` (${extra.join(", ")})` : ""));
+      if (result.errors?.[0]) {
+        toast.success(msg + (extra.length ? ` (${extra.join(", ")})` : ""), {
+          description: result.errors[0].slice(0, 200),
+        });
+      } else {
+        toast.success(msg + (extra.length ? ` (${extra.join(", ")})` : ""));
+      }
       onValidationComplete();
       setTimeout(() => onOpenChange(false), 500);
     } catch (err: any) {

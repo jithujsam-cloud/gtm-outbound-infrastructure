@@ -86,6 +86,11 @@ export function Header() {
               Sign in
             </Link>
           )}
+          {process.env.NEXT_PUBLIC_GIT_TIME && (
+            <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-mono whitespace-nowrap">
+              {process.env.NEXT_PUBLIC_GIT_TIME}
+            </span>
+          )}
         </div>
 
         {/* Mobile user actions */}

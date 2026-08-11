@@ -242,7 +242,6 @@ const FILTER_OPTIONS = {
   vertical_match: [
     { label: "ICP Match", value: "true" },
     { label: "No Match", value: "false" },
-    { label: "Not validated", value: "null" },
   ],
 };
 

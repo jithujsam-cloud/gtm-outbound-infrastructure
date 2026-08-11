@@ -42,18 +42,25 @@ function buildIcpSchema() {
 
 function buildBatchSchema() {
   return {
-    type: "array",
-    items: {
-      type: "object",
-      properties: {
-        lead_id: { type: "string" },
-        vertical_match: { type: "boolean" },
-        matched_vertical: { type: ["string", "null"] },
-        reasoning: { type: "string" },
+    type: "object" as const,
+    properties: {
+      results: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            lead_id: { type: "string" },
+            vertical_match: { type: "boolean" },
+            matched_vertical: { type: ["string", "null"] },
+            reasoning: { type: "string" },
+          },
+          required: ["lead_id", "vertical_match", "matched_vertical", "reasoning"],
+          additionalProperties: false,
+        },
       },
-      required: ["lead_id", "vertical_match", "matched_vertical", "reasoning"],
-      additionalProperties: false,
     },
+    required: ["results"],
+    additionalProperties: false,
   };
 }
 
@@ -222,7 +229,7 @@ Return ONLY a JSON array:
     throw new Error("Empty OpenAI batch response");
   }
 
-  let parsed: any[];
+  let parsed: any;
   try {
     const cleaned = content.replace(/```json\n?/g, "").replace(/```/g, "").trim();
     parsed = JSON.parse(cleaned);
@@ -230,13 +237,14 @@ Return ONLY a JSON array:
     throw new Error("Invalid JSON from OpenAI batch");
   }
 
-  if (!Array.isArray(parsed)) {
+  const items = parsed?.results ?? parsed;
+  if (!Array.isArray(items)) {
     throw new Error("OpenAI batch response is not an array");
   }
 
-  if (parsed.length !== leads.length) {
+  if (items.length !== leads.length) {
     throw new Error(
-      `Batch size mismatch: expected ${leads.length} results, got ${parsed.length}`
+      `Batch size mismatch: expected ${leads.length} results, got ${items.length}`
     );
   }
 
@@ -244,8 +252,8 @@ Return ONLY a JSON array:
   const seenIds = new Set<string>();
   const results: BatchIcpResult[] = [];
 
-  for (let i = 0; i < parsed.length; i++) {
-    const item = parsed[i];
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i];
 
     if (!expectedIds.has(item.lead_id)) {
       throw new Error(`Unknown lead_id in batch response: ${item.lead_id}`);

@@ -110,9 +110,18 @@ export async function POST(
         request_metadata: { model: provider === "openai" ? "gpt-5.6-luna" : "gemini-3.6-flash", lead_count: 1 },
       });
 
-      const result = provider === "openai"
-        ? await callOpenAI(llmApiKey, "gpt-5.6-luna", ICP_SYSTEM_PROMPT, userPrompt)
-        : await callGemini(llmApiKey, ICP_SYSTEM_PROMPT, userPrompt);
+      let result: {
+        vertical_match: boolean;
+        matched_vertical: string | null;
+        reasoning: string;
+      };
+
+      if (provider === "openai") {
+        const call = await callOpenAI(llmApiKey, "gpt-5.6-luna", ICP_SYSTEM_PROMPT, userPrompt);
+        result = call.data;
+      } else {
+        result = await callGemini(llmApiKey, ICP_SYSTEM_PROMPT, userPrompt);
+      }
 
       const { error: updateErr } = await supabase
         .from("leads")

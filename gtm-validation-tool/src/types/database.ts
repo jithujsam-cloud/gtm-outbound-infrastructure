@@ -222,8 +222,21 @@ export interface Database {
           http_status: number | null
           error_code: string | null
           error_message: string | null
+          model: string | null
+          request_id: string | null
+          leads_in_request: number | null
+          input_tokens: number | null
+          cached_input_tokens: number | null
+          output_tokens: number | null
+          total_tokens: number | null
+          input_cost: number | null
+          cached_input_cost: number | null
+          output_cost: number | null
+          total_cost: number | null
           request_metadata: Record<string, unknown> | null
           response_metadata: Record<string, unknown> | null
+          raw_response: Record<string, unknown> | null
+          raw_error: Record<string, unknown> | null
           created_at: string
         }
         Insert: {
@@ -241,8 +254,21 @@ export interface Database {
           http_status?: number | null
           error_code?: string | null
           error_message?: string | null
+          model?: string | null
+          request_id?: string | null
+          leads_in_request?: number | null
+          input_tokens?: number | null
+          cached_input_tokens?: number | null
+          output_tokens?: number | null
+          total_tokens?: number | null
+          input_cost?: number | null
+          cached_input_cost?: number | null
+          output_cost?: number | null
+          total_cost?: number | null
           request_metadata?: Record<string, unknown> | null
           response_metadata?: Record<string, unknown> | null
+          raw_response?: Record<string, unknown> | null
+          raw_error?: Record<string, unknown> | null
           created_at?: string
         }
         Update: {
@@ -260,8 +286,21 @@ export interface Database {
           http_status?: number | null
           error_code?: string | null
           error_message?: string | null
+          model?: string | null
+          request_id?: string | null
+          leads_in_request?: number | null
+          input_tokens?: number | null
+          cached_input_tokens?: number | null
+          output_tokens?: number | null
+          total_tokens?: number | null
+          input_cost?: number | null
+          cached_input_cost?: number | null
+          output_cost?: number | null
+          total_cost?: number | null
           request_metadata?: Record<string, unknown> | null
           response_metadata?: Record<string, unknown> | null
+          raw_response?: Record<string, unknown> | null
+          raw_error?: Record<string, unknown> | null
           created_at?: string
         }
       }

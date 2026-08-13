@@ -3,6 +3,7 @@ import { callGemini, callGeminiBatch, type BatchLeadInput } from "@/lib/validati
 import { callOpenAI, callOpenAIBatch, OPENAI_DEFAULT_MODEL } from "@/lib/validation/openai";
 import { ICP_SYSTEM_PROMPT, formatLeadForIcp, buildIcpUserPrompt } from "@/lib/validation/icp-prompt";
 import { createApiLog, updateApiLog } from "@/lib/api-logger";
+import { calculateCost, ProviderError, type ProviderUsage } from "@/lib/llm-pricing";
 import { classifyError, backoffDelay, shouldPauseJob } from "@/lib/retry";
 
 const BATCH_SIZE = 10;
@@ -152,16 +153,50 @@ export async function processJobBatch(
     });
 
     try {
-      const results = batch.length === 1
-        ? [{
-            leadId: batch[0].leadId,
-            ...(isOpenAI
-              ? await callOpenAI(llmApiKey, model, ICP_SYSTEM_PROMPT, buildIcpUserPrompt(prompt, [batch[0].leadBlock]), llmOptions)
-              : await callGemini(llmApiKey, ICP_SYSTEM_PROMPT, buildIcpUserPrompt(prompt, [batch[0].leadBlock]), llmOptions)),
-          }]
-        : isOpenAI
-          ? await callOpenAIBatch(llmApiKey, model, ICP_SYSTEM_PROMPT, prompt, batch, llmOptions)
-          : await callGeminiBatch(llmApiKey, ICP_SYSTEM_PROMPT, prompt, batch, llmOptions);
+      let usage: ProviderUsage | null = null;
+      let results: Array<{ leadId: string; vertical_match: boolean; matched_vertical: string | null; reasoning: string }>;
+
+      if (batch.length === 1) {
+        const singleLeadId = batch[0].leadId;
+        if (isOpenAI) {
+          const call = await callOpenAI(
+            llmApiKey,
+            model,
+            ICP_SYSTEM_PROMPT,
+            buildIcpUserPrompt(prompt, [batch[0].leadBlock]),
+            llmOptions
+          );
+          usage = call.usage;
+          results = [{ leadId: singleLeadId, ...call.data }];
+        } else {
+          const result = await callGemini(
+            llmApiKey,
+            ICP_SYSTEM_PROMPT,
+            buildIcpUserPrompt(prompt, [batch[0].leadBlock]),
+            llmOptions
+          );
+          results = [{ leadId: singleLeadId, ...result }];
+        }
+      } else if (isOpenAI) {
+        const call = await callOpenAIBatch(
+          llmApiKey,
+          model,
+          ICP_SYSTEM_PROMPT,
+          prompt,
+          batch,
+          llmOptions
+        );
+        usage = call.usage;
+        results = call.data;
+      } else {
+        results = await callGeminiBatch(
+          llmApiKey,
+          ICP_SYSTEM_PROMPT,
+          prompt,
+          batch,
+          llmOptions
+        );
+      }
 
       const resultMap = new Map(results.map((r) => [r.leadId, r]));
 
@@ -186,10 +221,24 @@ export async function processJobBatch(
         if (result.vertical_match) matched++;
       }
 
+      const cost = usage ? calculateCost(model, usage) : null;
+
       await updateApiLog(logId, {
         status: "success",
         duration_ms: Date.now() - startedAt,
+        model,
+        request_id: usage?.requestId ?? null,
+        leads_in_request: batch.length,
+        input_tokens: usage?.inputTokens ?? null,
+        cached_input_tokens: usage?.cachedInputTokens ?? null,
+        output_tokens: usage?.outputTokens ?? null,
+        total_tokens: usage?.totalTokens ?? null,
+        input_cost: cost?.inputCost ?? null,
+        cached_input_cost: cost?.cachedInputCost ?? null,
+        output_cost: cost?.outputCost ?? null,
+        total_cost: cost?.totalCost ?? null,
         response_metadata: { processed: batch.length },
+        raw_response: usage?.rawResponse ?? null,
       });
     } catch (err: any) {
       const errorClass = classifyError(err.message);
@@ -198,7 +247,9 @@ export async function processJobBatch(
         status: errorClass === "system" ? "fatal_error" :
                 errorClass === "retryable" ? "retryable_error" : "failed",
         duration_ms: Date.now() - startedAt,
+        model,
         error_message: err.message?.slice(0, 500),
+        raw_error: err instanceof ProviderError ? err.rawError : null,
       });
 
       if (errorClass === "system") {

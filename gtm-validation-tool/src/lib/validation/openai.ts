@@ -1,4 +1,5 @@
 import { ICP_VERTICALS } from "@/types";
+import { ProviderCall, ProviderError, type ProviderUsage } from "@/lib/llm-pricing";
 
 export interface OpenAIIcpResponse {
   vertical_match: boolean;
@@ -120,7 +121,7 @@ export async function callOpenAI(
   systemPrompt: string,
   userPrompt: string,
   options?: { temperature?: number; maxTokens?: number }
-): Promise<OpenAIIcpResponse> {
+): Promise<ProviderCall<OpenAIIcpResponse>> {
   if (!userPrompt || userPrompt.trim().length === 0) {
     throw new Error("Prompt cannot be empty");
   }
@@ -153,11 +154,16 @@ export async function callOpenAI(
   if (!res.ok) {
     const err = await res.text();
     let errorDetail = err;
+    let rawError: unknown = err;
     try {
       const parsed = JSON.parse(err);
       errorDetail = parsed.error?.message || err;
+      rawError = parsed;
     } catch {}
-    throw new Error(`OpenAI API error (${res.status}): ${errorDetail.slice(0, 200)}`);
+    throw new ProviderError(
+      `OpenAI API error (${res.status}): ${errorDetail.slice(0, 200)}`,
+      rawError
+    );
   }
 
   const data = await res.json();
@@ -166,7 +172,10 @@ export async function callOpenAI(
     throw new Error("Empty OpenAI response");
   }
 
-  return parseResponse(content);
+  return {
+    data: parseResponse(content),
+    usage: extractOpenAIUsage(data),
+  };
 }
 
 export async function callOpenAIBatch(
@@ -176,8 +185,20 @@ export async function callOpenAIBatch(
   userCriteria: string,
   leads: BatchLeadInput[],
   options?: { temperature?: number; maxTokens?: number }
-): Promise<BatchIcpResult[]> {
-  if (leads.length === 0) return [];
+): Promise<ProviderCall<BatchIcpResult[]>> {
+  if (leads.length === 0) {
+    return {
+      data: [],
+      usage: {
+        requestId: null,
+        inputTokens: null,
+        cachedInputTokens: null,
+        outputTokens: null,
+        totalTokens: null,
+        rawResponse: null,
+      },
+    };
+  }
 
   const leadEntries = leads
     .map((l) => l.leadBlock)
@@ -217,11 +238,16 @@ ${leadEntries}`;
   if (!res.ok) {
     const err = await res.text();
     let errorDetail = err;
+    let rawError: unknown = err;
     try {
       const parsed = JSON.parse(err);
       errorDetail = parsed.error?.message || err;
+      rawError = parsed;
     } catch {}
-    throw new Error(`OpenAI batch API error (${res.status}): ${errorDetail.slice(0, 200)}`);
+    throw new ProviderError(
+      `OpenAI batch API error (${res.status}): ${errorDetail.slice(0, 200)}`,
+      rawError
+    );
   }
 
   const data = await res.json();
@@ -307,5 +333,35 @@ ${leadEntries}`;
     }
   }
 
-  return results;
+  return {
+    data: results,
+    usage: extractOpenAIUsage(data),
+  };
+}
+
+function extractOpenAIUsage(data: any): ProviderUsage {
+  const usage = data?.usage;
+  const promptTokens = usage?.prompt_tokens ?? null;
+  const completionTokens = usage?.completion_tokens ?? null;
+  const totalTokens = usage?.total_tokens ?? null;
+
+  // OpenAI reports prompt_tokens as the full prompt total, and
+  // prompt_tokens_details.cached_tokens as the subset that hit cache.
+  // For billing, non-cached input = prompt_tokens - cached_tokens.
+  const cachedTokens = usage?.prompt_tokens_details?.cached_tokens ?? null;
+  const nonCachedInputTokens =
+    promptTokens !== null && cachedTokens !== null
+      ? promptTokens - cachedTokens
+      : promptTokens;
+
+  return {
+    requestId: data?.id ?? null,
+    inputTokens: nonCachedInputTokens,
+    cachedInputTokens: cachedTokens,
+    outputTokens: completionTokens,
+    totalTokens: totalTokens,
+    // Keep the full provider response for audit; it still contains the raw
+    // prompt_tokens and cached_tokens values.
+    rawResponse: data,
+  };
 }

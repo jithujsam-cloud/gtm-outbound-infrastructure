@@ -8,7 +8,7 @@ export interface GeminiIcpResponse {
 
 export interface BatchLeadInput {
   leadId: string;
-  resolvedPrompt: string;
+  leadBlock: string;
 }
 
 export interface BatchIcpResult extends GeminiIcpResponse {
@@ -17,10 +17,11 @@ export interface BatchIcpResult extends GeminiIcpResponse {
 
 export async function callGemini(
   apiKey: string,
-  prompt: string,
+  systemPrompt: string,
+  userPrompt: string,
   options?: { temperature?: number; maxTokens?: number }
 ): Promise<GeminiIcpResponse> {
-  if (!prompt || prompt.trim().length === 0) {
+  if (!userPrompt || userPrompt.trim().length === 0) {
     throw new Error("Prompt cannot be empty");
   }
 
@@ -35,7 +36,8 @@ export async function callGemini(
       body: JSON.stringify({
         model: "gemini-3.6-flash",
         store: false,
-        input: prompt,
+        system_instruction: systemPrompt,
+        input: userPrompt,
         generation_config: {
           max_output_tokens: options?.maxTokens ?? 512,
           temperature: options?.temperature ?? 0.2,
@@ -77,24 +79,22 @@ export async function callGemini(
 
 export async function callGeminiBatch(
   apiKey: string,
+  systemPrompt: string,
+  userCriteria: string,
   leads: BatchLeadInput[],
   options?: { temperature?: number; maxTokens?: number }
 ): Promise<BatchIcpResult[]> {
   if (leads.length === 0) return [];
 
   const leadEntries = leads
-    .map((l, i) => `Lead ${i + 1} (ID: ${l.leadId}):\n${l.resolvedPrompt}`)
+    .map((l) => l.leadBlock)
     .join("\n\n---\n\n");
 
-  const batchPrompt = `Classify each lead below for ICP matching. Return a JSON array with one object per lead in the same order.
+  const batchPrompt = `${userCriteria.trim()}
 
-${leadEntries}
+LEADS TO CLASSIFY
 
-Return ONLY a JSON array:
-[
-  {"lead_id": "${leads[0].leadId}", "vertical_match": true, "matched_vertical": "D2C / E-commerce", "reasoning": "..."},
-  ...
-]`;
+${leadEntries}`;
 
   const res = await fetch(
     "https://generativelanguage.googleapis.com/v1/interactions",
@@ -107,6 +107,7 @@ Return ONLY a JSON array:
       body: JSON.stringify({
         model: "gemini-3.6-flash",
         store: false,
+        system_instruction: systemPrompt,
         input: batchPrompt,
         generation_config: {
           max_output_tokens: options?.maxTokens ?? 2048,

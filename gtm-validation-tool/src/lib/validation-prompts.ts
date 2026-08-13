@@ -48,42 +48,35 @@ export async function saveValidationPrompt(
 export function getDefaultIcpPrompt(): string {
   const verticals = ICP_VERTICALS.map((v) => `- ${v}`).join("\n");
 
-  return `You are an ICP classification engine.
+  return `ICP CRITERIA
+A lead matches our ICP when the company operates in one of our target industries and is a good fit for our outbound motion.
 
-Determine whether this company matches our target ICP.
-
-Company: /company
-Industry: /industry
-Position: /position
-Domain: /domain
-Employee Size: /employee_size
-Country: /country
-Company Description: /description
-Website: /website
-
-Target verticals:
-
+TARGET INDUSTRIES
 ${verticals}
 
-Evaluate the company primarily using its business, products, industry, company description, website and domain.
+COMPANY CHARACTERISTICS
+- The company's primary business, products, industry, and description clearly align with a target vertical.
+- The company website, domain, and description support the classification.
 
-Do not classify a company based solely on the person's job title.
+GEOGRAPHY
+- Consider the company's country and state when provided.
 
-Return structured JSON:
+COMPANY SIZE
+- Consider employee size when provided.
 
-{
-  "vertical_match": true,
-  "matched_vertical": "one of the target verticals or null",
-  "reasoning": "short explanation"
-}
+POSITIVE SIGNALS
+- Company description and website clearly describe a target industry.
+- Industry and domain strongly align with a target vertical.
 
-If there is insufficient evidence:
+NEGATIVE SIGNALS
+- No clear industry signal.
+- Company does not operate in any target vertical.
 
-{
-  "vertical_match": false,
-  "matched_vertical": null,
-  "reasoning": "Insufficient evidence"
-}
+DECISION RULE
+- Do not classify a company based solely on the person's job title.
+- Set vertical_match to true only when the company clearly matches a target vertical.
+- Otherwise set vertical_match to false.
 
-Do not invent company information.`;
+UNCERTAINTY RULE
+- If there is insufficient evidence to confirm a match, set vertical_match to false and matched_vertical to null.`;
 }

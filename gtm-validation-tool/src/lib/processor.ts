@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { callGemini, callGeminiBatch, type BatchLeadInput } from "@/lib/validation/gemini";
 import { callOpenAI, callOpenAIBatch, OPENAI_DEFAULT_MODEL } from "@/lib/validation/openai";
-import { resolvePrompt } from "@/lib/validation/variables";
+import { ICP_SYSTEM_PROMPT, formatLeadForIcp, buildIcpUserPrompt } from "@/lib/validation/icp-prompt";
 import { createApiLog, updateApiLog } from "@/lib/api-logger";
 import { classifyError, backoffDelay, shouldPauseJob } from "@/lib/retry";
 
@@ -99,7 +99,7 @@ export async function processJobBatch(
     if (lead) {
       batchInputs.push({
         leadId: item.lead_id,
-        resolvedPrompt: resolvePrompt(prompt, lead),
+        leadBlock: formatLeadForIcp(lead),
       });
     }
   }
@@ -156,12 +156,12 @@ export async function processJobBatch(
         ? [{
             leadId: batch[0].leadId,
             ...(isOpenAI
-              ? await callOpenAI(llmApiKey, model, batch[0].resolvedPrompt, llmOptions)
-              : await callGemini(llmApiKey, batch[0].resolvedPrompt, llmOptions)),
+              ? await callOpenAI(llmApiKey, model, ICP_SYSTEM_PROMPT, buildIcpUserPrompt(prompt, [batch[0].leadBlock]), llmOptions)
+              : await callGemini(llmApiKey, ICP_SYSTEM_PROMPT, buildIcpUserPrompt(prompt, [batch[0].leadBlock]), llmOptions)),
           }]
         : isOpenAI
-          ? await callOpenAIBatch(llmApiKey, model, batch, llmOptions)
-          : await callGeminiBatch(llmApiKey, batch, llmOptions);
+          ? await callOpenAIBatch(llmApiKey, model, ICP_SYSTEM_PROMPT, prompt, batch, llmOptions)
+          : await callGeminiBatch(llmApiKey, ICP_SYSTEM_PROMPT, prompt, batch, llmOptions);
 
       const resultMap = new Map(results.map((r) => [r.leadId, r]));
 

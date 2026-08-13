@@ -8,7 +8,7 @@ export interface OpenAIIcpResponse {
 
 export interface BatchLeadInput {
   leadId: string;
-  resolvedPrompt: string;
+  leadBlock: string;
 }
 
 export interface BatchIcpResult extends OpenAIIcpResponse {
@@ -117,10 +117,11 @@ function parseResponse(text: string, leadId?: string): OpenAIIcpResponse {
 export async function callOpenAI(
   apiKey: string,
   model: string,
-  prompt: string,
+  systemPrompt: string,
+  userPrompt: string,
   options?: { temperature?: number; maxTokens?: number }
 ): Promise<OpenAIIcpResponse> {
-  if (!prompt || prompt.trim().length === 0) {
+  if (!userPrompt || userPrompt.trim().length === 0) {
     throw new Error("Prompt cannot be empty");
   }
 
@@ -133,7 +134,8 @@ export async function callOpenAI(
     body: JSON.stringify({
       model,
       messages: [
-        { role: "user", content: prompt },
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt },
       ],
       temperature: options?.temperature ?? 0.2,
       max_completion_tokens: options?.maxTokens ?? 512,
@@ -170,24 +172,22 @@ export async function callOpenAI(
 export async function callOpenAIBatch(
   apiKey: string,
   model: string,
+  systemPrompt: string,
+  userCriteria: string,
   leads: BatchLeadInput[],
   options?: { temperature?: number; maxTokens?: number }
 ): Promise<BatchIcpResult[]> {
   if (leads.length === 0) return [];
 
   const leadEntries = leads
-    .map((l, i) => `Lead ${i + 1} (ID: ${l.leadId}):\n${l.resolvedPrompt}`)
+    .map((l) => l.leadBlock)
     .join("\n\n---\n\n");
 
-  const batchPrompt = `Classify each lead below for ICP matching. Return a JSON array with one object per lead in the same order.
+  const batchPrompt = `${userCriteria.trim()}
 
-${leadEntries}
+LEADS TO CLASSIFY
 
-Return ONLY a JSON array:
-[
-  {"lead_id": "${leads[0].leadId}", "vertical_match": true, "matched_vertical": "D2C / E-commerce", "reasoning": "..."},
-  ...
-]`;
+${leadEntries}`;
 
   const res = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
@@ -198,6 +198,7 @@ Return ONLY a JSON array:
     body: JSON.stringify({
       model,
       messages: [
+        { role: "system", content: systemPrompt },
         { role: "user", content: batchPrompt },
       ],
       temperature: options?.temperature ?? 0.2,

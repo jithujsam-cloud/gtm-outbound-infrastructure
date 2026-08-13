@@ -1,0 +1,575 @@
+We are now going to improve the GTM Validation Tool's ICP validation system.
+
+IMPORTANT:
+This is an existing production application. Do not redesign or rewrite working parts unnecessarily.
+
+The current ICP validation pipeline is already working with OpenAI GPT-4.1-mini, structured JSON output, batch processing, atomic result writes, retries, leases, and job processing.
+
+We now need to build three things properly:
+
+1. A clean separation between SYSTEM PROMPT and USER PROMPT for ICP validation.
+2. Complete LLM usage, token, cost, request and validation-run tracking.
+3. A better validation experience and reporting UI based on that data.
+
+WORK IN EXACTLY 3 PHASES.
+Do not jump ahead.
+After each phase, stop and provide a concise verification report.
+Do not start the next phase until instructed.
+
+Before changing anything:
+- Inspect the existing repository.
+- Inspect the current OpenAI integration.
+- Inspect processor.ts.
+- Inspect validation/openai.ts.
+- Inspect validation/gemini.ts if relevant.
+- Inspect validation_jobs.
+- Inspect validation_job_items.
+- Inspect api_operation_logs.
+- Inspect the current ICP validation UI.
+- Inspect existing migrations.
+- Understand the current database schema and RLS.
+- Do not assume anything that can be verified from the codebase.
+
+Do NOT run a real validation job while implementing this work.
+Do NOT expose API keys.
+Do NOT commit or push unless explicitly instructed.
+
+==================================================
+PHASE 1 — ICP PROMPT ARCHITECTURE
+==================================================
+
+Goal:
+Create a proper two-layer prompt architecture.
+
+SYSTEM PROMPT:
+The system prompt defines HOW the validation engine behaves.
+
+It must be stable and reusable across projects.
+
+It should establish that the model is an ICP classification engine and must:
+- Evaluate every supplied lead against the user's ICP criteria.
+- Follow the user's ICP criteria exactly.
+- Not invent additional ICP requirements.
+- Use company information as the primary evidence.
+- Use available company name, industry, domain, description, title and other supplied fields as evidence.
+- Never invent a lead ID.
+- Never modify a supplied lead ID.
+- Never omit a supplied lead.
+- Return exactly one classification per supplied lead.
+- Set vertical_match to true only when the lead clearly matches the user's defined ICP.
+- Set matched_vertical to the matching ICP category when there is one.
+- Set matched_vertical to null when there is no match.
+- Provide concise reasoning based on available evidence.
+- Follow the structured response schema exactly.
+- Never return prose outside the required structured output.
+
+Do NOT put project-specific ICP criteria in the system prompt.
+
+USER PROMPT:
+The user prompt contains the project-specific ICP logic.
+
+It should contain clearly separated sections:
+ICP CRITERIA
+TARGET INDUSTRIES
+COMPANY CHARACTERISTICS
+GEOGRAPHY
+COMPANY SIZE
+POSITIVE SIGNALS
+NEGATIVE SIGNALS
+DECISION RULE
+UNCERTAINTY RULE
+
+Then:
+LEADS TO CLASSIFY
+
+Each lead should contain only the fields necessary for classification.
+
+Example structure:
+Lead ID:
+Name:
+Company:
+Industry:
+Domain:
+Position:
+Other relevant company information:
+
+The user's ICP instructions must be sent ONCE per batch, not repeated inside every lead.
+
+The request structure should conceptually be:
+
+SYSTEM:
+[stable validation system prompt]
+
+USER:
+[ICP criteria]
++
+[Lead 1]
+[Lead 2]
+[Lead 3]
+
+NOT:
+Lead 1 + full ICP prompt
+Lead 2 + full ICP prompt
+Lead 3 + full ICP prompt
+
+This is important for reducing input-token usage.
+
+Preserve the existing structured output contract:
+lead_id
+vertical_match
+matched_vertical
+reasoning
+
+For batch requests, retain the object-root schema required by OpenAI strict structured output:
+{
+  "results": [
+    {
+      "lead_id": "...",
+      "vertical_match": true,
+      "matched_vertical": "...",
+      "reasoning": "..."
+    }
+  ]
+}
+
+Do not break the existing single-lead path.
+Do not change provider selection behavior.
+
+Create a clean implementation so the system prompt and user prompt can be changed independently later.
+
+If the existing database already stores the user's ICP prompt/template, reuse it rather than creating duplicate storage.
+
+If the current data model is insufficient to distinguish system prompt from user ICP prompt, propose the smallest database change required.
+
+Do not add unnecessary UI yet.
+
+VERIFICATION:
+After implementation:
+- Build the project.
+- Verify the exact generated system prompt.
+- Verify the exact generated user prompt.
+- Verify the ICP criteria are not duplicated once per lead.
+- Verify batch structured output still matches the existing parser.
+- Verify single-lead processing remains untouched.
+- Verify no API keys are exposed.
+
+STOP HERE.
+
+==================================================
+PHASE 2 — LLM USAGE, COST AND VALIDATION RUN TRACKING
+==================================================
+
+Goal:
+Make every validation run measurable.
+
+We need to know exactly what happened during every ICP validation run.
+
+For every LLM API request, capture where the provider actually returns the information:
+- provider
+- model
+- request ID if available
+- operation
+- timestamp
+- duration
+- status
+- attempt
+- number of leads in request
+- input tokens
+- cached input tokens if available
+- output tokens
+- total tokens if available
+- calculated input cost
+- calculated cached-input cost
+- calculated output cost
+- calculated total cost
+- raw provider error if failed
+
+For GPT-4.1-mini use the current official API pricing configured in the application rather than hardcoding estimates in the UI.
+
+Cost calculation must use actual usage returned by the API.
+
+Conceptually:
+input_cost = non_cached_input_tokens * input_price / 1,000,000
+cached_input_cost = cached_input_tokens * cached_input_price / 1,000,000
+output_cost = output_tokens * output_price / 1,000,000
+total_cost = input_cost + cached_input_cost + output_cost
+
+Do not estimate tokens based on character count.
+Do not calculate cost from number of leads.
+Use actual provider usage whenever available.
+
+IMPORTANT:
+Do not store API keys in these records.
+
+VALIDATION RUN LEVEL:
+
+A validation job should have enough aggregated information to answer:
+- How many leads were requested?
+- How many were processed?
+- How many succeeded?
+- How many failed?
+- How many matched?
+- How many did not match?
+- How many API requests were made?
+- Total input tokens?
+- Total cached input tokens?
+- Total output tokens?
+- Total tokens?
+- Total cost?
+- Average cost per successfully processed lead?
+- Total duration?
+- Average request duration?
+- Success rate?
+- Failure rate?
+- Model used?
+- Provider used?
+
+Do not duplicate data unnecessarily if it can be derived safely from existing records.
+Prefer storing request-level facts and deriving cumulative statistics from them.
+
+The existing api_operation_logs should remain useful for low-level debugging.
+
+The validation job should become the higher-level "run".
+
+Relationship:
+Validation Run
+  API Request 1
+  API Request 2
+  API Request 3
+  API Request 4
+
+Each API request may contain multiple leads.
+
+The UI must therefore NOT assume:
+1 API log = 1 lead.
+
+Add the smallest appropriate database changes through a new migration.
+
+Respect the existing manual Supabase SQL Editor migration workflow.
+
+Migration must be safe and compatible with the existing project.
+Do not use CREATE INDEX CONCURRENTLY.
+Do not modify existing production data destructively.
+Preserve RLS/security behavior.
+
+If provider usage data is unavailable for a failed request, store null rather than inventing values.
+
+For OpenAI, capture the actual usage object returned by the API.
+
+Keep raw provider response/error data separate from calculated metrics.
+
+Do not store unnecessary sensitive information.
+
+VERIFICATION:
+- Build passes.
+- Typecheck must distinguish pre-existing errors from newly introduced errors.
+- Trace one successful API request from provider response to log to validation run.
+- Trace one failed API request.
+- Verify token counts are actual provider values.
+- Verify cost calculation.
+- Verify batch requests aggregate correctly.
+- Verify 10 leads processed in 4 API requests produces 4 API request records, not 10.
+- Verify the validation run aggregates those 4 requests correctly.
+- Verify no API key is stored.
+
+Do not run a real validation job.
+STOP HERE.
+
+==================================================
+PHASE 3 — VALIDATION EXPERIENCE + REPORTING UI
+==================================================
+
+Goal:
+Turn the existing validation system into a product that clearly communicates what is happening.
+
+Do not redesign the entire application.
+Improve the existing UI using its current visual language.
+
+A. LIVE VALIDATION EXPERIENCE
+
+The current experience only shows a small progress bar and then suddenly finishes.
+
+Replace it with an active processing panel.
+
+While validation is running, show:
+ICP Validation
+X / Y leads processed
+
+Then show recent activity:
+✓ Company A — Fintech
+✓ Company B — Defense / Aviation
+◉ Company C — Analyzing...
+○ Remaining leads
+
+When a lead succeeds:
+- briefly highlight the row
+- show the company name
+- show matched vertical if applicable
+
+When a lead fails:
+- show the company name
+- show a failure state
+- do not hide the failure
+
+The progress must update as individual leads are actually completed.
+Do not fake continuous progress.
+
+B. FILTERED TABLE BEHAVIOR
+
+If the current filter is:
+ICP Not Validated
+
+and a lead becomes validated:
+Do NOT immediately remove the row.
+
+Instead:
+1. Keep the row visible.
+2. Highlight it with a very light green background.
+3. Display the newly generated result.
+4. Fade the green background over approximately 5 seconds.
+5. Then remove it because it no longer matches the active filter.
+6. Allow the following matching lead to move into its place naturally.
+
+C. TABLE CLEANUP
+
+Use clear column names:
+Email Validation
+ICP Match
+Company Domain
+Validation Status
+Safe to Send
+
+Do not use ambiguous names like:
+Email Check
+ICP
+Safe
+
+Sorting:
+- Clicking a column header should sort directly.
+- Only the active sorted column needs a visible direction indicator.
+- Do not open a popup merely to choose ascending/descending.
+
+Column visibility:
+- Keep column show/hide controls under the Columns button.
+- Do not mix column management with sorting.
+
+Keep the table viewport height stable so the page does not jump when different records or page sizes are displayed.
+
+D. FILTERS
+
+Rework the filter model.
+
+Must support:
+ICP:
+- ICP Match
+- ICP No Match
+- ICP Not Validated
+
+Email:
+- Email Valid
+- Email Invalid
+- Email Unknown
+- Email Not Validated
+
+Other:
+- Safe to Send
+- Not Safe to Send
+- Industry
+- Company
+- Domain
+
+Filters must be combinable.
+
+Example:
+ICP Match + Email Valid + Safe to Send
+
+should return only leads satisfying all active conditions.
+
+Clearly show the number of active filters.
+Provide a clear "Clear all filters".
+
+E. PROJECT STATS
+
+Fix the current broken/inconsistent statistics.
+
+Create one source of truth for project statistics.
+
+The project page and dashboard must agree.
+
+At minimum show:
+Total Leads
+ICP Validated
+ICP Match
+ICP No Match
+ICP Not Validated
+Email Valid
+Email Invalid
+Email Unknown
+Email Not Validated
+Safe to Send
+
+Do not calculate these differently on different pages.
+
+F. LOGS / VALIDATION RUNS
+
+The current Logs page is too low-level.
+
+Make validation runs the primary view.
+
+Example:
+ICP Validation — Ishaan
+13 Aug 2026, 11:18 AM
+
+10 leads
+10 successful
+9 matched
+1 no match
+0 failed
+
+4 API requests
+148,230 tokens
+$0.29 estimated cost
+11.8 seconds
+
+Then allow opening the run for detailed information.
+
+Run details should show:
+
+SUMMARY
+- Leads requested
+- Leads processed
+- Successful
+- Failed
+- ICP matches
+- ICP no matches
+- Success rate
+- Failure rate
+- Duration
+- Average lead processing time
+
+LLM USAGE
+- Provider
+- Model
+- API requests
+- Input tokens
+- Cached input tokens
+- Output tokens
+- Total tokens
+- Total cost
+- Cost per successful lead
+
+REQUESTS
+For every API request:
+- timestamp
+- provider
+- model
+- operation
+- leads in request
+- status
+- duration
+- attempt
+- tokens
+- cost
+- error if any
+
+LEADS
+For every lead:
+- lead
+- company
+- result
+- matched vertical
+- reasoning
+- processing status
+
+RAW RESPONSE
+Provide a detail/expand area where appropriate so an operator can inspect the raw provider response and parsed result.
+
+Do not put huge raw JSON blocks directly on the main table.
+
+G. CUMULATIVE USAGE
+
+Add a simple usage summary.
+
+At minimum:
+Today
+This Week
+This Month
+All Time
+
+Metrics:
+Leads validated
+ICP matches
+ICP match rate
+Successful validations
+Failed validations
+Success rate
+API requests
+Input tokens
+Cached input tokens
+Output tokens
+Total tokens
+Total LLM cost
+Average cost per lead
+
+Do not build an overly complex analytics dashboard yet.
+
+H. TYPOGRAPHY / VISUAL CONSISTENCY
+
+Standardize the existing UI.
+
+Use one font family.
+
+Create consistent hierarchy for:
+- Page title
+- Section title
+- Body text
+- Table text
+- Labels
+- Secondary text
+- Buttons
+
+Do not introduce multiple unrelated fonts or arbitrary font sizes.
+Preserve the current overall visual style.
+
+I. IMPORTANT UX RULE
+
+The application should answer these questions without the user opening developer tools:
+
+"What is happening?"
+"How many leads have been processed?"
+"How many succeeded?"
+"How many matched?"
+"How many failed?"
+"Why did something fail?"
+"How many API calls were made?"
+"How many tokens were consumed?"
+"How much did this run cost?"
+"What happened to each individual lead?"
+
+If the UI cannot answer one of these, identify the missing data source before implementing a workaround.
+
+VERIFICATION:
+- Build passes.
+- Verify filters work in combination.
+- Verify sorting works directly from column headers.
+- Verify stats agree across dashboard and project page.
+- Verify a validation run shows correct aggregate data.
+- Verify individual API requests remain inspectable.
+- Verify token/cost data is displayed from actual stored usage.
+- Verify live progress reflects actual completed leads.
+- Verify filtered rows fade out after validation.
+- Verify no existing working validation logic is unnecessarily rewritten.
+
+Do NOT run a production validation job.
+Do NOT commit.
+Do NOT push.
+
+At the end, provide:
+1. Files changed
+2. Database migration created
+3. What changed in each phase
+4. Build result
+5. Typecheck result
+6. Any pre-existing errors
+7. Any remaining issues
+8. What should be manually tested before we commit

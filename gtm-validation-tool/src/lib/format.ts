@@ -45,3 +45,12 @@ export function formatDateTime(iso: string | null | undefined): string {
     hour12: true,
   });
 }
+
+export function formatProvider(provider: string | null | undefined): string {
+  if (!provider) return "—";
+  if (provider === "openai") return "OpenAI";
+  // Gemini is no longer a supported provider. Do not surface it or a
+  // "Legacy" placeholder in the user-facing UI.
+  if (provider === "gemini") return "—";
+  return provider;
+}

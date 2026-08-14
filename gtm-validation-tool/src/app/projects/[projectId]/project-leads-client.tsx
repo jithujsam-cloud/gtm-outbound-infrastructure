@@ -3,7 +3,6 @@
 import { useState, useCallback } from "react";
 import { ProjectLeads } from "@/components/import/project-leads";
 import { ProjectStats } from "@/components/charts/project-stats";
-import { RunHistory } from "@/components/validation/run-history";
 import type { Lead } from "@/types";
 
 interface ProjectLeadsClientProps {
@@ -14,11 +13,9 @@ interface ProjectLeadsClientProps {
 
 export function ProjectLeadsClient({ projectId, initialLeads, initialTotal }: ProjectLeadsClientProps) {
   const [statsRefreshKey, setStatsRefreshKey] = useState(0);
-  const [runsRefreshKey, setRunsRefreshKey] = useState(0);
 
   const handleValidationComplete = useCallback(() => {
     setStatsRefreshKey((k) => k + 1);
-    setRunsRefreshKey((k) => k + 1);
   }, []);
 
   return (
@@ -30,7 +27,6 @@ export function ProjectLeadsClient({ projectId, initialLeads, initialTotal }: Pr
         initialTotal={initialTotal}
         onValidationComplete={handleValidationComplete}
       />
-      <RunHistory projectId={projectId} refreshKey={runsRefreshKey} />
     </div>
   );
 }

@@ -11,7 +11,6 @@ import { Key, Brain, Mail, CheckCircle, ExternalLink } from "lucide-react";
 import { loadSettings, saveSettings } from "@/app/settings/actions";
 
 const LLM_PROVIDERS = [
-  { value: "gemini", label: "Gemini", keyHint: "AIza...", keyUrl: "https://aistudio.google.com/apikey", keyUrlLabel: "Google AI Studio" },
   { value: "openai", label: "OpenAI", keyHint: "sk-...", keyUrl: "https://platform.openai.com/api-keys", keyUrlLabel: "OpenAI Dashboard" },
 ] as const;
 
@@ -29,7 +28,7 @@ export default function IntegrationsPage() {
     loadSettings().then((r) => {
       if (r.settings) {
         setLlmConfigured(r.settings.llm_configured);
-        setLlmProvider(r.settings.llm_provider ?? "gemini");
+        setLlmProvider("openai");
         setClearoutConfigured(r.settings.clearout_configured);
       }
       if (r.error) setLoadError(r.error);

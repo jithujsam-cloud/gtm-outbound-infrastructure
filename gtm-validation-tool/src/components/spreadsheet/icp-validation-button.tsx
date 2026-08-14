@@ -1,21 +1,18 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Brain, CheckCircle2, XCircle, Loader2, ChevronRight } from "lucide-react";
+import { Brain, CheckCircle2, XCircle, Loader2, ChevronRight, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { VARIABLE_OPTIONS } from "@/lib/validation/variables";
-import { getIcpPrompt, getLlmProvider } from "@/app/settings/actions";
+import { getIcpPrompt } from "@/app/settings/actions";
 import { toast } from "sonner";
 import { formatCost, formatTokens, formatDuration, type RunStats } from "@/lib/format";
 
-const LLM_PROVIDERS = [
-  { value: "gemini", label: "Gemini", models: ["gemini-3.6-flash", "gemini-3.5-flash", "gemini-2.5-flash"] },
-  { value: "openai", label: "OpenAI", models: ["gpt-4.1-mini-2025-04-14", "gpt-5.6-luna", "gpt-5.4-mini"] },
-] as const;
+const ICP_MODEL = "gpt-4.1-mini-2025-04-14";
+const ICP_MODEL_LABEL = "GPT-4.1 mini";
 
 export interface IcpValidationDialogProps {
   projectId: string;
@@ -24,6 +21,7 @@ export interface IcpValidationDialogProps {
   selectedIds: string[];
   totalCount: number;
   onValidationComplete: (completedIds: string[], runStats: RunStats | null) => void;
+  onBatchComplete?: (completedIds: string[]) => void;
   fetchAllIds: () => Promise<string[]>;
 }
 
@@ -51,6 +49,7 @@ export function IcpValidationDialog({
   selectedIds,
   totalCount,
   onValidationComplete,
+  onBatchComplete,
   fetchAllIds,
 }: IcpValidationDialogProps) {
   const [prompt, setPrompt] = useState("");
@@ -62,8 +61,8 @@ export function IcpValidationDialog({
   const [progress, setProgress] = useState<ProgressState | null>(null);
   const [activity, setActivity] = useState<ActivityItem[]>([]);
   const [runStats, setRunStats] = useState<RunStats | null>(null);
-  const [provider, setProvider] = useState("gemini");
-  const [model, setModel] = useState("gemini-3.6-flash");
+  const [provider, setProvider] = useState("openai");
+  const [model, setModel] = useState(ICP_MODEL);
   const [temperature, setTemperature] = useState("0.2");
   const [maxTokens, setMaxTokens] = useState("512");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -75,14 +74,6 @@ export function IcpValidationDialog({
       v.label.toLowerCase().includes(variableFilter.toLowerCase())
   );
 
-  const currentModels = LLM_PROVIDERS.find((p) => p.value === provider)?.models ?? LLM_PROVIDERS[0].models;
-
-  const handleProviderChange = (value: string) => {
-    setProvider(value);
-    const newModels = LLM_PROVIDERS.find((p) => p.value === value)?.models ?? LLM_PROVIDERS[0].models;
-    setModel(newModels[0]);
-  };
-
   useEffect(() => {
     if (!open) return;
 
@@ -93,17 +84,13 @@ export function IcpValidationDialog({
     setRunStats(null);
     seenLeadIds.current = new Set();
 
-    Promise.all([
-      getIcpPrompt(projectId),
-      getLlmProvider(),
-    ]).then(([promptResult, providerResult]) => {
+    getIcpPrompt(projectId).then((promptResult) => {
       if (cancelled) return;
       if (promptResult.prompt) setPrompt(promptResult.prompt);
-      if (providerResult.provider) {
-        setProvider(providerResult.provider);
-        const newModels = LLM_PROVIDERS.find((p) => p.value === providerResult.provider)?.models ?? LLM_PROVIDERS[0].models;
-        setModel(newModels[0]);
-      }
+      // OpenAI-only product. Always default to OpenAI, ignoring any legacy
+      // provider value that may still exist in the database.
+      setProvider("openai");
+      setModel(ICP_MODEL);
     }).finally(() => {
       if (!cancelled) setLoading(false);
     });
@@ -198,9 +185,9 @@ export function IcpValidationDialog({
     return res.json();
   }, []);
 
-  const refreshActivityFromDetail = useCallback(async (jobId: string) => {
+  const refreshActivityFromDetail = useCallback(async (jobId: string): Promise<string[]> => {
     const detail = await fetchJobDetail(jobId);
-    if (!detail) return;
+    if (!detail) return [];
 
     if (detail.runStats) {
       setRunStats(detail.runStats);
@@ -215,12 +202,15 @@ export function IcpValidationDialog({
     }
 
     const newActivity: ActivityItem[] = [];
+    const newlyCompleted: string[] = [];
     for (const item of detail.items ?? []) {
       if (item.status !== "completed" && item.status !== "failed") continue;
       if (seenLeadIds.current.has(item.lead_id)) continue;
       seenLeadIds.current.add(item.lead_id);
 
       const lead = item.lead;
+      if (item.status === "completed") newlyCompleted.push(item.lead_id);
+
       newActivity.push({
         leadId: item.lead_id,
         company: lead?.company_name ?? "Unknown lead",
@@ -233,6 +223,8 @@ export function IcpValidationDialog({
     if (newActivity.length > 0) {
       setActivity((prev) => [...newActivity.reverse(), ...prev]);
     }
+
+    return newlyCompleted;
   }, [fetchJobDetail]);
 
   const runValidation = async (all: boolean) => {
@@ -313,7 +305,10 @@ export function IcpValidationDialog({
         const result = await processRes.json();
 
         // Refresh per-lead activity from actual job data (not fake progress).
-        await refreshActivityFromDetail(currentJobId);
+        const newlyCompleted = await refreshActivityFromDetail(currentJobId);
+        if (newlyCompleted.length > 0) {
+          onBatchComplete?.(newlyCompleted);
+        }
 
         if (result.paused) {
           toast.error(`Job paused: ${result.pausedReason || "Unknown error"}`);
@@ -326,7 +321,10 @@ export function IcpValidationDialog({
       }
 
       // Final refresh for definitive numbers and activity.
-      await refreshActivityFromDetail(currentJobId);
+      const finalNewlyCompleted = await refreshActivityFromDetail(currentJobId);
+      if (finalNewlyCompleted.length > 0) {
+        onBatchComplete?.(finalNewlyCompleted);
+      }
       const finalDetail = await fetchJobDetail(currentJobId);
       const finalStats: RunStats | null = finalDetail?.runStats ?? null;
       setRunStats(finalStats);
@@ -367,29 +365,17 @@ export function IcpValidationDialog({
               <div className="flex flex-wrap items-end gap-3">
                 <div className="space-y-1.5">
                   <label className="text-xs font-medium text-muted-foreground">Provider</label>
-                  <Select
-                    className="h-8 text-xs w-[120px]"
-                    value={provider}
-                    onChange={(e) => handleProviderChange(e.target.value)}
-                    disabled={validating}
-                  >
-                    {LLM_PROVIDERS.map((p) => (
-                      <option key={p.value} value={p.value}>{p.label}</option>
-                    ))}
-                  </Select>
+                  <div className="flex h-8 items-center gap-1.5 rounded-md border bg-muted/40 px-3 text-xs">
+                    <Lock className="size-3 text-muted-foreground" />
+                    OpenAI
+                  </div>
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-xs font-medium text-muted-foreground">Model</label>
-                  <Select
-                    className="h-8 text-xs w-[220px]"
-                    value={model}
-                    onChange={(e) => setModel(e.target.value)}
-                    disabled={validating}
-                  >
-                    {currentModels.map((m) => (
-                      <option key={m} value={m}>{m}</option>
-                    ))}
-                  </Select>
+                  <div className="flex h-8 items-center gap-1.5 rounded-md border bg-muted/40 px-3 text-xs">
+                    <Lock className="size-3 text-muted-foreground" />
+                    {ICP_MODEL_LABEL}
+                  </div>
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-xs font-medium text-muted-foreground">Temp</label>

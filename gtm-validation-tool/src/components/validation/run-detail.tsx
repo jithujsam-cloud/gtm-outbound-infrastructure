@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { formatCost, formatDuration, formatTokens, formatDateTime, type RunStats } from "@/lib/format";
+import { formatCost, formatDuration, formatTokens, formatDateTime, formatProvider, type RunStats } from "@/lib/format";
 import { ChevronDown, ChevronRight, XCircle, CheckCircle2 } from "lucide-react";
 
 interface JobRequest {
@@ -137,7 +137,7 @@ export function RunDetail({ jobId, onClose }: { jobId: string; onClose?: () => v
         </div>
         <p className="text-sm text-muted-foreground mt-0.5">
           {formatDateTime(job.created_at)}
-          {job.llm_provider ? ` · ${job.llm_provider}` : ""}
+          {job.llm_provider ? ` · ${formatProvider(job.llm_provider)}` : ""}
           {job.model ? ` · ${job.model}` : ""}
         </p>
       </div>
@@ -314,7 +314,7 @@ function RequestRow({
         onClick={onToggle}
       >
         <td className="px-3 py-2 text-xs text-muted-foreground tabular-nums">{index + 1}</td>
-        <td className="px-3 py-2 text-xs">{request.provider}</td>
+        <td className="px-3 py-2 text-xs">{formatProvider(request.provider)}</td>
         <td className="px-3 py-2 text-xs">{request.model ?? "—"}</td>
         <td className="px-3 py-2 text-xs tabular-nums">{request.leads_in_request ?? "—"}</td>
         <td className="px-3 py-2 text-xs">

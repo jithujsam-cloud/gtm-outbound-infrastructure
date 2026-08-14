@@ -350,10 +350,12 @@ export function LeadsTable({ projectId, initialData, initialTotal, refreshKey, o
     return json.ids ?? [];
   }, [projectId, buildParams]);
 
-  const handleValidationComplete = useCallback((ids: string[], stillMatch: (lead: Lead) => boolean) => {
-    onValidationComplete?.();
-    const fadeSet = new Set<string>(ids);
-    setFadeIds(fadeSet);
+  const handleBatchComplete = useCallback((ids: string[]) => {
+    setFadeIds((prev) => {
+      const next = new Set(prev);
+      ids.forEach((id) => next.add(id));
+      return next;
+    });
 
     ids.forEach((id) => {
       const existing = fadeTimers.current.get(id);
@@ -365,12 +367,19 @@ export function LeadsTable({ projectId, initialData, initialTotal, refreshKey, o
           return next;
         });
         fadeTimers.current.delete(id);
-      }, 5000);
+      }, 6000);
       fadeTimers.current.set(id, timer);
     });
 
+    // Refresh with the current sort/filter so the newly validated rows render
+    // with their updated results, then fade out if they no longer match.
     fetchPage(pageIndex, pageSize, sorting[0]?.id, sorting[0]?.desc ? "desc" : "asc");
-  }, [onValidationComplete, fetchPage, pageIndex, pageSize, sorting]);
+  }, [fetchPage, pageIndex, pageSize, sorting]);
+
+  const handleValidationComplete = useCallback((ids: string[], stillMatch: (lead: Lead) => boolean) => {
+    onValidationComplete?.();
+    handleBatchComplete(ids);
+  }, [onValidationComplete, handleBatchComplete]);
 
   const runValidation = async (type: "email", all: boolean) => {
     let ids: string[];
@@ -644,7 +653,7 @@ export function LeadsTable({ projectId, initialData, initialTotal, refreshKey, o
                   return (
                     <tr
                       key={row.id}
-                      className={`border-b last:border-0 transition-colors duration-[5000ms] ${
+                      className={`border-b last:border-0 transition-colors duration-[6000ms] ease-out ${
                         fadeActive ? "bg-emerald-50 dark:bg-emerald-950/40" : row.getIsSelected() ? "bg-muted/50" : "hover:bg-muted/30"
                       }`}
                     >
@@ -730,6 +739,7 @@ export function LeadsTable({ projectId, initialData, initialTotal, refreshKey, o
         onValidationComplete={(completedIds) => {
           handleValidationComplete(completedIds, () => true);
         }}
+        onBatchComplete={handleBatchComplete}
         fetchAllIds={fetchAllIds}
       />
     </div>

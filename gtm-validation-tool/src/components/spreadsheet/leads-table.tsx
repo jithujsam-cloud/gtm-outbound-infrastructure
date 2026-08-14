@@ -273,6 +273,7 @@ export function LeadsTable({ projectId, initialData, initialTotal, refreshKey, o
   const [pageIndex, setPageIndex] = useState(0);
   const [filters, setFilters] = useState<FilterState>(EMPTY_FILTERS);
   const [fadeIds, setFadeIds] = useState<Set<string>>(new Set());
+  const [retainedLeads, setRetainedLeads] = useState<Map<string, LeadWithFx>>(new Map());
   const fadeTimers = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
 
   const storageKey = STORAGE_KEY_PREFIX + projectId;
@@ -350,12 +351,36 @@ export function LeadsTable({ projectId, initialData, initialTotal, refreshKey, o
     return json.ids ?? [];
   }, [projectId, buildParams]);
 
-  const handleBatchComplete = useCallback((ids: string[]) => {
+  const fetchLeadsByIds = useCallback(async (ids: string[]): Promise<LeadWithFx[]> => {
+    if (ids.length === 0) return [];
+    const params = new URLSearchParams();
+    params.set("page", "1");
+    params.set("limit", String(ids.length));
+    ids.forEach((id) => params.append("ids", id));
+    const res = await fetch(`/api/projects/${projectId}/leads?${params}`);
+    if (!res.ok) return [];
+    const json = await res.json();
+    return (json.data ?? []) as LeadWithFx[];
+  }, [projectId]);
+
+  const handleBatchComplete = useCallback(async (ids: string[]) => {
+    // Track the completed leads independently of the filtered table data.
     setFadeIds((prev) => {
       const next = new Set(prev);
       ids.forEach((id) => next.add(id));
       return next;
     });
+
+    // Fetch the completed leads' fresh data (with the new ICP result) so they
+    // can be retained and rendered even if the current filter would exclude them.
+    const completedRows = await fetchLeadsByIds(ids);
+    if (completedRows.length > 0) {
+      setRetainedLeads((prev) => {
+        const next = new Map(prev);
+        completedRows.forEach((lead) => next.set(lead.id, lead));
+        return next;
+      });
+    }
 
     ids.forEach((id) => {
       const existing = fadeTimers.current.get(id);
@@ -366,15 +391,23 @@ export function LeadsTable({ projectId, initialData, initialTotal, refreshKey, o
           next.delete(id);
           return next;
         });
+        setRetainedLeads((prev) => {
+          const next = new Map(prev);
+          next.delete(id);
+          return next;
+        });
         fadeTimers.current.delete(id);
+        // Reapply the active filter after the animation so a lead that no
+        // longer matches is removed, while a matching lead stays normally.
+        fetchPage(pageIndex, pageSize, sorting[0]?.id, sorting[0]?.desc ? "desc" : "asc");
       }, 6000);
       fadeTimers.current.set(id, timer);
     });
 
-    // Refresh with the current sort/filter so the newly validated rows render
-    // with their updated results, then fade out if they no longer match.
+    // Refresh the filtered result set, but the retained leads above remain
+    // mounted for the duration of the animation.
     fetchPage(pageIndex, pageSize, sorting[0]?.id, sorting[0]?.desc ? "desc" : "asc");
-  }, [fetchPage, pageIndex, pageSize, sorting]);
+  }, [fetchLeadsByIds, fetchPage, pageIndex, pageSize, sorting]);
 
   const handleValidationComplete = useCallback((ids: string[], stillMatch: (lead: Lead) => boolean) => {
     onValidationComplete?.();
@@ -434,8 +467,18 @@ export function LeadsTable({ projectId, initialData, initialTotal, refreshKey, o
     setPageIndex(0);
   };
 
+  const displayData = useMemo(() => {
+    if (retainedLeads.size === 0) return data;
+    const merged = [...data];
+    const existingIds = new Set(data.map((d) => d.id));
+    retainedLeads.forEach((lead, id) => {
+      if (!existingIds.has(id)) merged.push(lead);
+    });
+    return merged;
+  }, [data, retainedLeads]);
+
   const table = useReactTable({
-    data,
+    data: displayData,
     columns: ALL_COLUMNS,
     state: { sorting, globalFilter, columnVisibility, rowSelection, pagination: { pageIndex, pageSize } },
     onSortingChange: setSorting,

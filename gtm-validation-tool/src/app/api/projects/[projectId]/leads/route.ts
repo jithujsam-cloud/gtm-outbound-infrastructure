@@ -46,6 +46,7 @@ export async function GET(
 
   const sortCol = url.searchParams.get("sort")?.trim();
   const sortOrder = url.searchParams.get("order")?.trim() === "desc" ? "desc" : "asc";
+  const ids = url.searchParams.getAll("ids").filter(Boolean);
   const offset = (page - 1) * limit;
 
   const col = sortCol && (ALLOWED_SORT_COLS as readonly string[]).includes(sortCol)
@@ -58,6 +59,10 @@ export async function GET(
     .eq("project_id", projectId)
     .eq("user_id", user.id)
     .order(col, { ascending: sortOrder === "asc" });
+
+  if (ids.length > 0) {
+    query = query.in("id", ids);
+  }
 
   if (search) {
     const ilike = `%${search}%`;

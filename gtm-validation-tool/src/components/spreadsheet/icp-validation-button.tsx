@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Brain, CheckCircle2, XCircle, Loader2 } from "lucide-react";
+import { Brain, CheckCircle2, XCircle, Loader2, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { VARIABLE_OPTIONS } from "@/lib/validation/variables";
 import { getIcpPrompt, getLlmProvider } from "@/app/settings/actions";
 import { toast } from "sonner";
+import { formatCost, formatTokens, formatDuration, type RunStats } from "@/lib/format";
 
 const LLM_PROVIDERS = [
   { value: "gemini", label: "Gemini", models: ["gemini-3.6-flash", "gemini-3.5-flash", "gemini-2.5-flash"] },
@@ -22,15 +23,25 @@ export interface IcpValidationDialogProps {
   onOpenChange: (open: boolean) => void;
   selectedIds: string[];
   totalCount: number;
-  onValidationComplete: () => void;
+  onValidationComplete: (completedIds: string[], runStats: RunStats | null) => void;
   fetchAllIds: () => Promise<string[]>;
 }
 
-interface JobProgress {
+interface ActivityItem {
+  leadId: string;
+  company: string;
+  status: "success" | "failed";
+  matchedVertical: string | null;
+  error?: string;
+}
+
+interface ProgressState {
   completed: number;
   failed: number;
   pending: number;
   total: number;
+  matched: number;
+  noMatch: number;
 }
 
 export function IcpValidationDialog({
@@ -48,13 +59,15 @@ export function IcpValidationDialog({
   const [showVariables, setShowVariables] = useState(false);
   const [variableFilter, setVariableFilter] = useState("");
   const [selectedVarIndex, setSelectedVarIndex] = useState(0);
-  const [progress, setProgress] = useState<JobProgress | null>(null);
-  const [jobId, setJobId] = useState<string | null>(null);
+  const [progress, setProgress] = useState<ProgressState | null>(null);
+  const [activity, setActivity] = useState<ActivityItem[]>([]);
+  const [runStats, setRunStats] = useState<RunStats | null>(null);
   const [provider, setProvider] = useState("gemini");
   const [model, setModel] = useState("gemini-3.6-flash");
   const [temperature, setTemperature] = useState("0.2");
   const [maxTokens, setMaxTokens] = useState("512");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const seenLeadIds = useRef<Set<string>>(new Set());
 
   const filteredVariables = VARIABLE_OPTIONS.filter(
     (v) =>
@@ -75,6 +88,10 @@ export function IcpValidationDialog({
 
     let cancelled = false;
     setLoading(true);
+    setProgress(null);
+    setActivity([]);
+    setRunStats(null);
+    seenLeadIds.current = new Set();
 
     Promise.all([
       getIcpPrompt(projectId),
@@ -175,6 +192,49 @@ export function IcpValidationDialog({
     }
   };
 
+  const fetchJobDetail = useCallback(async (jobId: string) => {
+    const res = await fetch(`/api/jobs/${jobId}/detail`);
+    if (!res.ok) return null;
+    return res.json();
+  }, []);
+
+  const refreshActivityFromDetail = useCallback(async (jobId: string) => {
+    const detail = await fetchJobDetail(jobId);
+    if (!detail) return;
+
+    if (detail.runStats) {
+      setRunStats(detail.runStats);
+      setProgress({
+        completed: detail.runStats.successful,
+        failed: detail.runStats.failed,
+        pending: Math.max(0, detail.runStats.leadsRequested - detail.runStats.leadsProcessed),
+        total: detail.runStats.leadsRequested,
+        matched: detail.runStats.matched,
+        noMatch: detail.runStats.noMatch,
+      });
+    }
+
+    const newActivity: ActivityItem[] = [];
+    for (const item of detail.items ?? []) {
+      if (item.status !== "completed" && item.status !== "failed") continue;
+      if (seenLeadIds.current.has(item.lead_id)) continue;
+      seenLeadIds.current.add(item.lead_id);
+
+      const lead = item.lead;
+      newActivity.push({
+        leadId: item.lead_id,
+        company: lead?.company_name ?? "Unknown lead",
+        status: item.status === "completed" ? "success" : "failed",
+        matchedVertical: item.status === "completed" ? lead?.matched_vertical ?? null : null,
+        error: item.error_message ?? undefined,
+      });
+    }
+
+    if (newActivity.length > 0) {
+      setActivity((prev) => [...newActivity.reverse(), ...prev]);
+    }
+  }, [fetchJobDetail]);
+
   const runValidation = async (all: boolean) => {
     let ids: string[];
     if (all) {
@@ -185,7 +245,10 @@ export function IcpValidationDialog({
     if (ids.length === 0) return;
 
     setValidating(true);
-    setProgress({ completed: 0, failed: 0, pending: ids.length, total: ids.length });
+    setProgress({ completed: 0, failed: 0, pending: ids.length, total: ids.length, matched: 0, noMatch: 0 });
+    setActivity([]);
+    setRunStats(null);
+    seenLeadIds.current = new Set();
 
     try {
       const body: any = {
@@ -213,40 +276,33 @@ export function IcpValidationDialog({
       }
 
       const jobJson = await jobRes.json();
-      setJobId(jobJson.jobId);
+      const currentJobId = jobJson.jobId;
       setProgress((p) => p ? { ...p, total: jobJson.totalLeads, pending: jobJson.totalLeads } : null);
 
-      // Client-driven processing loop: call /process repeatedly until job is done
-      let totalProcessed = 0;
-      let totalMatched = 0;
-      const allErrors: string[] = [];
-      let paused = false;
-      let pausedReason: string | undefined;
-
       while (true) {
-        // Check status before processing to avoid unnecessary calls
-        const statusRes = await fetch(`/api/jobs/${jobJson.jobId}`);
+        const statusRes = await fetch(`/api/jobs/${currentJobId}`);
         if (statusRes.ok) {
           const status = await statusRes.json();
-          if (status.progress) setProgress(status.progress);
+          if (status.progress) {
+            setProgress((p) => p ? {
+              ...p,
+              completed: status.progress.completed,
+              failed: status.progress.failed,
+              pending: status.progress.pending,
+              total: status.progress.total,
+            } : p);
+          }
+          if (status.runStats) setRunStats(status.runStats);
 
           if (
             status.progress.pending === 0 ||
             ["completed", "completed_with_errors", "failed", "cancelled", "paused"].includes(status.status)
           ) {
-            // Terminal state — job is done (possibly completed by another session)
-            if (status.status === "paused") {
-              paused = true;
-              pausedReason = status.error_message;
-            }
             break;
           }
         }
 
-        const processRes = await fetch(`/api/jobs/${jobJson.jobId}/process`, {
-          method: "POST",
-        });
-
+        const processRes = await fetch(`/api/jobs/${currentJobId}/process`, { method: "POST" });
         if (!processRes.ok) {
           const text = await processRes.text();
           let msg = text;
@@ -256,43 +312,30 @@ export function IcpValidationDialog({
 
         const result = await processRes.json();
 
-        totalProcessed += result.processed ?? 0;
-        totalMatched += result.matched ?? 0;
-        if (result.errors?.length) allErrors.push(...result.errors);
+        // Refresh per-lead activity from actual job data (not fake progress).
+        await refreshActivityFromDetail(currentJobId);
 
         if (result.paused) {
-          paused = true;
-          pausedReason = result.pausedReason;
+          toast.error(`Job paused: ${result.pausedReason || "Unknown error"}`);
           break;
         }
 
         if (result.complete) break;
 
-        // Brief pause between batches
         await new Promise((r) => setTimeout(r, 500));
       }
 
-      // Fetch final status for the definitive progress numbers
-      const finalStatus = await fetch(`/api/jobs/${jobJson.jobId}`).then((r) => r.json());
-      if (finalStatus.progress) setProgress(finalStatus.progress);
+      // Final refresh for definitive numbers and activity.
+      await refreshActivityFromDetail(currentJobId);
+      const finalDetail = await fetchJobDetail(currentJobId);
+      const finalStats: RunStats | null = finalDetail?.runStats ?? null;
+      setRunStats(finalStats);
 
-      if (paused) {
-        toast.error(`Job paused: ${pausedReason || "Unknown error"}`);
-        return;
-      }
+      const completedIds = (finalDetail?.items ?? [])
+        .filter((i: any) => i.status === "completed")
+        .map((i: any) => i.lead_id);
 
-      const msg = `ICP done — ${totalProcessed} processed, ${totalMatched} matched`;
-      const extra = [];
-      if (allErrors.length) extra.push(`${allErrors.length} failed`);
-      if (allErrors[0]) {
-        toast.success(msg + (extra.length ? ` (${extra.join(", ")})` : ""), {
-          description: allErrors[0].slice(0, 200),
-        });
-      } else {
-        toast.success(msg + (extra.length ? ` (${extra.join(", ")})` : ""));
-      }
-      onValidationComplete();
-      setTimeout(() => onOpenChange(false), 500);
+      onValidationComplete(completedIds, finalStats);
     } catch (err: any) {
       toast.error(`ICP validation failed: ${err.message}`);
     } finally {
@@ -300,11 +343,11 @@ export function IcpValidationDialog({
     }
   };
 
-  const validateCount = selectedIds.length > 0 ? selectedIds.length : totalCount;
+  const processedCount = progress ? progress.completed + progress.failed : 0;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[calc(100%-1rem)] sm:max-w-[600px]">
+      <DialogContent className="max-w-[calc(100%-1rem)] sm:max-w-[640px]">
         <DialogHeader>
           <DialogTitle>ICP Validation</DialogTitle>
           <DialogDescription>
@@ -314,7 +357,7 @@ export function IcpValidationDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 mt-4">
+        <div className="space-y-4 mt-4 max-h-[70vh] overflow-y-auto pr-1">
           {loading ? (
             <div className="h-[200px] flex items-center justify-center text-muted-foreground text-sm">
               Loading prompt...
@@ -374,7 +417,7 @@ export function IcpValidationDialog({
                 <label className="text-sm font-medium">Prompt</label>
                 <textarea
                   ref={textareaRef}
-                  className="w-full min-h-[200px] rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring resize-y font-mono"
+                  className="w-full min-h-[140px] rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring resize-y font-mono"
                   value={prompt}
                   onChange={handleTextareaChange}
                   onKeyDown={handleKeyDown}
@@ -432,36 +475,67 @@ export function IcpValidationDialog({
             </>
           )}
 
-          {progress && (
-            <div className="space-y-2 pt-2 border-t">
+          {validating && (
+            <div className="space-y-3 pt-2 border-t">
               <div className="flex items-center justify-between text-xs">
                 <span className="text-muted-foreground">
-                  {progress.completed + progress.failed} / {progress.total} processed
+                  Validating {processedCount} of {progress?.total ?? 0} leads
                 </span>
-                <span className="flex items-center gap-2 tabular-nums">
+                <span className="flex items-center gap-3 tabular-nums">
                   <span className="flex items-center gap-1">
                     <CheckCircle2 className="size-3 text-emerald-500" />
-                    {progress.completed}
+                    {progress?.completed ?? 0}
                   </span>
                   <span className="flex items-center gap-1">
                     <XCircle className="size-3 text-red-500" />
-                    {progress.failed}
+                    {progress?.failed ?? 0}
                   </span>
                   <span className="flex items-center gap-1 text-muted-foreground">
                     <Loader2 className="size-3 animate-spin" />
-                    {progress.pending}
+                    {progress?.pending ?? 0}
                   </span>
                 </span>
               </div>
+
               <div className="h-2 bg-muted rounded-full overflow-hidden">
                 <div
                   className="h-full bg-primary rounded-full transition-all duration-500"
                   style={{
-                    width: `${progress.total > 0 ? ((progress.completed + progress.failed) / progress.total) * 100 : 0}%`,
+                    width: `${progress?.total ? (processedCount / progress.total) * 100 : 0}%`,
                   }}
                 />
               </div>
+
+              {activity.length > 0 && (
+                <div className="space-y-1 max-h-40 overflow-y-auto rounded-md border bg-muted/20 p-2">
+                  {activity.map((item) => (
+                    <div key={item.leadId} className="flex items-center gap-2 text-xs">
+                      {item.status === "success" ? (
+                        <CheckCircle2 className="size-3.5 text-emerald-500 shrink-0" />
+                      ) : (
+                        <XCircle className="size-3.5 text-red-500 shrink-0" />
+                      )}
+                      <span className="font-medium truncate">{item.company}</span>
+                      {item.status === "success" ? (
+                        item.matchedVertical ? (
+                          <Badge variant="default" className="text-[10px] px-1.5 py-0">{item.matchedVertical}</Badge>
+                        ) : (
+                          <span className="text-muted-foreground">No match</span>
+                        )
+                      ) : (
+                        <span className="text-red-600 dark:text-red-400 truncate">
+                          Failed{item.error ? ` — ${item.error}` : ""}
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
+          )}
+
+          {runStats && !validating && (
+            <RunSummary stats={runStats} model={model} />
           )}
 
           <div className="flex flex-wrap justify-end gap-2 pt-2 border-t">
@@ -471,37 +545,77 @@ export function IcpValidationDialog({
               onClick={() => onOpenChange(false)}
               disabled={validating}
             >
-              Cancel
+              {runStats && !validating ? "Close" : "Cancel"}
             </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={totalCount === 0 || validating || loading}
-              onClick={() => runValidation(true)}
-            >
-              Validate All ({totalCount})
-            </Button>
-            <Button
-              size="sm"
-              className="gap-1.5"
-              disabled={selectedIds.length === 0 || validating || loading}
-              onClick={() => runValidation(false)}
-            >
-              {validating ? (
-                <>
-                  <Brain className="size-3.5 animate-pulse" />
-                  Validating...
-                </>
-              ) : (
-                <>
-                  <Brain className="size-3.5" />
-                  Validate Selected ({selectedIds.length})
-                </>
-              )}
-            </Button>
+            {!runStats && (
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={totalCount === 0 || validating || loading}
+                  onClick={() => runValidation(true)}
+                >
+                  Validate All ({totalCount})
+                </Button>
+                <Button
+                  size="sm"
+                  className="gap-1.5"
+                  disabled={selectedIds.length === 0 || validating || loading}
+                  onClick={() => runValidation(false)}
+                >
+                  {validating ? (
+                    <>
+                      <Brain className="size-3.5 animate-pulse" />
+                      Validating...
+                    </>
+                  ) : (
+                    <>
+                      <Brain className="size-3.5" />
+                      Validate Selected ({selectedIds.length})
+                    </>
+                  )}
+                </Button>
+              </>
+            )}
           </div>
         </div>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function RunSummary({ stats, model }: { stats: RunStats; model: string }) {
+  const rows = [
+    ["Leads requested", String(stats.leadsRequested)],
+    ["Leads processed", String(stats.leadsProcessed)],
+    ["Successful", String(stats.successful)],
+    ["Failed", String(stats.failed)],
+    ["ICP matched", String(stats.matched)],
+    ["ICP not matched", String(stats.noMatch)],
+    ["API requests", String(stats.apiRequests)],
+    ["Input tokens", formatTokens(stats.inputTokens)],
+    ["Cached input tokens", formatTokens(stats.cachedInputTokens)],
+    ["Output tokens", formatTokens(stats.outputTokens)],
+    ["Total tokens", formatTokens(stats.totalTokens)],
+    ["Total cost", formatCost(stats.totalCost)],
+    ["Duration", formatDuration(stats.totalDurationMs)],
+    ["Model", model],
+  ];
+
+  return (
+    <div className="rounded-md border bg-muted/20 p-3 space-y-1.5">
+      <div className="flex items-center gap-1.5 text-sm font-medium">
+        <ChevronRight className="size-4 text-muted-foreground" />
+        Run summary
+      </div>
+      <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+        {rows.map(([label, value]) => (
+          <div key={label} className="flex items-center justify-between text-xs border-b border-border/50 py-0.5">
+            <span className="text-muted-foreground">{label}</span>
+            <span className="font-medium tabular-nums">{value}</span>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }

@@ -2,7 +2,8 @@
 
 import { useState, useCallback } from "react";
 import { ProjectLeads } from "@/components/import/project-leads";
-import { ValidationSummary } from "@/components/charts/validation-summary";
+import { ProjectStats } from "@/components/charts/project-stats";
+import { RunHistory } from "@/components/validation/run-history";
 import type { Lead } from "@/types";
 
 interface ProjectLeadsClientProps {
@@ -13,20 +14,23 @@ interface ProjectLeadsClientProps {
 
 export function ProjectLeadsClient({ projectId, initialLeads, initialTotal }: ProjectLeadsClientProps) {
   const [statsRefreshKey, setStatsRefreshKey] = useState(0);
+  const [runsRefreshKey, setRunsRefreshKey] = useState(0);
 
   const handleValidationComplete = useCallback(() => {
     setStatsRefreshKey((k) => k + 1);
+    setRunsRefreshKey((k) => k + 1);
   }, []);
 
   return (
-    <div className="space-y-3">
-      <ValidationSummary projectId={projectId} refreshKey={statsRefreshKey} />
+    <div className="space-y-4">
+      <ProjectStats projectId={projectId} refreshKey={statsRefreshKey} />
       <ProjectLeads
         projectId={projectId}
         initialLeads={initialLeads}
         initialTotal={initialTotal}
         onValidationComplete={handleValidationComplete}
       />
+      <RunHistory projectId={projectId} refreshKey={runsRefreshKey} />
     </div>
   );
 }

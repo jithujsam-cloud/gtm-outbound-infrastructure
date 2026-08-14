@@ -23,9 +23,9 @@ import { toast } from "sonner";
 import {
   ChevronLeft,
   ChevronRight,
-  ArrowUpDown,
   ArrowUp,
   ArrowDown,
+  ArrowUpDown,
   Search,
   X,
   Columns3,
@@ -38,7 +38,11 @@ import {
 
 const STORAGE_KEY_PREFIX = "leads-table-columns-";
 
-const ALL_COLUMNS: ColumnDef<Lead>[] = [
+interface LeadWithFx extends Lead {
+  __justValidated?: boolean;
+}
+
+const ALL_COLUMNS: ColumnDef<LeadWithFx>[] = [
   {
     id: "select",
     header: ({ table }) => (
@@ -68,38 +72,91 @@ const ALL_COLUMNS: ColumnDef<Lead>[] = [
     enableHiding: false,
   },
   {
+    accessorKey: "company_name",
+    header: "Company",
+    size: 170,
+    minSize: 120,
+    enableSorting: true,
+    cell: ({ getValue }) => <span className="truncate block max-w-[170px]" title={getValue<string>()}>{getValue<string>()}</span>,
+  },
+  {
     accessorKey: "full_name",
-    header: "Name",
+    header: "Person",
     size: 150,
     minSize: 100,
+    enableSorting: true,
     cell: ({ getValue }) => <span className="truncate block max-w-[150px]" title={getValue<string>()}>{getValue<string>()}</span>,
   },
   {
-    accessorKey: "company_name",
-    header: "Company",
-    size: 160,
-    minSize: 100,
-    cell: ({ getValue }) => <span className="truncate block max-w-[160px]" title={getValue<string>()}>{getValue<string>()}</span>,
+    accessorKey: "position",
+    header: "Job Title",
+    size: 140,
+    minSize: 90,
+    enableSorting: true,
+    cell: ({ getValue }) => <span className="truncate block max-w-[140px]" title={getValue<string>()}>{getValue<string>()}</span>,
   },
   {
     accessorKey: "email",
     header: "Email",
     size: 210,
-    minSize: 140,
+    minSize: 150,
+    enableSorting: true,
     cell: ({ getValue }) => <span className="truncate block max-w-[210px]" title={getValue<string>()}>{getValue<string>()}</span>,
   },
   {
     accessorKey: "industry",
     header: "Industry",
     size: 130,
-    minSize: 80,
+    minSize: 90,
+    enableSorting: true,
     cell: ({ getValue }) => <span className="truncate block max-w-[130px]" title={getValue<string>()}>{getValue<string>()}</span>,
   },
   {
+    accessorKey: "domain",
+    header: "Website",
+    size: 140,
+    minSize: 100,
+    enableSorting: true,
+    cell: ({ getValue }) => <span className="truncate block max-w-[140px]" title={getValue<string>() ?? ""}>{getValue<string>() ?? "—"}</span>,
+  },
+  {
+    accessorKey: "vertical_match",
+    header: "ICP Match",
+    size: 110,
+    minSize: 90,
+    enableSorting: true,
+    cell: ({ row }) => {
+      const val = row.getValue<boolean | null>("vertical_match");
+      if (val === null) return <span className="text-muted-foreground text-xs">—</span>;
+      return <Badge variant={val ? "default" : "outline"} className="text-[10px] px-1.5 py-0">{val ? "Match" : "No match"}</Badge>;
+    },
+  },
+  {
+    accessorKey: "matched_vertical",
+    header: "Matched Vertical",
+    size: 150,
+    minSize: 100,
+    enableSorting: true,
+    cell: ({ getValue }) => <span className="truncate block max-w-[150px]" title={getValue<string | null>() ?? ""}>{getValue<string | null>() ?? "—"}</span>,
+  },
+  {
+    accessorKey: "reasoning",
+    header: "ICP Reasoning",
+    size: 220,
+    minSize: 140,
+    enableSorting: false,
+    cell: ({ getValue }) => {
+      const val = getValue<string | null>();
+      if (!val) return <span className="text-muted-foreground text-xs">—</span>;
+      return <span className="truncate block max-w-[220px]" title={val}>{val}</span>;
+    },
+  },
+  {
     accessorKey: "email_check",
-    header: "Email Check",
-    size: 100,
-    minSize: 80,
+    header: "Email Status",
+    size: 110,
+    minSize: 90,
+    enableSorting: true,
     cell: ({ getValue }) => {
       const val = getValue<string | null>();
       if (!val) return <span className="text-muted-foreground text-xs">—</span>;
@@ -108,74 +165,11 @@ const ALL_COLUMNS: ColumnDef<Lead>[] = [
     },
   },
   {
-    accessorKey: "vertical_match",
-    header: "ICP",
-    size: 160,
-    minSize: 100,
-    cell: ({ row }) => {
-      const val = row.getValue<boolean | null>("vertical_match");
-      const vertical = row.getValue<string | null>("matched_vertical");
-      const reasoning = row.getValue<string | null>("reasoning");
-
-      if (val === null) return <span className="text-muted-foreground text-xs">—</span>;
-
-      const trigger = (
-        <span className="cursor-pointer inline-flex items-center gap-1">
-          <Badge variant={val ? "default" : "outline"} className="text-[10px] px-1.5 py-0">
-            {val ? "✓" : "✕"}
-          </Badge>
-          {vertical && (
-            <span className="text-[11px] text-muted-foreground truncate max-w-[100px]">{vertical}</span>
-          )}
-        </span>
-      );
-
-      if (!reasoning && !vertical) return trigger;
-
-      return (
-        <IcpReasonPopover trigger={trigger}>
-          <div className="space-y-1.5">
-            <div className="flex items-center gap-1.5">
-              <Badge variant={val ? "default" : "destructive"} className="text-[10px] px-1.5 py-0">
-                {val ? "ICP Match" : "Does not fit"}
-              </Badge>
-              {vertical && (
-                <span className="text-xs font-medium">{vertical}</span>
-              )}
-            </div>
-            {reasoning && (
-              <p className="text-xs text-muted-foreground leading-relaxed">{reasoning}</p>
-            )}
-          </div>
-        </IcpReasonPopover>
-      );
-    },
-  },
-  {
-    accessorKey: "matched_vertical",
-    header: "Vertical",
-    size: 130,
-    minSize: 80,
-    cell: ({ getValue }) => <span className="truncate block max-w-[130px]" title={getValue<string | null>() ?? ""}>{getValue<string | null>() ?? "—"}</span>,
-  },
-  { accessorKey: "position", header: "Position", size: 130, minSize: 80 },
-  { accessorKey: "state", header: "State", size: 80, minSize: 60 },
-  { accessorKey: "domain", header: "Domain", size: 150, minSize: 100 },
-  { accessorKey: "employee_size", header: "Emp.", size: 60, minSize: 50 },
-  { accessorKey: "country", header: "Country", size: 90, minSize: 70 },
-  { accessorKey: "email_score", header: "Score", size: 60, minSize: 50 },
-  {
-    accessorKey: "status",
-    header: "Status",
-    size: 90,
-    minSize: 70,
-    cell: ({ getValue }) => <span className="text-muted-foreground">{getValue<string | null>() ?? "—"}</span>,
-  },
-  {
     accessorKey: "safe_to_send",
-    header: "Safe",
-    size: 60,
-    minSize: 50,
+    header: "Safe to Send",
+    size: 100,
+    minSize: 80,
+    enableSorting: true,
     cell: ({ getValue }) => {
       const val = getValue<boolean | null>();
       if (val === null) return <span className="text-muted-foreground text-xs">—</span>;
@@ -183,65 +177,78 @@ const ALL_COLUMNS: ColumnDef<Lead>[] = [
     },
   },
   {
-    accessorKey: "created_at",
-    header: "Created",
-    size: 140,
-    minSize: 100,
-    cell: ({ getValue }) => {
-      const val = getValue<string | null>();
-      if (!val) return <span className="text-muted-foreground text-xs">—</span>;
-      const d = new Date(val);
-      return <span className="text-xs text-muted-foreground">{d.toLocaleDateString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}</span>;
-    },
+    accessorKey: "email_score",
+    header: "Email Score",
+    size: 90,
+    minSize: 70,
+    enableSorting: true,
+    cell: ({ getValue }) => <span className="text-muted-foreground tabular-nums">{getValue<number | null>() ?? "—"}</span>,
   },
   {
-    accessorKey: "updated_at",
-    header: "Updated",
-    size: 140,
-    minSize: 100,
+    accessorKey: "state",
+    header: "State",
+    size: 80,
+    minSize: 60,
+    enableSorting: true,
+  },
+  {
+    accessorKey: "country",
+    header: "Country",
+    size: 90,
+    minSize: 70,
+    enableSorting: true,
+  },
+  {
+    accessorKey: "created_at",
+    header: "Created",
+    size: 150,
+    minSize: 110,
+    enableSorting: true,
     cell: ({ getValue }) => {
       const val = getValue<string | null>();
       if (!val) return <span className="text-muted-foreground text-xs">—</span>;
-      const d = new Date(val);
-      return <span className="text-xs text-muted-foreground">{d.toLocaleDateString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}</span>;
+      return <span className="text-xs text-muted-foreground tabular-nums">{new Date(val).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span>;
     },
   },
 ];
 
 const DEFAULT_VISIBLE: Record<string, boolean> = {
   select: true,
-  full_name: true,
   company_name: true,
+  full_name: true,
+  position: true,
   email: true,
   industry: true,
-  email_check: true,
+  domain: true,
   vertical_match: true,
   matched_vertical: true,
-  position: false,
-  state: false,
-  domain: false,
-  employee_size: false,
-  country: false,
+  reasoning: false,
+  email_check: true,
+  safe_to_send: true,
   email_score: false,
-  status: false,
-  safe_to_send: false,
-  created_at: false,
-  updated_at: false,
+  state: false,
+  country: false,
+  created_at: true,
 };
 
 const PAGE_SIZES = [10, 20, 50, 100];
 
-const FILTER_OPTIONS = {
-  email_check: [
-    { label: "Valid", value: "Valid" },
-    { label: "Invalid", value: "Invalid" },
-    { label: "Unknown", value: "Unknown" },
-    { label: "Not validated", value: "null" },
-  ],
-  vertical_match: [
-    { label: "ICP Match", value: "true" },
-    { label: "No Match", value: "false" },
-  ],
+interface FilterState {
+  email_check: string[];
+  vertical_match: string[];
+  safe_to_send: string[];
+  industry: string;
+  company: string;
+  domain: string;
+}
+
+const EMPTY_FILTERS: FilterState = {
+  email_check: [],
+  vertical_match: [],
+  safe_to_send: [],
+  industry: "",
+  company: "",
+  domain: "",
 };
 
 interface LeadsTableProps {
@@ -253,7 +260,7 @@ interface LeadsTableProps {
 }
 
 export function LeadsTable({ projectId, initialData, initialTotal, refreshKey, onValidationComplete }: LeadsTableProps) {
-  const [data, setData] = useState<Lead[]>(initialData);
+  const [data, setData] = useState<LeadWithFx[]>(initialData);
   const [sorting, setSorting] = useState<SortingState>([]);
   const [globalFilter, setGlobalFilter] = useState("");
   const [totalCount, setTotalCount] = useState(initialTotal);
@@ -264,7 +271,9 @@ export function LeadsTable({ projectId, initialData, initialTotal, refreshKey, o
   const [importOpen, setImportOpen] = useState(false);
   const [pageSize, setPageSize] = useState(10);
   const [pageIndex, setPageIndex] = useState(0);
-  const [filters, setFilters] = useState<Record<string, string[]>>({});
+  const [filters, setFilters] = useState<FilterState>(EMPTY_FILTERS);
+  const [fadeIds, setFadeIds] = useState<Set<string>>(new Set());
+  const fadeTimers = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
 
   const storageKey = STORAGE_KEY_PREFIX + projectId;
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(() => {
@@ -282,6 +291,140 @@ export function LeadsTable({ projectId, initialData, initialTotal, refreshKey, o
     try { localStorage.setItem(storageKey, JSON.stringify(columnVisibility)); } catch {}
   }, [columnVisibility, storageKey]);
 
+  const buildParams = useCallback((page: number, size: number, sortCol?: string, sortDir?: string) => {
+    const params = new URLSearchParams({ page: String(page + 1), limit: String(size) });
+    if (globalFilter) params.set("search", globalFilter);
+    if (filters.email_check.length) filters.email_check.forEach((v) => params.append("email_check", v));
+    if (filters.vertical_match.length) filters.vertical_match.forEach((v) => params.append("vertical_match", v));
+    if (filters.safe_to_send.length) filters.safe_to_send.forEach((v) => params.append("safe_to_send", v));
+    if (filters.industry) params.set("industry", filters.industry);
+    if (filters.company) params.set("company", filters.company);
+    if (filters.domain) params.set("domain", filters.domain);
+    if (sortCol) { params.set("sort", sortCol); params.set("order", sortDir ?? "asc"); }
+    return params;
+  }, [globalFilter, filters]);
+
+  const fetchPage = useCallback(async (page: number, size: number, sortCol?: string, sortDir?: string) => {
+    setLoading(true);
+    try {
+      const params = buildParams(page, size, sortCol, sortDir);
+      const res = await fetch(`/api/projects/${projectId}/leads?${params}`);
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || "Failed to load leads");
+      setData(json.data);
+      setTotalCount(json.total);
+      setPageIndex(Math.min(page, Math.max(0, Math.ceil(json.total / size) - 1)));
+      setRowSelection({});
+    } catch (err: any) {
+      toast.error(err.message || "Failed to load leads");
+    } finally {
+      setLoading(false);
+    }
+  }, [projectId, buildParams]);
+
+  useEffect(() => {
+    if (!mountedRef.current) {
+      mountedRef.current = true;
+      return;
+    }
+    const c = sorting[0];
+    fetchPage(pageIndex, pageSize, c?.id, c?.desc ? "desc" : "asc");
+  }, [pageIndex, pageSize, globalFilter, filters, sorting, refreshKey]);
+
+  const activeFilterCount = useMemo(() => {
+    return (
+      filters.email_check.length +
+      filters.vertical_match.length +
+      filters.safe_to_send.length +
+      (filters.industry ? 1 : 0) +
+      (filters.company ? 1 : 0) +
+      (filters.domain ? 1 : 0)
+    );
+  }, [filters]);
+
+  const fetchAllIds = useCallback(async (): Promise<string[]> => {
+    const params = buildParams(0, 1000);
+    params.set("idsonly", "true");
+    const res = await fetch(`/api/projects/${projectId}/leads?${params}`);
+    const json = await res.json();
+    return json.ids ?? [];
+  }, [projectId, buildParams]);
+
+  const handleValidationComplete = useCallback((ids: string[], stillMatch: (lead: Lead) => boolean) => {
+    onValidationComplete?.();
+    const fadeSet = new Set<string>(ids);
+    setFadeIds(fadeSet);
+
+    ids.forEach((id) => {
+      const existing = fadeTimers.current.get(id);
+      if (existing) clearTimeout(existing);
+      const timer = setTimeout(() => {
+        setFadeIds((prev) => {
+          const next = new Set(prev);
+          next.delete(id);
+          return next;
+        });
+        fadeTimers.current.delete(id);
+      }, 5000);
+      fadeTimers.current.set(id, timer);
+    });
+
+    fetchPage(pageIndex, pageSize, sorting[0]?.id, sorting[0]?.desc ? "desc" : "asc");
+  }, [onValidationComplete, fetchPage, pageIndex, pageSize, sorting]);
+
+  const runValidation = async (type: "email", all: boolean) => {
+    let ids: string[];
+    if (all) {
+      ids = await fetchAllIds();
+    } else {
+      ids = Object.keys(rowSelection);
+    }
+    if (ids.length === 0) return;
+    setValidating(type);
+    const label = type === "email" ? "Email" : "ICP";
+    try {
+      const res = await fetch(`/api/projects/${projectId}/validate/${type}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ leadIds: ids }),
+      });
+      if (!res.ok) throw new Error(await res.text());
+      const json = await res.json();
+      toast.success(`${label} validation done — ${json.processed ?? ids.length} processed`);
+      handleValidationComplete(ids, () => true);
+    } catch (err: any) {
+      toast.error(`${label} validation failed: ${err.message}`);
+    } finally {
+      setValidating(null);
+    }
+  };
+
+  const handlePageSizeChange = (size: number) => {
+    setPageSize(size);
+    setPageIndex(0);
+  };
+
+  const toggleArrayFilter = (key: "email_check" | "vertical_match" | "safe_to_send", value: string) => {
+    setFilters((prev) => {
+      const current = prev[key];
+      const next = current.includes(value)
+        ? current.filter((v) => v !== value)
+        : [...current, value];
+      return { ...prev, [key]: next };
+    });
+    setPageIndex(0);
+  };
+
+  const setTextFilter = (key: "industry" | "company" | "domain", value: string) => {
+    setFilters((prev) => ({ ...prev, [key]: value }));
+    setPageIndex(0);
+  };
+
+  const clearFilters = () => {
+    setFilters(EMPTY_FILTERS);
+    setPageIndex(0);
+  };
+
   const table = useReactTable({
     data,
     columns: ALL_COLUMNS,
@@ -298,109 +441,14 @@ export function LeadsTable({ projectId, initialData, initialTotal, refreshKey, o
     pageCount: Math.max(Math.ceil(totalCount / pageSize), 1),
   });
 
-  const selectedIds = useMemo(() => {
-    return table.getSelectedRowModel().rows.map((r) => r.original.id);
-  }, [rowSelection, data]);
-
-  const fetchPage = useCallback(async (page: number, size: number, sortCol?: string, sortDir?: string) => {
-    setLoading(true);
-    const params = new URLSearchParams({ page: String(page + 1), limit: String(size) });
-    if (globalFilter) params.set("search", globalFilter);
-    Object.entries(filters).forEach(([k, vals]) => { if (vals.length > 0) vals.forEach((v) => params.append(k, v)); });
-    if (sortCol) { params.set("sort", sortCol); params.set("order", sortDir ?? "asc"); }
-    const res = await fetch(`/api/projects/${projectId}/leads?${params}`);
-    const json = await res.json();
-    setData(json.data);
-    setTotalCount(json.total);
-    setPageIndex(Math.min(page, Math.max(0, Math.ceil(json.total / size) - 1)));
-    setRowSelection({});
-    setLoading(false);
-  }, [projectId, globalFilter, filters]);
-
-  useEffect(() => {
-    if (!mountedRef.current) {
-      mountedRef.current = true;
-      return;
-    }
-    const c = sorting[0];
-    fetchPage(pageIndex, pageSize, c?.id, c?.desc ? "desc" : "asc");
-  }, [pageIndex, pageSize, globalFilter, filters, sorting, refreshKey]);
-
-  const activeFilterCount = Object.values(filters).reduce((sum, vals) => sum + vals.length, 0);
-
-  const fetchAllIds = useCallback(async (): Promise<string[]> => {
-    const params = new URLSearchParams();
-    if (globalFilter) params.set("search", globalFilter);
-    Object.entries(filters).forEach(([k, vals]) => { if (vals.length > 0) vals.forEach((v) => params.append(k, v)); });
-    params.set("idsonly", "true");
-    const res = await fetch(`/api/projects/${projectId}/leads?${params}`);
-    const json = await res.json();
-    return json.ids ?? [];
-  }, [projectId, globalFilter, filters]);
-
-  const runValidation = async (type: "email", all: boolean) => {
-    let ids: string[];
-    if (all) {
-      const params = new URLSearchParams();
-      if (globalFilter) params.set("search", globalFilter);
-      Object.entries(filters).forEach(([k, vals]) => { if (vals.length > 0) vals.forEach((v) => params.append(k, v)); });
-      params.set("idsonly", "true");
-      const res = await fetch(`/api/projects/${projectId}/leads?${params}`);
-      const json = await res.json();
-      ids = json.ids ?? [];
-    } else {
-      ids = selectedIds;
-    }
-    if (ids.length === 0) return;
-    setValidating(type);
-    const label = type === "email" ? "Email" : "ICP";
-    try {
-      const res = await fetch(`/api/projects/${projectId}/validate/${type}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ leadIds: ids }),
-      });
-      if (!res.ok) throw new Error(await res.text());
-      const json = await res.json();
-      toast.success(`${label} validation done — ${json.processed ?? ids.length} processed`);
-      onValidationComplete?.();
-      fetchPage(pageIndex, pageSize);
-    } catch (err: any) {
-      toast.error(`${label} validation failed: ${err.message}`);
-    } finally {
-      setValidating(null);
-    }
-  };
-
-  const handlePageSizeChange = (size: number) => {
-    setPageSize(size);
-    setPageIndex(0);
-  };
-
-  const handleFilterChange = (key: string, value: string) => {
-    setFilters((prev) => {
-      const current = prev[key] ?? [];
-      const filtered = current.includes(value)
-        ? current.filter((v) => v !== value)
-        : [...current, value];
-      return filtered.length > 0 ? { ...prev, [key]: filtered } : (() => { const { [key]: _, ...rest } = prev; return rest; })();
-    });
-    setPageIndex(0);
-  };
-
-  const clearFilters = () => {
-    setFilters({});
-    setPageIndex(0);
-  };
-
   const start = totalCount === 0 ? 0 : pageIndex * pageSize + 1;
   const end = totalCount === 0 ? 0 : Math.min((pageIndex + 1) * pageSize, totalCount);
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-3">
       {/* Toolbar */}
       <div className="flex flex-wrap items-center gap-2">
-        <div className="relative flex-1 min-w-[120px] sm:min-w-[180px] max-w-sm">
+        <div className="relative flex-1 min-w-[140px] sm:min-w-[200px] max-w-sm">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
           <Input
             placeholder="Search leads..."
@@ -419,7 +467,6 @@ export function LeadsTable({ projectId, initialData, initialTotal, refreshKey, o
         </div>
 
         <div className="flex items-center gap-1.5">
-          {/* Filters */}
           <Popover
             trigger={
               <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5 relative">
@@ -434,58 +481,35 @@ export function LeadsTable({ projectId, initialData, initialTotal, refreshKey, o
             }
             align="end"
           >
-            <div className="space-y-3 p-1 min-w-[200px]">
-              <div>
-                <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-1 px-1">Email Check</p>
-                {FILTER_OPTIONS.email_check.map((opt) => (
-                  <label key={opt.value} className="flex items-center gap-2 rounded-sm px-2 py-1 text-xs hover:bg-muted cursor-pointer">
-                    <input
-                      type="checkbox"
-                      className="size-3 rounded"
-                      checked={(filters.email_check ?? []).includes(opt.value)}
-                      onChange={() => handleFilterChange("email_check", opt.value)}
-                    />
-                    {opt.label}
-                  </label>
-                ))}
-              </div>
-              <div>
-                <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-1 px-1">ICP Match</p>
-                {FILTER_OPTIONS.vertical_match.map((opt) => (
-                  <label key={opt.value} className="flex items-center gap-2 rounded-sm px-2 py-1 text-xs hover:bg-muted cursor-pointer">
-                    <input
-                      type="checkbox"
-                      className="size-3 rounded"
-                      checked={(filters.vertical_match ?? []).includes(opt.value)}
-                      onChange={() => handleFilterChange("vertical_match", opt.value)}
-                    />
-                    {opt.label}
-                  </label>
-                ))}
-              </div>
-              <div>
-                <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-1 px-1">Industry</p>
-                <div className="px-1">
-                  <input
-                    type="text"
-                    placeholder="Filter industry..."
-                    className="w-full rounded border border-input bg-transparent px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-ring"
-                    value={filters.industry?.[0] ?? ""}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      setFilters((prev) => {
-                        if (!val) { const { industry, ...rest } = prev; return rest; }
-                        return { ...prev, industry: [val] };
-                      });
-                      setPageIndex(0);
-                    }}
-                  />
-                </div>
-              </div>
+            <div className="w-[280px] max-h-[70vh] overflow-y-auto space-y-4 p-2">
+              <FilterGroup label="ICP">
+                <FilterCheckbox label="ICP Match" checked={filters.vertical_match.includes("true")} onChange={() => toggleArrayFilter("vertical_match", "true")} />
+                <FilterCheckbox label="ICP No Match" checked={filters.vertical_match.includes("false")} onChange={() => toggleArrayFilter("vertical_match", "false")} />
+                <FilterCheckbox label="ICP Not Validated" checked={filters.vertical_match.includes("null")} onChange={() => toggleArrayFilter("vertical_match", "null")} />
+              </FilterGroup>
+
+              <FilterGroup label="Email">
+                <FilterCheckbox label="Email Valid" checked={filters.email_check.includes("Valid")} onChange={() => toggleArrayFilter("email_check", "Valid")} />
+                <FilterCheckbox label="Email Invalid" checked={filters.email_check.includes("Invalid")} onChange={() => toggleArrayFilter("email_check", "Invalid")} />
+                <FilterCheckbox label="Email Unknown" checked={filters.email_check.includes("Unknown")} onChange={() => toggleArrayFilter("email_check", "Unknown")} />
+                <FilterCheckbox label="Email Not Validated" checked={filters.email_check.includes("null")} onChange={() => toggleArrayFilter("email_check", "null")} />
+              </FilterGroup>
+
+              <FilterGroup label="Safe to Send">
+                <FilterCheckbox label="Safe to Send" checked={filters.safe_to_send.includes("true")} onChange={() => toggleArrayFilter("safe_to_send", "true")} />
+                <FilterCheckbox label="Not Safe to Send" checked={filters.safe_to_send.includes("false")} onChange={() => toggleArrayFilter("safe_to_send", "false")} />
+              </FilterGroup>
+
+              <FilterGroup label="Other">
+                <TextFilterField label="Industry" value={filters.industry} onChange={(v) => setTextFilter("industry", v)} />
+                <TextFilterField label="Company" value={filters.company} onChange={(v) => setTextFilter("company", v)} />
+                <TextFilterField label="Domain" value={filters.domain} onChange={(v) => setTextFilter("domain", v)} />
+              </FilterGroup>
+
               {activeFilterCount > 0 && (
                 <button
                   onClick={clearFilters}
-                  className="w-full text-xs text-muted-foreground hover:text-foreground py-1 border-t border-border mt-1"
+                  className="w-full text-xs text-muted-foreground hover:text-foreground py-1.5 border-t border-border"
                 >
                   Clear all filters
                 </button>
@@ -493,7 +517,6 @@ export function LeadsTable({ projectId, initialData, initialTotal, refreshKey, o
             </div>
           </Popover>
 
-          {/* Columns toggle */}
           <Popover
             trigger={
               <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5">
@@ -504,38 +527,29 @@ export function LeadsTable({ projectId, initialData, initialTotal, refreshKey, o
             align="end"
           >
             <div className="max-h-64 overflow-y-auto">
-              {ALL_COLUMNS.filter((c) => c.enableHiding !== false && "accessorKey" in c).map(
-                (col) => {
-                  const key = (col as any).accessorKey as string;
-                  const visible = columnVisibility[key] !== false;
-                  return (
-                    <label
-                      key={key}
-                      className="flex items-center gap-2 rounded-sm px-2 py-1.5 text-xs hover:bg-muted cursor-pointer"
-                    >
-                      <input
-                        type="checkbox"
-                        className="size-3 rounded"
-                        checked={visible}
-                        onChange={() =>
-                          setColumnVisibility((prev) => ({ ...prev, [key]: !visible }))
-                        }
-                      />
-                      {typeof col.header === "string" ? col.header : key}
-                    </label>
-                  );
-                }
-              )}
+              {ALL_COLUMNS.filter((c) => c.enableHiding !== false && "accessorKey" in c).map((col) => {
+                const key = (col as any).accessorKey as string;
+                const visible = columnVisibility[key] !== false;
+                return (
+                  <label key={key} className="flex items-center gap-2 rounded-sm px-2 py-1.5 text-xs hover:bg-muted cursor-pointer">
+                    <input
+                      type="checkbox"
+                      className="size-3 rounded"
+                      checked={visible}
+                      onChange={() => setColumnVisibility((prev) => ({ ...prev, [key]: !visible }))}
+                    />
+                    {typeof col.header === "string" ? col.header : key}
+                  </label>
+                );
+              })}
             </div>
           </Popover>
 
-          {/* Import */}
           <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5" onClick={() => setImportOpen(true)}>
             <Upload className="size-3.5" />
             <span className="hidden sm:inline">Import</span>
           </Button>
 
-          {/* ICP Validate */}
           <Button
             variant="default"
             size="sm"
@@ -544,26 +558,20 @@ export function LeadsTable({ projectId, initialData, initialTotal, refreshKey, o
             onClick={() => setIcpDialogOpen(true)}
           >
             <CheckCircle2 className="size-3.5" />
-            <span className="hidden sm:inline">{validating === "icp" ? "ICP…" : "ICP"}</span>
+            <span className="hidden sm:inline">{validating === "icp" ? "ICP…" : "ICP Validation"}</span>
           </Button>
 
-          {/* Email Validate */}
           <Popover
             trigger={
-              <Button
-                variant="default"
-                size="sm"
-                className="h-8 text-xs gap-1.5"
-                disabled={validating !== null}
-              >
+              <Button variant="default" size="sm" className="h-8 text-xs gap-1.5" disabled={validating !== null}>
                 <MailCheck className="size-3.5" />
-                <span className="hidden sm:inline">{validating === "email" ? "Email…" : "Email"}</span>
+                <span className="hidden sm:inline">{validating === "email" ? "Email…" : "Email Validation"}</span>
               </Button>
             }
             align="end"
           >
-            <PopoverItem onClick={() => runValidation("email", false)} disabled={selectedIds.length === 0}>
-              Validate Selected ({selectedIds.length})
+            <PopoverItem onClick={() => runValidation("email", false)} disabled={Object.keys(rowSelection).length === 0}>
+              Validate Selected ({Object.keys(rowSelection).length})
             </PopoverItem>
             <PopoverItem onClick={() => runValidation("email", true)} disabled={totalCount === 0}>
               Validate All ({totalCount})
@@ -573,86 +581,89 @@ export function LeadsTable({ projectId, initialData, initialTotal, refreshKey, o
       </div>
 
       {/* Table */}
-      <div className="rounded-md border overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <tr key={headerGroup.id} className="border-b bg-muted/50">
-                {headerGroup.headers.map((header) => {
-                  const canSort = header.column.getCanSort();
-                  const isSorted = header.column.getIsSorted();
-                  return (
-                    <th
-                      key={header.id}
-                      className="px-3 py-1.5 text-left font-medium text-muted-foreground whitespace-nowrap"
-                      style={{ width: header.getSize(), minWidth: header.column.columnDef.minSize ?? header.getSize() }}
-                    >
-                      {canSort ? (
-                        <Popover
-                          trigger={
-                            <button className="inline-flex items-center gap-1 hover:text-foreground text-[11px]">
-                              {flexRender(header.column.columnDef.header, header.getContext())}
-                              {isSorted === "asc" ? (
-                                <ArrowUp className="size-3" />
-                              ) : isSorted === "desc" ? (
-                                <ArrowDown className="size-3" />
-                              ) : (
-                                <ArrowUpDown className="size-3 opacity-40" />
-                              )}
-                            </button>
-                          }
-                          align="start"
-                        >
-                          <PopoverItem onClick={() => header.column.toggleSorting(false)}>
-                            <ArrowUp className="size-3" /> Sort Ascending
-                          </PopoverItem>
-                          <PopoverItem onClick={() => header.column.toggleSorting(true)}>
-                            <ArrowDown className="size-3" /> Sort Descending
-                          </PopoverItem>
-                          <PopoverItem onClick={() => header.column.toggleVisibility(false)}>
-                            <EyeOff className="size-3" /> Hide Column
-                          </PopoverItem>
-                        </Popover>
-                      ) : (
-                        <span className="text-[11px]">
-                          {flexRender(header.column.columnDef.header, header.getContext())}
-                        </span>
-                      )}
-                    </th>
-                  );
-                })}
-              </tr>
-            ))}
-          </thead>
-          <tbody>
-            {table.getRowModel().rows.length === 0 ? (
-              <tr>
-                <td colSpan={ALL_COLUMNS.length} className="py-10 text-center text-muted-foreground text-xs">
-                  {loading ? "Loading..." : "No leads found."}
-                </td>
-              </tr>
-            ) : (
-              table.getRowModel().rows.map((row) => (
-                <tr
-                  key={row.id}
-                  className={`border-b last:border-0 hover:bg-muted/30 transition-colors ${
-                    row.getIsSelected() ? "bg-muted/50" : ""
-                  }`}
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <td
-                      key={cell.id}
-                      className="px-3 py-1.5 text-xs whitespace-nowrap"
-                      style={{ maxWidth: cell.column.columnDef.size }}
-                    >
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </td>
-                  ))}
+      <div className="rounded-md border overflow-hidden min-h-[420px]">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <tr key={headerGroup.id} className="border-b bg-muted/50">
+                  {headerGroup.headers.map((header) => {
+                    const canSort = header.column.getCanSort();
+                    const isSorted = header.column.getIsSorted();
+                    return (
+                      <th
+                        key={header.id}
+                        className="px-3 py-2 text-left font-medium text-muted-foreground whitespace-nowrap"
+                        style={{ width: header.getSize(), minWidth: header.column.columnDef.minSize ?? header.getSize() }}
+                      >
+                        {canSort ? (
+                          <button
+                            className="inline-flex items-center gap-1 hover:text-foreground text-[11px]"
+                            onClick={() => header.column.toggleSorting(header.column.getIsSorted() === "asc")}
+                          >
+                            {flexRender(header.column.columnDef.header, header.getContext())}
+                            {isSorted === "asc" ? (
+                              <ArrowUp className="size-3" />
+                            ) : isSorted === "desc" ? (
+                              <ArrowDown className="size-3" />
+                            ) : (
+                              <ArrowUpDown className="size-3 opacity-40" />
+                            )}
+                          </button>
+                        ) : (
+                          <span className="text-[11px]">
+                            {flexRender(header.column.columnDef.header, header.getContext())}
+                          </span>
+                        )}
+                      </th>
+                    );
+                  })}
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ))}
+            </thead>
+            <tbody>
+              {loading ? (
+                Array.from({ length: Math.min(pageSize, 8) }).map((_, i) => (
+                  <tr key={`skeleton-${i}`} className="border-b last:border-0">
+                    {ALL_COLUMNS.map((col) => (
+                      <td key={col.id} className="px-3 py-2.5">
+                        <div className="h-3.5 w-3/4 bg-muted animate-pulse rounded" />
+                      </td>
+                    ))}
+                  </tr>
+                ))
+              ) : table.getRowModel().rows.length === 0 ? (
+                <tr>
+                  <td colSpan={ALL_COLUMNS.length} className="py-10 text-center text-muted-foreground text-xs">
+                    No leads found.
+                  </td>
+                </tr>
+              ) : (
+                table.getRowModel().rows.map((row) => {
+                  const fadeActive = fadeIds.has(row.original.id);
+                  return (
+                    <tr
+                      key={row.id}
+                      className={`border-b last:border-0 transition-colors duration-[5000ms] ${
+                        fadeActive ? "bg-emerald-50 dark:bg-emerald-950/40" : row.getIsSelected() ? "bg-muted/50" : "hover:bg-muted/30"
+                      }`}
+                    >
+                      {row.getVisibleCells().map((cell) => (
+                        <td
+                          key={cell.id}
+                          className="px-3 py-2 text-xs whitespace-nowrap"
+                          style={{ maxWidth: cell.column.columnDef.size }}
+                        >
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        </td>
+                      ))}
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* Pagination */}
@@ -668,22 +679,20 @@ export function LeadsTable({ projectId, initialData, initialTotal, refreshKey, o
               value={String(pageSize)}
               onChange={(e) => handlePageSizeChange(Number(e.target.value))}
             >
-              {PAGE_SIZES.map((s) => (
-                <option key={s} value={s}>{s}</option>
-              ))}
+              {PAGE_SIZES.map((s) => <option key={s} value={s}>{s}</option>)}
             </Select>
           </div>
         </div>
 
         <div className="flex items-center gap-1.5">
           <span className="text-xs text-muted-foreground min-w-[60px] text-center">
-            {selectedIds.length > 0 ? `${selectedIds.length} selected` : "0 selected"}
+            {Object.keys(rowSelection).length > 0 ? `${Object.keys(rowSelection).length} selected` : "0 selected"}
           </span>
           <Button
             variant="outline"
             size="sm"
             className="h-7 text-xs"
-            onClick={() => { setPageIndex((p) => Math.max(0, p - 1)); }}
+            onClick={() => setPageIndex((p) => Math.max(0, p - 1))}
             disabled={pageIndex === 0}
           >
             <ChevronLeft className="size-3.5" />
@@ -696,7 +705,7 @@ export function LeadsTable({ projectId, initialData, initialTotal, refreshKey, o
             variant="outline"
             size="sm"
             className="h-7 text-xs"
-            onClick={() => { setPageIndex((p) => p + 1); }}
+            onClick={() => setPageIndex((p) => p + 1)}
             disabled={pageIndex + 1 >= Math.ceil(totalCount / pageSize)}
           >
             <span className="hidden sm:inline">Next</span>
@@ -716,11 +725,10 @@ export function LeadsTable({ projectId, initialData, initialTotal, refreshKey, o
         projectId={projectId}
         open={icpDialogOpen}
         onOpenChange={setIcpDialogOpen}
-        selectedIds={selectedIds}
+        selectedIds={Object.keys(rowSelection)}
         totalCount={totalCount}
-        onValidationComplete={() => {
-          onValidationComplete?.();
-          fetchPage(pageIndex, pageSize);
+        onValidationComplete={(completedIds) => {
+          handleValidationComplete(completedIds, () => true);
         }}
         fetchAllIds={fetchAllIds}
       />
@@ -728,30 +736,35 @@ export function LeadsTable({ projectId, initialData, initialTotal, refreshKey, o
   );
 }
 
-function IcpReasonPopover({ trigger, children }: { trigger: React.ReactNode; children: React.ReactNode }) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, [open]);
-
+function FilterGroup({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <span className="relative inline-block">
-      <span onClick={() => setOpen(!open)}>{trigger}</span>
-      {open && (
-        <div
-          ref={ref}
-          className="absolute z-50 left-0 top-full mt-1 w-72 rounded-md border bg-popover p-3 shadow-md"
-        >
-          {children}
-        </div>
-      )}
-    </span>
+    <div>
+      <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-1 px-1">{label}</p>
+      <div className="space-y-0.5">{children}</div>
+    </div>
+  );
+}
+
+function FilterCheckbox({ label, checked, onChange }: { label: string; checked: boolean; onChange: () => void }) {
+  return (
+    <label className="flex items-center gap-2 rounded-sm px-2 py-1 text-xs hover:bg-muted cursor-pointer">
+      <input type="checkbox" className="size-3 rounded" checked={checked} onChange={onChange} />
+      {label}
+    </label>
+  );
+}
+
+function TextFilterField({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
+  return (
+    <div className="px-1 mb-1">
+      <span className="text-[10px] text-muted-foreground block mb-0.5">{label}</span>
+      <input
+        type="text"
+        placeholder={`Filter ${label.toLowerCase()}...`}
+        className="w-full rounded border border-input bg-transparent px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-ring"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+      />
+    </div>
   );
 }

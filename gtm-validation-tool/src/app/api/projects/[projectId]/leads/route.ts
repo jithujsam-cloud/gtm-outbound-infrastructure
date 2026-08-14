@@ -1,6 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
+const ALLOWED_SORT_COLS = [
+  "full_name",
+  "company_name",
+  "email",
+  "industry",
+  "position",
+  "state",
+  "domain",
+  "country",
+  "email_check",
+  "vertical_match",
+  "matched_vertical",
+  "email_score",
+  "status",
+  "safe_to_send",
+  "created_at",
+  "updated_at",
+] as const;
+
 export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ projectId: string }> }
@@ -17,15 +36,21 @@ export async function GET(
   const page = parseInt(url.searchParams.get("page") ?? "1");
   const limit = parseInt(url.searchParams.get("limit") ?? "10");
   const search = url.searchParams.get("search")?.trim();
+
   const emailCheck = url.searchParams.getAll("email_check").filter(Boolean);
   const verticalMatch = url.searchParams.getAll("vertical_match").filter(Boolean);
+  const safeToSend = url.searchParams.getAll("safe_to_send").filter(Boolean);
   const industry = url.searchParams.get("industry")?.trim();
+  const company = url.searchParams.get("company")?.trim();
+  const domain = url.searchParams.get("domain")?.trim();
+
   const sortCol = url.searchParams.get("sort")?.trim();
   const sortOrder = url.searchParams.get("order")?.trim() === "desc" ? "desc" : "asc";
   const offset = (page - 1) * limit;
 
-  const ALLOWED_SORT_COLS = ["full_name", "company_name", "email", "industry", "position", "state", "country", "email_check", "vertical_match", "matched_vertical", "email_score", "status", "safe_to_send", "created_at", "updated_at"];
-  const col = sortCol && ALLOWED_SORT_COLS.includes(sortCol) ? sortCol : "created_at";
+  const col = sortCol && (ALLOWED_SORT_COLS as readonly string[]).includes(sortCol)
+    ? sortCol
+    : "created_at";
 
   let query = supabase
     .from("leads")
@@ -66,8 +91,29 @@ export async function GET(
     }
   }
 
+  if (safeToSend.length > 0) {
+    const nonNull = safeToSend.filter((v) => v !== "null");
+    const hasNull = safeToSend.includes("null");
+    if (hasNull && nonNull.length > 0) {
+      const boolVals = nonNull.map((v) => v === "true");
+      query = query.or(`safe_to_send.is.null,safe_to_send.in.(${boolVals.join(",")})`);
+    } else if (hasNull) {
+      query = query.is("safe_to_send", null);
+    } else {
+      query = query.in("safe_to_send", nonNull.map((v) => v === "true"));
+    }
+  }
+
   if (industry) {
     query = query.ilike("industry", `%${industry}%`);
+  }
+
+  if (company) {
+    query = query.ilike("company_name", `%${company}%`);
+  }
+
+  if (domain) {
+    query = query.ilike("domain", `%${domain}%`);
   }
 
   if (idsonly) {
@@ -102,7 +148,6 @@ export async function POST(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  // Verify project exists and belongs to user
   const { data: project, error: projectError } = await supabase
     .from("projects")
     .select("id")
@@ -114,9 +159,7 @@ export async function POST(
   }
 
   const body = await request.json();
-
   const leads = Array.isArray(body) ? body : [body];
-
   const leadsWithProject = leads.map((lead) => ({
     ...lead,
     project_id: projectId,

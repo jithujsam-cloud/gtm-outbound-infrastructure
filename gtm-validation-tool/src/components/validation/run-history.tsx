@@ -10,6 +10,12 @@ import { RunDetail } from "@/components/validation/run-detail";
 import { formatCost, formatDuration, formatTokens, formatDateTime, type RunStats } from "@/lib/format";
 import { ChevronRight } from "lucide-react";
 
+interface EmailRunStats {
+  valid: number;
+  invalid: number;
+  unknown: number;
+}
+
 interface Run {
   id: string;
   type: string;
@@ -22,6 +28,7 @@ interface Run {
   failed_leads: number;
   projectName: string | null;
   runStats: RunStats | null;
+  emailRunStats?: EmailRunStats | null;
 }
 
 export function RunHistory({ projectId, refreshKey = 0 }: { projectId?: string; refreshKey?: number }) {
@@ -103,12 +110,26 @@ export function RunHistory({ projectId, refreshKey = 0 }: { projectId?: string; 
               <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-xs text-muted-foreground">
                 <span><span className="font-medium text-foreground">{run.runStats.leadsRequested}</span> leads</span>
                 <span><span className="font-medium text-foreground">{run.runStats.successful}</span> successful</span>
-                <span><span className="font-medium text-foreground">{run.runStats.matched}</span> matched</span>
-                <span><span className="font-medium text-foreground">{run.runStats.noMatch}</span> no match</span>
                 <span><span className="font-medium text-foreground">{run.runStats.failed}</span> failed</span>
+                {run.type === "email" ? (
+                  <>
+                    {run.emailRunStats && (
+                      <>
+                        <span><span className="font-medium text-foreground">{run.emailRunStats.valid}</span> valid</span>
+                        <span><span className="font-medium text-foreground">{run.emailRunStats.invalid}</span> invalid</span>
+                        <span><span className="font-medium text-foreground">{run.emailRunStats.unknown}</span> unknown</span>
+                      </>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <span><span className="font-medium text-foreground">{run.runStats.matched}</span> matched</span>
+                    <span><span className="font-medium text-foreground">{run.runStats.noMatch}</span> no match</span>
+                    <span>{formatTokens(run.runStats.totalTokens)} tokens</span>
+                    <span>{formatCost(run.runStats.totalCost)}</span>
+                  </>
+                )}
                 <span><span className="font-medium text-foreground">{run.runStats.apiRequests}</span> API requests</span>
-                <span>{formatTokens(run.runStats.totalTokens)} tokens</span>
-                <span>{formatCost(run.runStats.totalCost)}</span>
                 <span>{formatDuration(run.runStats.totalDurationMs)}</span>
               </div>
             )}

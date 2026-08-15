@@ -16,9 +16,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select } from "@/components/ui/select";
-import { Popover, PopoverItem } from "@/components/ui/popover";
+import { Popover } from "@/components/ui/popover";
 import { ImportLeadsDialog } from "@/components/spreadsheet/import-leads-dialog";
 import { IcpValidationDialog } from "@/components/spreadsheet/icp-validation-button";
+import { EmailValidationDialog } from "@/components/spreadsheet/email-validation-dialog";
 import { toast } from "sonner";
 import {
   ChevronLeft,
@@ -32,7 +33,6 @@ import {
   Upload,
   CheckCircle2,
   MailCheck,
-  EyeOff,
   ListFilter,
 } from "lucide-react";
 
@@ -268,6 +268,7 @@ export function LeadsTable({ projectId, initialData, initialTotal, refreshKey, o
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
   const [validating, setValidating] = useState<"icp" | "email" | null>(null);
   const [icpDialogOpen, setIcpDialogOpen] = useState(false);
+  const [emailDialogOpen, setEmailDialogOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
   const [pageSize, setPageSize] = useState(10);
   const [pageIndex, setPageIndex] = useState(0);
@@ -413,33 +414,6 @@ export function LeadsTable({ projectId, initialData, initialTotal, refreshKey, o
     onValidationComplete?.();
     handleBatchComplete(ids);
   }, [onValidationComplete, handleBatchComplete]);
-
-  const runValidation = async (type: "email", all: boolean) => {
-    let ids: string[];
-    if (all) {
-      ids = await fetchAllIds();
-    } else {
-      ids = Object.keys(rowSelection);
-    }
-    if (ids.length === 0) return;
-    setValidating(type);
-    const label = type === "email" ? "Email" : "ICP";
-    try {
-      const res = await fetch(`/api/projects/${projectId}/validate/${type}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ leadIds: ids }),
-      });
-      if (!res.ok) throw new Error(await res.text());
-      const json = await res.json();
-      toast.success(`${label} validation done — ${json.processed ?? ids.length} processed`);
-      handleValidationComplete(ids, () => true);
-    } catch (err: any) {
-      toast.error(`${label} validation failed: ${err.message}`);
-    } finally {
-      setValidating(null);
-    }
-  };
 
   const handlePageSizeChange = (size: number) => {
     setPageSize(size);
@@ -613,22 +587,16 @@ export function LeadsTable({ projectId, initialData, initialTotal, refreshKey, o
             <span className="hidden sm:inline">{validating === "icp" ? "ICP…" : "ICP Validation"}</span>
           </Button>
 
-          <Popover
-            trigger={
-              <Button variant="default" size="sm" className="h-8 text-xs gap-1.5" disabled={validating !== null}>
-                <MailCheck className="size-3.5" />
-                <span className="hidden sm:inline">{validating === "email" ? "Email…" : "Email Validation"}</span>
-              </Button>
-            }
-            align="end"
+          <Button
+            variant="default"
+            size="sm"
+            className="h-8 text-xs gap-1.5"
+            disabled={validating !== null}
+            onClick={() => setEmailDialogOpen(true)}
           >
-            <PopoverItem onClick={() => runValidation("email", false)} disabled={Object.keys(rowSelection).length === 0}>
-              Validate Selected ({Object.keys(rowSelection).length})
-            </PopoverItem>
-            <PopoverItem onClick={() => runValidation("email", true)} disabled={totalCount === 0}>
-              Validate All ({totalCount})
-            </PopoverItem>
-          </Popover>
+            <MailCheck className="size-3.5" />
+            <span className="hidden sm:inline">{validating === "email" ? "Email…" : "Email Validation"}</span>
+          </Button>
         </div>
       </div>
 
@@ -784,6 +752,18 @@ export function LeadsTable({ projectId, initialData, initialTotal, refreshKey, o
         }}
         onBatchComplete={handleBatchComplete}
         fetchAllIds={fetchAllIds}
+      />
+
+      <EmailValidationDialog
+        projectId={projectId}
+        open={emailDialogOpen}
+        onOpenChange={setEmailDialogOpen}
+        selectedIds={Object.keys(rowSelection)}
+        totalCount={totalCount}
+        onValidationComplete={(completedIds) => {
+          handleValidationComplete(completedIds, () => true);
+        }}
+        onBatchComplete={handleBatchComplete}
       />
     </div>
   );

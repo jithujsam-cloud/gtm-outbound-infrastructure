@@ -1,5 +1,41 @@
 import { createClient } from "@/lib/supabase/server";
 
+export interface EmailRunStats {
+  valid: number;
+  invalid: number;
+  unknown: number;
+}
+
+export async function getEmailRunStats(
+  supabase: any,
+  jobId: string
+): Promise<EmailRunStats> {
+  const { data: items } = await supabase
+    .from("validation_job_items")
+    .select("lead_id")
+    .eq("job_id", jobId)
+    .eq("status", "completed");
+
+  if (!items || items.length === 0) {
+    return { valid: 0, invalid: 0, unknown: 0 };
+  }
+
+  const leadIds = items.map((i: any) => i.lead_id);
+  const { data: leads } = await supabase
+    .from("leads")
+    .select("id, email_check")
+    .in("id", leadIds);
+
+  const stats: EmailRunStats = { valid: 0, invalid: 0, unknown: 0 };
+  for (const lead of leads ?? []) {
+    if (lead.email_check === "Valid") stats.valid++;
+    else if (lead.email_check === "Invalid") stats.invalid++;
+    else if (lead.email_check === "Unknown") stats.unknown++;
+  }
+
+  return stats;
+}
+
 export async function createValidationJob(params: {
   userId: string;
   projectId: string;

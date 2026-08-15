@@ -67,6 +67,11 @@ interface RunDetailData {
   requests: JobRequest[];
   items: JobItem[];
   runStats: RunStats | null;
+  emailRunStats?: {
+    valid: number;
+    invalid: number;
+    unknown: number;
+  } | null;
 }
 
 export function RunDetail({ jobId, onClose }: { jobId: string; onClose?: () => void }) {
@@ -115,7 +120,7 @@ export function RunDetail({ jobId, onClose }: { jobId: string; onClose?: () => v
     );
   }
 
-  const { job, requests, items, runStats } = data;
+  const { job, requests, items, runStats, emailRunStats } = data;
 
   return (
     <div className="space-y-5">
@@ -142,7 +147,12 @@ export function RunDetail({ jobId, onClose }: { jobId: string; onClose?: () => v
         </p>
       </div>
 
-      {runStats && <SummaryGrid stats={runStats} />}
+      {runStats && (
+        <SummaryGrid
+          stats={runStats}
+          emailRunStats={job.type === "email" ? emailRunStats : null}
+        />
+      )}
 
       <section>
         <h3 className="text-sm font-semibold mb-2">Requests</h3>
@@ -262,26 +272,45 @@ export function RunDetail({ jobId, onClose }: { jobId: string; onClose?: () => v
   );
 }
 
-function SummaryGrid({ stats }: { stats: RunStats }) {
-  const rows = [
+function SummaryGrid({ stats, emailRunStats }: { stats: RunStats; emailRunStats: { valid: number; invalid: number; unknown: number } | null | undefined }) {
+  const commonRows = [
     ["Leads requested", String(stats.leadsRequested)],
     ["Leads processed", String(stats.leadsProcessed)],
     ["Successful", String(stats.successful)],
     ["Failed", String(stats.failed)],
-    ["ICP matches", String(stats.matched)],
-    ["ICP no matches", String(stats.noMatch)],
+  ];
+
+  const emailRows = emailRunStats
+    ? [
+        ["Valid", String(emailRunStats.valid)],
+        ["Invalid", String(emailRunStats.invalid)],
+        ["Unknown", String(emailRunStats.unknown)],
+      ]
+    : [];
+
+  const icpRows = !emailRunStats
+    ? [
+        ["ICP matches", String(stats.matched)],
+        ["ICP no matches", String(stats.noMatch)],
+        ["Input tokens", formatTokens(stats.inputTokens)],
+        ["Cached input tokens", formatTokens(stats.cachedInputTokens)],
+        ["Output tokens", formatTokens(stats.outputTokens)],
+        ["Total tokens", formatTokens(stats.totalTokens)],
+        ["Total cost", formatCost(stats.totalCost)],
+      ]
+    : [];
+
+  const finalRows = [
+    ...commonRows,
+    ...emailRows,
+    ...icpRows,
     ["API requests", String(stats.apiRequests)],
-    ["Input tokens", formatTokens(stats.inputTokens)],
-    ["Cached input tokens", formatTokens(stats.cachedInputTokens)],
-    ["Output tokens", formatTokens(stats.outputTokens)],
-    ["Total tokens", formatTokens(stats.totalTokens)],
-    ["Total cost", formatCost(stats.totalCost)],
     ["Duration", formatDuration(stats.totalDurationMs)],
   ];
 
   return (
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-px bg-border rounded-md overflow-hidden">
-      {rows.map(([label, value]) => (
+      {finalRows.map(([label, value]) => (
         <div key={label} className="bg-card p-2.5">
           <p className="text-[10px] text-muted-foreground">{label}</p>
           <p className="text-sm font-semibold tabular-nums">{value}</p>

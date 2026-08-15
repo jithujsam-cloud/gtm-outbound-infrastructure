@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { getEmailRunStats } from "@/lib/jobs";
 
 export async function GET(
   _request: NextRequest,
@@ -54,10 +55,16 @@ export async function GET(
 
   const statsRow = (statsRes.data as any)?.[0];
 
+  let emailRunStats = null;
+  if (job.type === "email") {
+    emailRunStats = await getEmailRunStats(supabase, jobId);
+  }
+
   return NextResponse.json({
     job,
     requests: requestsRes.data ?? [],
     items: itemsWithLeads,
+    emailRunStats,
     runStats: statsRow
       ? {
           leadsRequested: Number(statsRow.leads_requested ?? 0),

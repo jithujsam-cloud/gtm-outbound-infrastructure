@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { getEmailRunStats } from "@/lib/jobs";
 
 export async function GET(_request: NextRequest) {
   const supabase = await createClient();
@@ -35,9 +36,15 @@ export async function GET(_request: NextRequest) {
         { p_job_id: job.id } as any
       );
       const row = (statsRow as any)?.[0];
+      let emailRunStats = null;
+      if (job.type === "email") {
+        emailRunStats = await getEmailRunStats(supabase, job.id);
+      }
+
       return {
         ...job,
         projectName: job.projects?.name ?? null,
+        emailRunStats,
         runStats: row
           ? {
               leadsRequested: Number(row.leads_requested ?? 0),

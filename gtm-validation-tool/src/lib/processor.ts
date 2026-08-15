@@ -5,6 +5,7 @@ import { ICP_SYSTEM_PROMPT, formatLeadForIcp, buildIcpUserPrompt } from "@/lib/v
 import { createApiLog, updateApiLog } from "@/lib/api-logger";
 import { calculateCost, ProviderError, type ProviderUsage } from "@/lib/llm-pricing";
 import { classifyError, backoffDelay, shouldPauseJob } from "@/lib/retry";
+import { callClearout, parseClearout, ClearoutError } from "@/lib/clearout";
 
 const BATCH_SIZE = 10;
 const GEMINI_BATCH_SIZE = 5;
@@ -439,7 +440,10 @@ export async function processEmailBatch(
           await updateApiLog(logId, {
             status: "success",
             duration_ms: Date.now() - startedAt,
+            http_status: 200,
+            leads_in_request: 1,
             response_metadata: { status: check.status, safe_to_send: check.safe_to_send },
+            raw_response: result,
           });
 
           return {
@@ -457,9 +461,12 @@ export async function processEmailBatch(
         } catch (err: any) {
           const errorClass = classifyError(err.message);
           await updateApiLog(logId, {
-            status: errorClass === "retryable" ? "retryable_error" : "fatal_error",
+            status: errorClass === "system" ? "fatal_error" :
+                    errorClass === "retryable" ? "retryable_error" : "failed",
             duration_ms: Date.now() - startedAt,
-            error_message: err.message?.slice(0, 500),
+            http_status: err instanceof ClearoutError ? err.httpStatus : null,
+            error_message: err.message?.slice(0,500),
+            raw_error: err instanceof ClearoutError ? err.rawError : null,
           });
 
           if (errorClass === "system") {
@@ -547,41 +554,6 @@ export async function processEmailBatch(
   }
 
   return { processed, valid, invalid, errors: errors.slice(0, 5), complete: (remaining?.length ?? 0) === 0 };
-}
-
-async function callClearout(apiKey: string, email: string) {
-  const res = await fetch("https://api.clearout.io/v2/email_verify/instant", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
-    body: JSON.stringify({ email }),
-  });
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error(`Clearout API error (${res.status}): ${err.slice(0, 200)}`);
-  }
-  return res.json();
-}
-
-interface ClearoutParsed {
-  status: string;
-  safe_to_send: boolean;
-  smtp_provider: string | null;
-  mx_record: string | null;
-  score: number | null;
-  account: string | null;
-  domain: string | null;
-}
-
-function parseClearout(data: any): ClearoutParsed {
-  return {
-    status: data?.data?.status || data?.status || "unknown",
-    safe_to_send: data?.data?.safe_to_send ?? false,
-    smtp_provider: data?.data?.smtp_provider || null,
-    mx_record: data?.data?.mx_record || null,
-    score: data?.data?.score ?? data?.score ?? null,
-    account: data?.data?.account || null,
-    domain: data?.data?.domain || null,
-  };
 }
 
 async function recalculateJobProgress(supabase: any, jobId: string) {

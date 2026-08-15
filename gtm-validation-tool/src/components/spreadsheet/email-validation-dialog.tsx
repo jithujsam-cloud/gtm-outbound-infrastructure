@@ -1,0 +1,389 @@
+"use client";
+
+import { useState, useRef, useCallback } from "react";
+import { CheckCircle2, XCircle, Loader2, MailCheck, ShieldCheck } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
+import { formatDuration, type RunStats } from "@/lib/format";
+
+export interface EmailValidationDialogProps {
+  projectId: string;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  selectedIds: string[];
+  totalCount: number;
+  onValidationComplete: (completedIds: string[], runStats: RunStats | null) => void;
+  onBatchComplete?: (completedIds: string[]) => void;
+}
+
+interface EmailActivityItem {
+  leadId: string;
+  company: string;
+  status: "success" | "failed";
+  emailCheck: "Valid" | "Invalid" | "Unknown" | null;
+  safeToSend: boolean | null;
+  error?: string;
+}
+
+interface EmailProgressState {
+  completed: number;
+  failed: number;
+  pending: number;
+  total: number;
+}
+
+interface EmailStats {
+  valid: number;
+  invalid: number;
+  unknown: number;
+}
+
+export function EmailValidationDialog({
+  projectId,
+  open,
+  onOpenChange,
+  selectedIds,
+  totalCount,
+  onValidationComplete,
+  onBatchComplete,
+}: EmailValidationDialogProps) {
+  const [validating, setValidating] = useState(false);
+  const [progress, setProgress] = useState<EmailProgressState | null>(null);
+  const [activity, setActivity] = useState<EmailActivityItem[]>([]);
+  const [runStats, setRunStats] = useState<RunStats | null>(null);
+  const [emailStats, setEmailStats] = useState<EmailStats>({ valid: 0, invalid: 0, unknown: 0 });
+  const seenLeadIds = useRef<Set<string>>(new Set());
+
+  const fetchJobDetail = useCallback(async (jobId: string) => {
+    const res = await fetch(`/api/jobs/${jobId}/detail`);
+    if (!res.ok) return null;
+    return res.json();
+  }, []);
+
+  const applyEmailStats = useCallback((items: any[]) => {
+    const completed = items.filter((i: any) => i.status === "completed");
+    setEmailStats({
+      valid: completed.filter((i: any) => i.lead?.email_check === "Valid").length,
+      invalid: completed.filter((i: any) => i.lead?.email_check === "Invalid").length,
+      unknown: completed.filter((i: any) => i.lead?.email_check === "Unknown").length,
+    });
+  }, []);
+
+  const refreshActivityFromDetail = useCallback(async (jobId: string): Promise<string[]> => {
+    const detail = await fetchJobDetail(jobId);
+    if (!detail) return [];
+
+    if (detail.runStats) {
+      setRunStats(detail.runStats);
+      setProgress({
+        completed: detail.runStats.successful,
+        failed: detail.runStats.failed,
+        pending: Math.max(0, detail.runStats.leadsRequested - detail.runStats.leadsProcessed),
+        total: detail.runStats.leadsRequested,
+      });
+    }
+
+    const items = detail.items ?? [];
+    applyEmailStats(items);
+
+    const newActivity: EmailActivityItem[] = [];
+    const newlyCompleted: string[] = [];
+
+    for (const item of items) {
+      if (item.status !== "completed" && item.status !== "failed") continue;
+      if (seenLeadIds.current.has(item.lead_id)) continue;
+      seenLeadIds.current.add(item.lead_id);
+
+      const lead = item.lead;
+      if (item.status === "completed") newlyCompleted.push(item.lead_id);
+
+      newActivity.push({
+        leadId: item.lead_id,
+        company: lead?.company_name ?? "Unknown lead",
+        status: item.status === "completed" ? "success" : "failed",
+        emailCheck: item.status === "completed" ? (lead?.email_check ?? null) : null,
+        safeToSend: item.status === "completed" ? (lead?.safe_to_send ?? null) : null,
+        error: item.error_message ?? undefined,
+      });
+    }
+
+    if (newActivity.length > 0) {
+      setActivity((prev) => [...newActivity.reverse(), ...prev]);
+    }
+
+    return newlyCompleted;
+  }, [fetchJobDetail, applyEmailStats]);
+
+  const runValidation = async (all: boolean) => {
+    if (!all && selectedIds.length === 0) return;
+
+    setValidating(true);
+    setProgress({
+      completed: 0,
+      failed: 0,
+      pending: all ? totalCount : selectedIds.length,
+      total: all ? totalCount : selectedIds.length,
+    });
+    setActivity([]);
+    setRunStats(null);
+    setEmailStats({ valid: 0, invalid: 0, unknown: 0 });
+    seenLeadIds.current = new Set();
+
+    try {
+      const body: any = { type: "email", mode: all ? "continuous" : "selected" };
+      if (!all) body.leadIds = selectedIds;
+
+      const jobRes = await fetch(`/api/projects/${projectId}/jobs`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+
+      if (!jobRes.ok) {
+        const text = await jobRes.text();
+        let msg = text;
+        try { msg = JSON.parse(text).error || text; } catch {}
+        throw new Error(msg);
+      }
+
+      const jobJson = await jobRes.json();
+      const currentJobId = jobJson.jobId;
+      setProgress((p) => p ? { ...p, total: jobJson.totalLeads, pending: jobJson.totalLeads } : null);
+
+      while (true) {
+        const statusRes = await fetch(`/api/jobs/${currentJobId}`);
+        if (statusRes.ok) {
+          const status = await statusRes.json();
+          if (status.progress) {
+            setProgress((p) => p ? {
+              ...p,
+              completed: status.progress.completed,
+              failed: status.progress.failed,
+              pending: status.progress.pending,
+              total: status.progress.total,
+            } : p);
+          }
+          if (status.runStats) setRunStats(status.runStats);
+
+          if (
+            status.progress?.pending === 0 ||
+            ["completed", "completed_with_errors", "failed", "cancelled", "paused"].includes(status.status)
+          ) {
+            break;
+          }
+        }
+
+        const processRes = await fetch(`/api/jobs/${currentJobId}/process`, { method: "POST" });
+        if (!processRes.ok) {
+          const text = await processRes.text();
+          let msg = text;
+          try { msg = JSON.parse(text).error || text; } catch {}
+          throw new Error(msg);
+        }
+
+        const result = await processRes.json();
+
+        const newlyCompleted = await refreshActivityFromDetail(currentJobId);
+        if (newlyCompleted.length > 0) {
+          onBatchComplete?.(newlyCompleted);
+        }
+
+        if (result.paused) {
+          toast.error(`Job paused: ${result.pausedReason || "Unknown error"}`);
+          break;
+        }
+
+        if (result.complete) break;
+
+        await new Promise((r) => setTimeout(r, 500));
+      }
+
+      const finalNewlyCompleted = await refreshActivityFromDetail(currentJobId);
+      if (finalNewlyCompleted.length > 0) {
+        onBatchComplete?.(finalNewlyCompleted);
+      }
+
+      const finalDetail = await fetchJobDetail(currentJobId);
+      const finalStats: RunStats | null = finalDetail?.runStats ?? null;
+      setRunStats(finalStats);
+      if (finalDetail?.items) applyEmailStats(finalDetail.items);
+
+      const completedIds = (finalDetail?.items ?? [])
+        .filter((i: any) => i.status === "completed")
+        .map((i: any) => i.lead_id);
+
+      onValidationComplete(completedIds, finalStats);
+    } catch (err: any) {
+      toast.error(`Email validation failed: ${err.message}`);
+    } finally {
+      setValidating(false);
+    }
+  };
+
+  const processedCount = progress ? progress.completed + progress.failed : 0;
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-[calc(100%-1rem)] sm:max-w-[560px]">
+        <DialogHeader>
+          <DialogTitle>Email Validation</DialogTitle>
+          <DialogDescription>
+            {selectedIds.length > 0
+              ? `${selectedIds.length} lead${selectedIds.length !== 1 ? "s" : ""} selected`
+              : `${totalCount} leads in project`}
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-4 mt-4 max-h-[70vh] overflow-y-auto pr-1">
+          {validating && (
+            <div className="space-y-3 pt-2 border-t">
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-muted-foreground">
+                  Validating {processedCount} of {progress?.total ?? 0} leads
+                </span>
+                <span className="flex items-center gap-3 tabular-nums">
+                  <span className="flex items-center gap-1">
+                    <CheckCircle2 className="size-3 text-emerald-500" />
+                    {progress?.completed ?? 0}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <XCircle className="size-3 text-red-500" />
+                    {progress?.failed ?? 0}
+                  </span>
+                  <span className="flex items-center gap-1 text-muted-foreground">
+                    <Loader2 className="size-3 animate-spin" />
+                    {progress?.pending ?? 0}
+                  </span>
+                </span>
+              </div>
+
+              <div className="h-2 bg-muted rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-primary rounded-full transition-all duration-500"
+                  style={{
+                    width: `${progress?.total ? (processedCount / progress.total) * 100 : 0}%`,
+                  }}
+                />
+              </div>
+
+              {activity.length > 0 && (
+                <div className="space-y-1 max-h-40 overflow-y-auto rounded-md border bg-muted/20 p-2">
+                  {activity.map((item) => (
+                    <div key={item.leadId} className="flex items-center gap-2 text-xs">
+                      {item.status === "success" ? (
+                        <CheckCircle2 className="size-3.5 text-emerald-500 shrink-0" />
+                      ) : (
+                        <XCircle className="size-3.5 text-red-500 shrink-0" />
+                      )}
+                      <span className="font-medium truncate">{item.company}</span>
+                      {item.status === "success" ? (
+                        <>
+                          {item.emailCheck && (
+                            <Badge
+                              variant={item.emailCheck === "Valid" ? "default" : item.emailCheck === "Invalid" ? "destructive" : "secondary"}
+                              className="text-[10px] px-1.5 py-0"
+                            >
+                              {item.emailCheck}
+                            </Badge>
+                          )}
+                          {item.safeToSend === true && (
+                            <span className="inline-flex items-center gap-0.5 text-emerald-600 dark:text-emerald-400">
+                              <ShieldCheck className="size-3" />
+                              Safe
+                            </span>
+                          )}
+                        </>
+                      ) : (
+                        <span className="text-red-600 dark:text-red-400 truncate">
+                          Failed{item.error ? ` — ${item.error}` : ""}
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {runStats && !validating && (
+            <EmailRunSummary
+              stats={runStats}
+              emailStats={emailStats}
+            />
+          )}
+
+          <div className="flex flex-wrap justify-end gap-2 pt-2 border-t">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onOpenChange(false)}
+              disabled={validating}
+            >
+              {runStats && !validating ? "Close" : "Cancel"}
+            </Button>
+            {!runStats && (
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={totalCount === 0 || validating}
+                  onClick={() => runValidation(true)}
+                >
+                  Validate All ({totalCount})
+                </Button>
+                <Button
+                  size="sm"
+                  className="gap-1.5"
+                  disabled={selectedIds.length === 0 || validating}
+                  onClick={() => runValidation(false)}
+                >
+                  {validating ? (
+                    <>
+                      <MailCheck className="size-3.5 animate-pulse" />
+                      Validating...
+                    </>
+                  ) : (
+                    <>
+                      <MailCheck className="size-3.5" />
+                      Validate Selected ({selectedIds.length})
+                    </>
+                  )}
+                </Button>
+              </>
+            )}
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function EmailRunSummary({ stats, emailStats }: { stats: RunStats; emailStats: EmailStats }) {
+  const rows = [
+    ["Leads requested", String(stats.leadsRequested)],
+    ["Leads processed", String(stats.leadsProcessed)],
+    ["Successful", String(stats.successful)],
+    ["Failed", String(stats.failed)],
+    ["Valid", String(emailStats.valid)],
+    ["Invalid", String(emailStats.invalid)],
+    ["Unknown", String(emailStats.unknown)],
+    ["API requests", String(stats.apiRequests)],
+    ["Duration", formatDuration(stats.totalDurationMs)],
+  ];
+
+  return (
+    <div className="rounded-md border bg-muted/20 p-3 space-y-1.5">
+      <div className="text-sm font-medium">Run summary</div>
+      <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+        {rows.map(([label, value]) => (
+          <div key={label} className="flex items-center justify-between text-xs border-b border-border/50 py-0.5">
+            <span className="text-muted-foreground">{label}</span>
+            <span className="font-medium tabular-nums">{value}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}

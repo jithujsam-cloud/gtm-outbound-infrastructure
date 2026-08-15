@@ -5,7 +5,7 @@ import { ICP_SYSTEM_PROMPT, formatLeadForIcp, buildIcpUserPrompt } from "@/lib/v
 import { createApiLog, updateApiLog } from "@/lib/api-logger";
 import { calculateCost, ProviderError, type ProviderUsage } from "@/lib/llm-pricing";
 import { classifyError, backoffDelay, shouldPauseJob } from "@/lib/retry";
-import { callClearout, parseClearout, ClearoutError } from "@/lib/clearout";
+import { callClearout, parseClearout, ClearoutError, isClearoutProviderRateLimit, clearoutRateLimitResetAt } from "@/lib/clearout";
 
 const BATCH_SIZE = 10;
 const GEMINI_BATCH_SIZE = 5;
@@ -29,7 +29,7 @@ const LEAD_FIELDS_FOR_PROMPT = [
 const JOB_FIELDS = [
   "id", "user_id", "project_id", "status", "llm_provider",
   "model", "temperature", "max_tokens", "prompt",
-  "failed_leads", "completed_leads", "type",
+  "failed_leads", "completed_leads", "type", "provider_reset_at",
 ];
 
 export async function processJobBatch(
@@ -352,6 +352,8 @@ export async function processEmailBatch(
   complete: boolean;
   paused?: boolean;
   pausedReason?: string;
+  providerRateLimited?: boolean;
+  resetAt?: string | null;
 }> {
   const supabase = await createClient();
 
@@ -367,10 +369,30 @@ export async function processEmailBatch(
     return { processed: 0, valid: 0, invalid: 0, errors: [], complete: true };
   }
 
+  const providerResetAt = job.provider_reset_at ? new Date(job.provider_reset_at) : null;
+
+  if (providerResetAt && providerResetAt.getTime() > Date.now()) {
+    return {
+      processed: 0,
+      valid: 0,
+      invalid: 0,
+      errors: [],
+      complete: false,
+      paused: true,
+      pausedReason: "Clearout rate limit reached. Validation is paused.",
+      providerRateLimited: true,
+      resetAt: providerResetAt.toISOString(),
+    };
+  }
+
   if (job.status === "queued" || job.status === "paused") {
     await supabase
       .from("validation_jobs")
-      .update({ status: "running", started_at: new Date().toISOString() })
+      .update({
+        status: "running",
+        started_at: job.started_at ?? new Date().toISOString(),
+        provider_reset_at: null,
+      })
       .eq("id", jobId);
   }
 
@@ -407,6 +429,8 @@ export async function processEmailBatch(
   let invalid = 0;
   const errors: string[] = [];
   let batchFailures = 0;
+  let providerRateLimited = false;
+  let resetAt: string | null = null;
 
   // Process emails with controlled concurrency
   const emailItems = claimed.map((item: any) => {
@@ -459,6 +483,20 @@ export async function processEmailBatch(
             clearout_domain: check.domain,
           };
         } catch (err: any) {
+          if (isClearoutProviderRateLimit(err)) {
+            providerRateLimited = true;
+            resetAt = clearoutRateLimitResetAt(err);
+            await updateApiLog(logId, {
+              status: "retryable_error",
+              duration_ms: Date.now() - startedAt,
+              http_status: err.httpStatus,
+              error_code: err.errorCode != null ? String(err.errorCode) : null,
+              error_message: err.message?.slice(0, 500),
+              raw_error: err.rawError,
+            });
+            return null;
+          }
+
           const errorClass = classifyError(err.message);
           await updateApiLog(logId, {
             status: errorClass === "system" ? "fatal_error" :
@@ -531,6 +569,42 @@ export async function processEmailBatch(
     if (successResults.length > 0) {
       await supabase.rpc("apply_email_results", { p_updates: successResults });
     }
+
+    if (providerRateLimited) {
+      break;
+    }
+  }
+
+  if (providerRateLimited) {
+    const effectiveResetAt = resetAt ?? new Date(Date.now() + 15 * 60 * 1000).toISOString();
+
+    await supabase.rpc("release_rate_limited_items", {
+      p_job_id: jobId,
+      p_reset_at: effectiveResetAt,
+    });
+
+    await supabase
+      .from("validation_jobs")
+      .update({
+        status: "paused",
+        provider_reset_at: effectiveResetAt,
+        error_message: "Clearout rate limit reached. Validation is paused and will continue after the limit resets.",
+      })
+      .eq("id", jobId);
+
+    await recalculateJobProgress(supabase, jobId);
+
+    return {
+      processed,
+      valid,
+      invalid,
+      errors: [...errors, "Clearout rate limit reached. Validation is paused."],
+      complete: false,
+      paused: true,
+      pausedReason: "Clearout rate limit reached. Validation is paused.",
+      providerRateLimited: true,
+      resetAt: effectiveResetAt,
+    };
   }
 
   const { data: remaining } = await supabase

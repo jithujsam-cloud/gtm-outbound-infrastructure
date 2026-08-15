@@ -1,4 +1,5 @@
 const CLEAROUT_TIMEOUT_MS = 45000;
+const CLEAROUT_RATE_LIMIT_FALLBACK_MS = 15 * 60 * 1000;
 
 export interface ClearoutParsed {
   status: string;
@@ -12,14 +13,50 @@ export interface ClearoutParsed {
 
 export class ClearoutError extends Error {
   httpStatus: number | null;
+  errorCode: number | null;
+  resetAt: string | null;
   rawError: unknown;
 
-  constructor(message: string, httpStatus?: number | null, rawError?: unknown) {
+  constructor(
+    message: string,
+    httpStatus?: number | null,
+    rawError?: unknown,
+    errorCode?: number | null,
+    resetAt?: string | null
+  ) {
     super(message);
     this.name = "ClearoutError";
     this.httpStatus = httpStatus ?? null;
+    this.errorCode = errorCode ?? null;
+    this.resetAt = resetAt ?? null;
     this.rawError = rawError ?? null;
   }
+}
+
+export function isClearoutProviderRateLimit(error: unknown): error is ClearoutError {
+  if (!(error instanceof ClearoutError)) return false;
+  return error.httpStatus === 429 && error.errorCode === 1030;
+}
+
+function extractResetAt(body: any): string | null {
+  const candidates: string[] = [];
+
+  const code = body?.error?.code ?? body?.code;
+  if (typeof code === "string") candidates.push(code);
+  if (typeof code === "number") candidates.push(String(code));
+
+  const message = body?.error?.message ?? body?.message;
+  if (typeof message === "string") candidates.push(message);
+
+  for (const text of candidates) {
+    const match = text.match(/\b\w{3}\s+\w{3}\s+\d{2}\s+\d{4}\s+\d{2}:\d{2}:\d{2}\s+GMT[+-]\d{4}\b/);
+    if (match) {
+      const parsed = new Date(match[0]);
+      if (!Number.isNaN(parsed.getTime())) return parsed.toISOString();
+    }
+  }
+
+  return null;
 }
 
 export async function callClearout(
@@ -42,16 +79,21 @@ export async function callClearout(
     });
 
     if (!res.ok) {
-      const err = await res.text();
-      let rawError: unknown = err;
+      const text = await res.text();
+      let rawError: unknown = text;
       try {
-        rawError = JSON.parse(err);
+        rawError = JSON.parse(text);
       } catch {}
 
+      const errorCode = (rawError as any)?.error?.code ?? (rawError as any)?.code ?? null;
+      const resetAt = extractResetAt(rawError);
+
       throw new ClearoutError(
-        `Clearout API error (${res.status}): ${err.slice(0, 200)}`,
+        `Clearout API error (${res.status}): ${text.slice(0, 200)}`,
         res.status,
-        rawError
+        rawError,
+        typeof errorCode === "number" ? errorCode : null,
+        resetAt
       );
     }
 
@@ -68,6 +110,11 @@ export async function callClearout(
   } finally {
     clearTimeout(timer);
   }
+}
+
+export function clearoutRateLimitResetAt(error: ClearoutError): string {
+  if (error.resetAt) return error.resetAt;
+  return new Date(Date.now() + CLEAROUT_RATE_LIMIT_FALLBACK_MS).toISOString();
 }
 
 export function parseClearout(data: any): ClearoutParsed {

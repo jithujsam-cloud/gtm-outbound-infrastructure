@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { formatDuration, type RunStats } from "@/lib/format";
+import { formatDuration, formatDateTime, type RunStats } from "@/lib/format";
 
 export interface EmailValidationDialogProps {
   projectId: string;
@@ -54,6 +54,7 @@ export function EmailValidationDialog({
   const [activity, setActivity] = useState<EmailActivityItem[]>([]);
   const [runStats, setRunStats] = useState<RunStats | null>(null);
   const [emailStats, setEmailStats] = useState<EmailStats>({ valid: 0, invalid: 0, unknown: 0 });
+  const [rateLimited, setRateLimited] = useState<{ resetAt: string } | null>(null);
   const seenLeadIds = useRef<Set<string>>(new Set());
 
   const fetchJobDetail = useCallback(async (jobId: string) => {
@@ -83,6 +84,12 @@ export function EmailValidationDialog({
         pending: Math.max(0, detail.runStats.leadsRequested - detail.runStats.leadsProcessed),
         total: detail.runStats.leadsRequested,
       });
+    }
+
+    if (detail.job?.provider_reset_at) {
+      setRateLimited({ resetAt: detail.job.provider_reset_at });
+    } else {
+      setRateLimited(null);
     }
 
     const items = detail.items ?? [];
@@ -129,6 +136,7 @@ export function EmailValidationDialog({
     setActivity([]);
     setRunStats(null);
     setEmailStats({ valid: 0, invalid: 0, unknown: 0 });
+    setRateLimited(null);
     seenLeadIds.current = new Set();
 
     try {
@@ -167,9 +175,22 @@ export function EmailValidationDialog({
           }
           if (status.runStats) setRunStats(status.runStats);
 
+          const job = status as any;
+          if (job.provider_reset_at) {
+            const resetAt = new Date(job.provider_reset_at);
+            if (resetAt.getTime() > Date.now()) {
+              setRateLimited({ resetAt: job.provider_reset_at });
+              const waitMs = Math.min(resetAt.getTime() - Date.now(), 60_000);
+              await new Promise((r) => setTimeout(r, waitMs));
+              continue;
+            }
+            setRateLimited(null);
+          }
+
           if (
             status.progress?.pending === 0 ||
-            ["completed", "completed_with_errors", "failed", "cancelled", "paused"].includes(status.status)
+            ["completed", "completed_with_errors", "failed", "cancelled"].includes(status.status) ||
+            (status.status === "paused" && !status.provider_reset_at)
           ) {
             break;
           }
@@ -188,6 +209,13 @@ export function EmailValidationDialog({
         const newlyCompleted = await refreshActivityFromDetail(currentJobId);
         if (newlyCompleted.length > 0) {
           onBatchComplete?.(newlyCompleted);
+        }
+
+        if (result.providerRateLimited) {
+          const resetAt = result.resetAt ? new Date(result.resetAt) : null;
+          setRateLimited(resetAt ? { resetAt: result.resetAt } : null);
+          toast.error("Clearout rate limit reached. Validation is paused.");
+          break;
         }
 
         if (result.paused) {
@@ -209,6 +237,9 @@ export function EmailValidationDialog({
       const finalStats: RunStats | null = finalDetail?.runStats ?? null;
       setRunStats(finalStats);
       if (finalDetail?.items) applyEmailStats(finalDetail.items);
+      if (finalDetail?.job?.provider_reset_at) {
+        setRateLimited({ resetAt: finalDetail.job.provider_reset_at });
+      }
 
       const completedIds = (finalDetail?.items ?? [])
         .filter((i: any) => i.status === "completed")
@@ -304,6 +335,22 @@ export function EmailValidationDialog({
                   ))}
                 </div>
               )}
+
+              {rateLimited && (
+                <div className="rounded-md border bg-amber-50 dark:bg-amber-950/20 p-3 space-y-1">
+                  <div className="flex items-center gap-2 text-xs font-medium text-amber-700 dark:text-amber-400">
+                    <ShieldCheck className="size-3.5" />
+                    Clearout rate limit reached. Validation is paused.
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Continuing after the limit resets
+                    {rateLimited.resetAt ? ` at ${formatDateTime(rateLimited.resetAt)}` : "."}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Validated: {progress?.completed ?? 0} · Failed: {progress?.failed ?? 0} · Waiting: {progress?.pending ?? 0}
+                  </p>
+                </div>
+              )}
             </div>
           )}
 
@@ -311,6 +358,7 @@ export function EmailValidationDialog({
             <EmailRunSummary
               stats={runStats}
               emailStats={emailStats}
+              rateLimited={rateLimited}
             />
           )}
 
@@ -360,12 +408,14 @@ export function EmailValidationDialog({
   );
 }
 
-function EmailRunSummary({ stats, emailStats }: { stats: RunStats; emailStats: EmailStats }) {
+function EmailRunSummary({ stats, emailStats, rateLimited }: { stats: RunStats; emailStats: EmailStats; rateLimited: { resetAt: string } | null }) {
+  const waiting = Math.max(0, stats.leadsRequested - stats.leadsProcessed);
+
   const rows = [
     ["Leads requested", String(stats.leadsRequested)],
-    ["Leads processed", String(stats.leadsProcessed)],
-    ["Successful", String(stats.successful)],
+    ["Validated", String(stats.successful)],
     ["Failed", String(stats.failed)],
+    ["Waiting", String(waiting)],
     ["Valid", String(emailStats.valid)],
     ["Invalid", String(emailStats.invalid)],
     ["Unknown", String(emailStats.unknown)],
@@ -384,6 +434,12 @@ function EmailRunSummary({ stats, emailStats }: { stats: RunStats; emailStats: E
           </div>
         ))}
       </div>
+      {rateLimited && (
+        <div className="mt-2 rounded-md bg-amber-50 dark:bg-amber-950/20 p-2 text-xs text-amber-700 dark:text-amber-400">
+          Clearout rate limit reached. Continuing after the limit resets
+          {rateLimited.resetAt ? ` at ${formatDateTime(rateLimited.resetAt)}` : "."}
+        </div>
+      )}
     </div>
   );
 }

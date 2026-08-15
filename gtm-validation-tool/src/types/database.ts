@@ -320,6 +320,7 @@ export interface Database {
           failed_leads: number
           skipped_leads: number
           error_message: string | null
+          provider_reset_at: string | null
           created_at: string
           started_at: string | null
           completed_at: string | null
@@ -340,6 +341,7 @@ export interface Database {
           failed_leads?: number
           skipped_leads?: number
           error_message?: string | null
+          provider_reset_at?: string | null
           created_at?: string
           started_at?: string | null
           completed_at?: string | null
@@ -360,6 +362,7 @@ export interface Database {
           failed_leads?: number
           skipped_leads?: number
           error_message?: string | null
+          provider_reset_at?: string | null
           created_at?: string
           started_at?: string | null
           completed_at?: string | null
@@ -379,6 +382,7 @@ export interface Database {
           started_at: string | null
           completed_at: string | null
           created_at: string
+          next_attempt_at: string | null
         }
         Insert: {
           id?: string
@@ -392,6 +396,7 @@ export interface Database {
           started_at?: string | null
           completed_at?: string | null
           created_at?: string
+          next_attempt_at?: string | null
         }
         Update: {
           id?: string
@@ -405,6 +410,7 @@ export interface Database {
           started_at?: string | null
           completed_at?: string | null
           created_at?: string
+          next_attempt_at?: string | null
         }
       }
     }

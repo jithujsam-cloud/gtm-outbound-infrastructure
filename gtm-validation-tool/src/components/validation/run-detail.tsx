@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatCost, formatDuration, formatTokens, formatDateTime, formatProvider, type RunStats } from "@/lib/format";
-import { ChevronDown, ChevronRight, XCircle, CheckCircle2 } from "lucide-react";
+import { ChevronDown, ChevronRight, XCircle, CheckCircle2, Clock } from "lucide-react";
 
 interface JobRequest {
   id: string;
@@ -36,6 +36,7 @@ interface JobItem {
   attempt: number;
   error_message: string | null;
   completed_at: string | null;
+  next_attempt_at: string | null;
   lead: {
     full_name: string | null;
     company_name: string | null;
@@ -63,6 +64,7 @@ interface RunDetailData {
     failed_leads: number;
     skipped_leads: number;
     error_message: string | null;
+    provider_reset_at: string | null;
   };
   requests: JobRequest[];
   items: JobItem[];
@@ -121,6 +123,7 @@ export function RunDetail({ jobId, onClose }: { jobId: string; onClose?: () => v
   }
 
   const { job, requests, items, runStats, emailRunStats } = data;
+  const waiting = runStats ? Math.max(0, runStats.leadsRequested - runStats.leadsProcessed) : 0;
 
   return (
     <div className="space-y-5">
@@ -145,6 +148,11 @@ export function RunDetail({ jobId, onClose }: { jobId: string; onClose?: () => v
           {job.llm_provider ? ` · ${formatProvider(job.llm_provider)}` : ""}
           {job.model ? ` · ${job.model}` : ""}
         </p>
+        {job.provider_reset_at && (
+          <div className="mt-2 rounded-md bg-amber-50 dark:bg-amber-950/20 px-2 py-1 text-xs text-amber-700 dark:text-amber-400">
+            Clearout rate limit reached. Continuing after the limit resets at {formatDateTime(job.provider_reset_at)}.
+          </div>
+        )}
       </div>
 
       {runStats && (
@@ -228,6 +236,9 @@ export function RunDetail({ jobId, onClose }: { jobId: string; onClose?: () => v
                   {items.map((item) => {
                     const lead = item.lead;
                     const failed = item.status === "failed";
+                    const completed = item.status === "completed";
+                    const waiting = item.status === "pending" && job.provider_reset_at;
+
                     return (
                       <tr key={item.id} className="border-b last:border-0 align-top">
                         <td className="px-3 py-2 text-xs">{lead?.full_name ?? "—"}</td>
@@ -248,9 +259,21 @@ export function RunDetail({ jobId, onClose }: { jobId: string; onClose?: () => v
                             <span className="inline-flex items-center gap-1 text-red-600 dark:text-red-400">
                               <XCircle className="size-3" /> Failed
                             </span>
-                          ) : (
+                          ) : completed ? (
                             <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
                               <CheckCircle2 className="size-3" /> Completed
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 text-muted-foreground">
+                              {waiting ? (
+                                <>
+                                  <ClockIcon /> Waiting for Clearout reset
+                                </>
+                              ) : (
+                                <>
+                                  <ClockIcon /> Pending
+                                </>
+                              )}
                             </span>
                           )}
                           {item.error_message && (
@@ -273,6 +296,8 @@ export function RunDetail({ jobId, onClose }: { jobId: string; onClose?: () => v
 }
 
 function SummaryGrid({ stats, emailRunStats }: { stats: RunStats; emailRunStats: { valid: number; invalid: number; unknown: number } | null | undefined }) {
+  const waiting = Math.max(0, stats.leadsRequested - stats.leadsProcessed);
+
   const commonRows = [
     ["Leads requested", String(stats.leadsRequested)],
     ["Leads processed", String(stats.leadsProcessed)],
@@ -282,6 +307,7 @@ function SummaryGrid({ stats, emailRunStats }: { stats: RunStats; emailRunStats:
 
   const emailRows = emailRunStats
     ? [
+        ["Waiting", String(waiting)],
         ["Valid", String(emailRunStats.valid)],
         ["Invalid", String(emailRunStats.invalid)],
         ["Unknown", String(emailRunStats.unknown)],
@@ -411,4 +437,8 @@ function StatusBadge({ status }: { status: string }) {
 
 function ChevronLeftIcon() {
   return <span aria-hidden>←</span>;
+}
+
+function ClockIcon() {
+  return <Clock className="size-3" />;
 }

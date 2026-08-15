@@ -32,7 +32,7 @@ export async function GET(
       .order("created_at", { ascending: true }),
     supabase
       .from("validation_job_items")
-      .select("id, lead_id, status, attempt, max_attempts, error_message, completed_at, created_at")
+      .select("id, lead_id, status, attempt, max_attempts, error_message, completed_at, next_attempt_at, created_at")
       .eq("job_id", jobId)
       .order("created_at", { ascending: true }),
     supabase.rpc("get_validation_run_stats", { p_job_id: jobId } as any),

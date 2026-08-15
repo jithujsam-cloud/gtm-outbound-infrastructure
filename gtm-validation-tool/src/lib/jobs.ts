@@ -47,7 +47,7 @@ export async function createValidationJob(params: {
   llmProvider?: string;
   temperature?: number;
   maxTokens?: number;
-}): Promise<{ jobId: string; totalLeads: number; skippedLeads: number }> {
+}): Promise<{ jobId: string; totalLeads: number; skippedLeads: number; resumed?: boolean }> {
   const { userId, projectId, type, mode, leadIds, prompt, model, llmProvider, temperature, maxTokens } = params;
   const supabase = await createClient();
 
@@ -74,16 +74,42 @@ export async function createValidationJob(params: {
     throw new Error("All selected leads are already validated");
   }
 
-  // Clean up any stale active jobs for this user+project+type before creating a new one
+  // Clean up any stale active jobs for this user+project+type before creating a new one.
+  // A provider-rate-limited email job is NOT stale — preserve it instead of
+  // destroying its pending items. Only mark genuinely superseded jobs failed.
   const { data: staleJobs } = await supabase
     .from("validation_jobs")
-    .select("id, status")
+    .select("id, status, provider_reset_at, total_leads, skipped_leads")
     .eq("user_id", userId)
     .eq("project_id", projectId)
     .eq("type", type)
     .in("status", ["queued", "running", "paused"]);
 
-  if (staleJobs && staleJobs.length > 0) {
+  const preserveIds: string[] = [];
+  const supersededIds: string[] = [];
+
+  for (const stale of staleJobs ?? []) {
+    if (type === "email" && stale.status === "paused" && stale.provider_reset_at) {
+      preserveIds.push(stale.id);
+    } else {
+      supersededIds.push(stale.id);
+    }
+  }
+
+  if (preserveIds.length > 0 && type === "email") {
+    const preserved = staleJobs?.find((j) => j.id === preserveIds[0]);
+    if (!preserved) {
+      throw new Error("Failed to load existing Clearout rate-limited job");
+    }
+    return {
+      jobId: preserved.id,
+      totalLeads: preserved.total_leads,
+      skippedLeads: preserved.skipped_leads,
+      resumed: true,
+    };
+  }
+
+  if (supersededIds.length > 0) {
     await supabase
       .from("validation_jobs")
       .update({
@@ -91,7 +117,7 @@ export async function createValidationJob(params: {
         error_message: "Superseded by new validation job",
         completed_at: new Date().toISOString(),
       })
-      .in("id", staleJobs.map((j) => j.id));
+      .in("id", supersededIds);
   }
 
   const { data: job, error: jobErr } = await supabase

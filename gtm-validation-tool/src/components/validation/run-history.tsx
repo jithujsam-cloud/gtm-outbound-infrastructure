@@ -26,6 +26,7 @@ interface Run {
   total_leads: number;
   completed_leads: number;
   failed_leads: number;
+  provider_reset_at?: string | null;
   projectName: string | null;
   runStats: RunStats | null;
   emailRunStats?: EmailRunStats | null;
@@ -106,6 +107,12 @@ export function RunHistory({ projectId, refreshKey = 0 }: { projectId?: string; 
               {run.model ? ` · ${run.model}` : ""}
             </p>
 
+            {run.provider_reset_at && (
+              <div className="mt-2 rounded-md bg-amber-50 dark:bg-amber-950/20 px-2 py-1 text-xs text-amber-700 dark:text-amber-400">
+                Clearout rate limit reached. Continuing after the limit resets at {formatDateTime(run.provider_reset_at)}.
+              </div>
+            )}
+
             {run.runStats && (
               <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-xs text-muted-foreground">
                 <span><span className="font-medium text-foreground">{run.runStats.leadsRequested}</span> leads</span>
@@ -113,6 +120,7 @@ export function RunHistory({ projectId, refreshKey = 0 }: { projectId?: string; 
                 <span><span className="font-medium text-foreground">{run.runStats.failed}</span> failed</span>
                 {run.type === "email" ? (
                   <>
+                    <span><span className="font-medium text-foreground">{Math.max(0, run.runStats.leadsRequested - run.runStats.leadsProcessed)}</span> waiting</span>
                     {run.emailRunStats && (
                       <>
                         <span><span className="font-medium text-foreground">{run.emailRunStats.valid}</span> valid</span>

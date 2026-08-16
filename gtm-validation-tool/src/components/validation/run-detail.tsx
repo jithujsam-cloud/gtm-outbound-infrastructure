@@ -65,6 +65,8 @@ interface RunDetailData {
     skipped_leads: number;
     error_message: string | null;
     provider_reset_at: string | null;
+    requests_per_minute: number | null;
+    timeout_seconds: number | null;
   };
   requests: JobRequest[];
   items: JobItem[];
@@ -160,6 +162,34 @@ export function RunDetail({ jobId, onClose }: { jobId: string; onClose?: () => v
           stats={runStats}
           emailRunStats={job.type === "email" ? emailRunStats : null}
         />
+      )}
+
+      {job.type === "email" && (
+        <section>
+          <h3 className="text-sm font-semibold mb-2">Email validation settings</h3>
+          <div className="rounded-md border overflow-hidden">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-px bg-border">
+              <div className="bg-card p-2.5">
+                <p className="text-[10px] text-muted-foreground">Provider</p>
+                <p className="text-sm font-semibold">Clearout</p>
+              </div>
+              <div className="bg-card p-2.5">
+                <p className="text-[10px] text-muted-foreground">Requests per minute</p>
+                <p className="text-sm font-semibold tabular-nums">{job.requests_per_minute ?? 3}</p>
+              </div>
+              <div className="bg-card p-2.5">
+                <p className="text-[10px] text-muted-foreground">Request timeout</p>
+                <p className="text-sm font-semibold tabular-nums">{job.timeout_seconds ?? 45} seconds</p>
+              </div>
+              <div className="bg-card p-2.5">
+                <p className="text-[10px] text-muted-foreground">Request spacing</p>
+                <p className="text-sm font-semibold tabular-nums">
+                  {(60 / (job.requests_per_minute ?? 3)).toFixed((60 / (job.requests_per_minute ?? 3)) % 1 === 0 ? 0 : 1)} seconds
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
       )}
 
       <section>

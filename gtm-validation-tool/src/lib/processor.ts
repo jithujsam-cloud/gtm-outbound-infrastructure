@@ -6,12 +6,12 @@ import { createApiLog, updateApiLog } from "@/lib/api-logger";
 import { calculateCost, ProviderError, type ProviderUsage } from "@/lib/llm-pricing";
 import { classifyError, backoffDelay, shouldPauseJob } from "@/lib/retry";
 import { callClearout, parseClearout, ClearoutError, isClearoutProviderRateLimit, clearoutRateLimitResetAt } from "@/lib/clearout";
+import { clearoutTimeoutMs, DEFAULT_CLEAROUT_RPM, DEFAULT_CLEAROUT_TIMEOUT_SECONDS } from "@/lib/clearout-rate";
 
 const BATCH_SIZE = 10;
 const GEMINI_BATCH_SIZE = 5;
 const OPENAI_BATCH_SIZE = 3;
 const MAX_CONCURRENT = 2;
-const MAX_CONCURRENT_EMAIL = 3;
 const MAX_JOB_SIZE = 200;
 
 export function getMaxJobSize(): number {
@@ -30,6 +30,7 @@ const JOB_FIELDS = [
   "id", "user_id", "project_id", "status", "llm_provider",
   "model", "temperature", "max_tokens", "prompt",
   "failed_leads", "completed_leads", "type", "provider_reset_at",
+  "requests_per_minute", "timeout_seconds",
 ];
 
 export async function processJobBatch(
@@ -329,11 +330,16 @@ export async function processJobBatch(
   return { processed, matched, errors: errors.slice(0, 5), complete: (remaining?.length ?? 0) === 0 };
 }
 
-async function claimBatch(supabase: any, jobId: string, limit: number): Promise<any[]> {
+async function claimBatch(
+  supabase: any,
+  jobId: string,
+  limit: number,
+  leaseSeconds: number = 60
+): Promise<any[]> {
   const { data, error } = await supabase.rpc("claim_job_items", {
     p_job_id: jobId,
     p_batch_size: limit,
-    p_lease_seconds: 60,
+    p_lease_seconds: leaseSeconds,
   });
   if (error) throw new Error(`Failed to claim items: ${error.message}`);
   return data ?? [];
@@ -369,6 +375,9 @@ export async function processEmailBatch(
     return { processed: 0, valid: 0, invalid: 0, errors: [], complete: true };
   }
 
+  const completedLeads = job.completed_leads ?? 0;
+  const failedLeads = job.failed_leads ?? 0;
+
   const providerResetAt = job.provider_reset_at ? new Date(job.provider_reset_at) : null;
 
   if (providerResetAt && providerResetAt.getTime() > Date.now()) {
@@ -385,6 +394,14 @@ export async function processEmailBatch(
     };
   }
 
+  const requestsPerMinute = Number.isInteger(job.requests_per_minute)
+    ? (job.requests_per_minute as number)
+    : DEFAULT_CLEAROUT_RPM;
+  const timeoutSeconds = Number.isInteger(job.timeout_seconds)
+    ? (job.timeout_seconds as number)
+    : DEFAULT_CLEAROUT_TIMEOUT_SECONDS;
+  const timeoutMs = clearoutTimeoutMs(timeoutSeconds);
+
   if (job.status === "queued" || job.status === "paused") {
     await supabase
       .from("validation_jobs")
@@ -396,215 +413,205 @@ export async function processEmailBatch(
       .eq("id", jobId);
   }
 
-  const claimed = await claimBatch(supabase, jobId, BATCH_SIZE);
-
-  if (claimed.length === 0) {
-    const { data: remaining } = await supabase
-      .from("validation_job_items")
-      .select("id", { count: "exact" })
-      .eq("job_id", jobId)
-      .in("status", ["pending", "processing"]);
-
-    if ((remaining?.length ?? 0) === 0) {
-      await finalizeJob(supabase, jobId);
-      return { processed: 0, valid: 0, invalid: 0, errors: [], complete: true };
-    }
-    return { processed: 0, valid: 0, invalid: 0, errors: [], complete: false };
-  }
-
-  const leadIds = claimed.map((c: any) => c.lead_id);
-  const { data: leads } = await supabase
-    .from("leads")
-    .select(EMAIL_FIELDS.join(","))
-    .in("id", leadIds);
-
-  if (!leads || leads.length === 0) {
-    return { processed: 0, valid: 0, invalid: 0, errors: ["No leads found"], complete: false };
-  }
-
-  const leadMap = new Map(leads.map((l: any) => [l.id, l]));
-
   let processed = 0;
   let valid = 0;
   let invalid = 0;
   const errors: string[] = [];
   let batchFailures = 0;
-  let providerRateLimited = false;
-  let resetAt: string | null = null;
 
-  // Process emails with controlled concurrency
-  const emailItems = claimed.map((item: any) => {
-    const lead = leadMap.get(item.lead_id);
-    return { item, lead };
-  }).filter((x: any) => x.lead);
-
-  // Process in chunks of MAX_CONCURRENT_EMAIL
-  for (let i = 0; i < emailItems.length; i += MAX_CONCURRENT_EMAIL) {
-    const chunk = emailItems.slice(i, i + MAX_CONCURRENT_EMAIL);
-
-    const chunkResults = await Promise.allSettled(
-      chunk.map(async ({ item, lead }: any) => {
-        const startedAt = Date.now();
-        const logId = await createApiLog({
-          user_id: job.user_id,
-          project_id: job.project_id,
-          lead_id: lead.id,
-          job_id: job.id,
-          job_item_id: item.id,
-          provider: "clearout",
-          operation: "email_verification",
-          status: "success",
-          request_metadata: { email_provided: true },
-        });
-
-        try {
-          const result = await callClearout(clearoutApiKey, lead.email);
-          const check = parseClearout(result);
-
-          await updateApiLog(logId, {
-            status: "success",
-            duration_ms: Date.now() - startedAt,
-            http_status: 200,
-            leads_in_request: 1,
-            response_metadata: { status: check.status, safe_to_send: check.safe_to_send },
-            raw_response: result,
-          });
-
-          return {
-            job_item_id: item.id,
-            lead_id: lead.id,
-            email_check: check.status === "valid" ? "Valid" : check.status === "invalid" ? "Invalid" : "Unknown",
-            safe_to_send: check.safe_to_send,
-            status: check.status,
-            smtp_provider: check.smtp_provider,
-            mx_record: check.mx_record,
-            email_score: check.score,
-            account: check.account,
-            clearout_domain: check.domain,
-          };
-        } catch (err: any) {
-          if (isClearoutProviderRateLimit(err)) {
-            providerRateLimited = true;
-            resetAt = clearoutRateLimitResetAt(err);
-            await updateApiLog(logId, {
-              status: "retryable_error",
-              duration_ms: Date.now() - startedAt,
-              http_status: err.httpStatus,
-              error_code: err.errorCode != null ? String(err.errorCode) : null,
-              error_message: err.message?.slice(0, 500),
-              raw_error: err.rawError,
-            });
-            return null;
-          }
-
-          const errorClass = classifyError(err.message);
-          await updateApiLog(logId, {
-            status: errorClass === "system" ? "fatal_error" :
-                    errorClass === "retryable" ? "retryable_error" : "failed",
-            duration_ms: Date.now() - startedAt,
-            http_status: err instanceof ClearoutError ? err.httpStatus : null,
-            error_message: err.message?.slice(0,500),
-            raw_error: err instanceof ClearoutError ? err.rawError : null,
-          });
-
-          if (errorClass === "system") {
-            throw err;
-          }
-
-          if (errorClass === "retryable" && item.attempt < item.max_attempts) {
-            const delayMs = backoffDelay(item.attempt);
-            await supabase.from("validation_job_items")
-              .update({
-                status: "pending",
-                lease_expires_at: null,
-                next_attempt_at: new Date(Date.now() + delayMs).toISOString(),
-                error_message: err.message?.slice(0, 500),
-              })
-              .eq("id", item.id);
-          } else {
-            await supabase.from("validation_job_items")
-              .update({ status: "failed", error_message: err.message?.slice(0, 500), completed_at: new Date().toISOString() })
-              .eq("id", item.id);
-            batchFailures++;
-          }
-
-          return null;
-        }
-      })
-    );
-
-    // Collect successful results for bulk write
-    const successResults: Array<{
-      job_item_id: string;
-      lead_id: string;
-      email_check: string;
-      safe_to_send: boolean;
-      status: string;
-      smtp_provider: string | null;
-      mx_record: string | null;
-      email_score: number | null;
-      account: string | null;
-      clearout_domain: string | null;
-    }> = [];
-
-    for (const r of chunkResults) {
-      if (r.status === "rejected") {
-        // System error propagated
-        await supabase
-          .from("validation_jobs")
-          .update({ status: "paused", error_message: `System error: ${r.reason?.message?.slice(0, 300)}` })
-          .eq("id", jobId);
-        return { processed, valid, invalid, errors, complete: false, paused: true, pausedReason: r.reason?.message?.slice(0, 200) };
-      }
-      if (r.value) {
-        successResults.push(r.value);
-        processed++;
-        const check = r.value;
-        if (check.email_check === "Valid") valid++;
-        else if (check.email_check === "Invalid") invalid++;
-      }
+  // Clearout requests are intentionally serial. Reserve the rate-limit slot
+  // first, wait for it, then claim exactly one item with a lease that covers
+  // the configured timeout plus a small buffer. Throughput is governed by the
+  // persisted slot reservation below, not by concurrency.
+  while (true) {
+    let fireAt: Date;
+    try {
+      fireAt = await reserveClearoutRequestSlot(supabase, job.user_id, requestsPerMinute);
+    } catch (err: any) {
+      await supabase
+        .from("validation_jobs")
+        .update({ status: "paused", error_message: `System error: ${err.message?.slice(0, 300)}` })
+        .eq("id", jobId);
+      return { processed, valid, invalid, errors, complete: false, paused: true, pausedReason: err.message?.slice(0, 200) };
     }
 
-    // Atomic bulk write for this chunk
-    if (successResults.length > 0) {
-      await supabase.rpc("apply_email_results", { p_updates: successResults });
+    if (fireAt.getTime() > Date.now()) {
+      await sleepUntil(fireAt);
+    }
+
+    const leaseSeconds = Math.ceil(timeoutMs / 1000) + 15;
+    const claimed = await claimBatch(supabase, jobId, 1, leaseSeconds);
+    if (claimed.length === 0) {
+      const { data: remaining } = await supabase
+        .from("validation_job_items")
+        .select("id", { count: "exact" })
+        .eq("job_id", jobId)
+        .in("status", ["pending", "processing"]);
+
+      if ((remaining?.length ?? 0) === 0) {
+        await finalizeJob(supabase, jobId);
+        return { processed, valid, invalid, errors, complete: true };
+      }
+      return { processed, valid, invalid, errors, complete: false };
+    }
+
+    const item = claimed[0];
+    const { data: leadRows } = await supabase
+      .from("leads")
+      .select(EMAIL_FIELDS.join(","))
+      .eq("id", item.lead_id)
+      .maybeSingle();
+
+    if (!leadRows) {
+      // Lead was deleted; fail the item so it does not wedge the job.
+      await supabase.from("validation_job_items")
+        .update({ status: "failed", error_message: "Lead not found", completed_at: new Date().toISOString() })
+        .eq("id", item.id);
+      batchFailures++;
+      continue;
+    }
+
+    const lead = leadRows;
+    const startedAt = Date.now();
+    const logId = await createApiLog({
+      user_id: job.user_id,
+      project_id: job.project_id,
+      lead_id: lead.id,
+      job_id: job.id,
+      job_item_id: item.id,
+      provider: "clearout",
+      operation: "email_verification",
+      status: "success",
+      request_metadata: { email_provided: true },
+    });
+
+    let parsedResult: ReturnType<typeof parseClearout> | null = null;
+    let providerRateLimited = false;
+    let resetAt: string | null = null;
+
+    try {
+      const result = await callClearout(clearoutApiKey, lead.email, timeoutMs);
+      parsedResult = parseClearout(result);
+    } catch (err: any) {
+      if (isClearoutProviderRateLimit(err)) {
+        providerRateLimited = true;
+        resetAt = clearoutRateLimitResetAt(err);
+        await updateApiLog(logId, {
+          status: "retryable_error",
+          duration_ms: Date.now() - startedAt,
+          http_status: err.httpStatus,
+          error_code: err.errorCode != null ? String(err.errorCode) : null,
+          error_message: err.message?.slice(0, 500),
+          raw_error: err.rawError,
+        });
+      } else {
+        const errorClass = classifyError(err.message);
+        await updateApiLog(logId, {
+          status: errorClass === "system" ? "fatal_error" :
+                  errorClass === "retryable" ? "retryable_error" : "failed",
+          duration_ms: Date.now() - startedAt,
+          http_status: err instanceof ClearoutError ? err.httpStatus : null,
+          error_message: err.message?.slice(0, 500),
+          raw_error: err instanceof ClearoutError ? err.rawError : null,
+        });
+
+        if (errorClass === "system") {
+          await supabase
+            .from("validation_jobs")
+            .update({ status: "paused", error_message: `System error: ${err.message?.slice(0, 300)}` })
+            .eq("id", jobId);
+          return { processed, valid, invalid, errors, complete: false, paused: true, pausedReason: err.message?.slice(0, 200) };
+        }
+
+        if (errorClass === "retryable" && item.attempt < item.max_attempts) {
+          const delayMs = backoffDelay(item.attempt);
+          await supabase.from("validation_job_items")
+            .update({
+              status: "pending",
+              lease_expires_at: null,
+              next_attempt_at: new Date(Date.now() + delayMs).toISOString(),
+              error_message: err.message?.slice(0, 500),
+            })
+            .eq("id", item.id);
+        } else {
+          await supabase.from("validation_job_items")
+            .update({ status: "failed", error_message: err.message?.slice(0, 500), completed_at: new Date().toISOString() })
+            .eq("id", item.id);
+          batchFailures++;
+        }
+
+        continue;
+      }
     }
 
     if (providerRateLimited) {
-      break;
+      const effectiveResetAt = resetAt ?? new Date(Date.now() + 15 * 60 * 1000).toISOString();
+      await releaseRateLimitedItems(supabase, jobId, effectiveResetAt);
+      await pauseJobForRateLimit(supabase, jobId, effectiveResetAt);
+      await recalculateJobProgress(supabase, jobId);
+
+      return {
+        processed,
+        valid,
+        invalid,
+        errors: [...errors, "Clearout rate limit reached. Validation is paused."],
+        complete: false,
+        paused: true,
+        pausedReason: "Clearout rate limit reached. Validation is paused.",
+        providerRateLimited: true,
+        resetAt: effectiveResetAt,
+      };
     }
-  }
 
-  if (providerRateLimited) {
-    const effectiveResetAt = resetAt ?? new Date(Date.now() + 15 * 60 * 1000).toISOString();
+    // parsedResult is guaranteed non-null here (no 429, no other throw).
+    const check = parsedResult!;
+    const update = {
+      job_item_id: item.id,
+      lead_id: lead.id,
+      email_check: check.status === "valid" ? "Valid" : check.status === "invalid" ? "Invalid" : "Unknown",
+      safe_to_send: check.safe_to_send,
+      status: check.status,
+      smtp_provider: check.smtp_provider,
+      mx_record: check.mx_record,
+      email_score: check.score,
+      account: check.account,
+      clearout_domain: check.domain,
+    };
 
-    await supabase.rpc("release_rate_limited_items", {
-      p_job_id: jobId,
-      p_reset_at: effectiveResetAt,
+    const applied = await applyEmailResult(supabase, update);
+    if (!applied) {
+      await updateApiLog(logId, {
+        status: "retryable_error",
+        duration_ms: Date.now() - startedAt,
+        http_status: 200,
+        error_message: "Clearout succeeded but the result could not be applied (lease expired or RPC unavailable).",
+        raw_response: check,
+      });
+
+      await supabase.from("validation_job_items")
+        .update({
+          status: "pending",
+          lease_expires_at: null,
+          next_attempt_at: new Date(Date.now() + 1000).toISOString(),
+          error_message: "Clearout result could not be applied; retrying.",
+        })
+        .eq("id", item.id);
+
+      continue;
+    }
+
+    await updateApiLog(logId, {
+      status: "success",
+      duration_ms: Date.now() - startedAt,
+      http_status: 200,
+      leads_in_request: 1,
+      response_metadata: { status: check.status, safe_to_send: check.safe_to_send },
+      raw_response: check,
     });
 
-    await supabase
-      .from("validation_jobs")
-      .update({
-        status: "paused",
-        provider_reset_at: effectiveResetAt,
-        error_message: "Clearout rate limit reached. Validation is paused and will continue after the limit resets.",
-      })
-      .eq("id", jobId);
-
-    await recalculateJobProgress(supabase, jobId);
-
-    return {
-      processed,
-      valid,
-      invalid,
-      errors: [...errors, "Clearout rate limit reached. Validation is paused."],
-      complete: false,
-      paused: true,
-      pausedReason: "Clearout rate limit reached. Validation is paused.",
-      providerRateLimited: true,
-      resetAt: effectiveResetAt,
-    };
+    processed++;
+    if (update.email_check === "Valid") valid++;
+    else if (update.email_check === "Invalid") invalid++;
   }
 
   const { data: remaining } = await supabase
@@ -619,7 +626,7 @@ export async function processEmailBatch(
     await finalizeJob(supabase, jobId);
   }
 
-  if (shouldPauseJob(job.failed_leads + batchFailures, job.completed_leads + processed)) {
+  if (shouldPauseJob(failedLeads + batchFailures, completedLeads + processed)) {
     await supabase
       .from("validation_jobs")
       .update({ status: "paused", error_message: "Auto-paused: failure rate exceeded 50%" })
@@ -628,6 +635,84 @@ export async function processEmailBatch(
   }
 
   return { processed, valid, invalid, errors: errors.slice(0, 5), complete: (remaining?.length ?? 0) === 0 };
+}
+
+async function reserveClearoutRequestSlot(
+  supabase: any,
+  userId: string,
+  requestsPerMinute: number
+): Promise<Date> {
+  const { data, error } = await supabase.rpc("reserve_clearout_request_slot", {
+    p_user_id: userId,
+    p_requests_per_minute: requestsPerMinute,
+  });
+
+  if (error) {
+    // Fall back to a conservative in-process delay rather than sending
+    // un-paced requests. Never call Clearout without some guard.
+    return new Date(Date.now() + spacingToMs(requestsPerMinute));
+  }
+
+  const ts = Array.isArray(data) ? (data as any)[0] : data;
+  const ms = Date.parse(ts);
+  return Number.isNaN(ms) ? new Date(Date.now() + spacingToMs(requestsPerMinute)) : new Date(ms);
+}
+
+function spacingToMs(requestsPerMinute: number): number {
+  const safe = Math.max(1, Math.min(requestsPerMinute, 1000));
+  return Math.ceil(60000 / safe);
+}
+
+async function sleepUntil(fireAt: Date) {
+  const waitMs = fireAt.getTime() - Date.now();
+  if (waitMs > 0) {
+    await new Promise((r) => setTimeout(r, waitMs));
+  }
+}
+
+async function applyEmailResult(
+  supabase: any,
+  update: {
+    job_item_id: string;
+    lead_id: string;
+    email_check: string;
+    safe_to_send: boolean;
+    status: string;
+    smtp_provider: string | null;
+    mx_record: string | null;
+    email_score: number | null;
+    account: string | null;
+    clearout_domain: string | null;
+  }
+): Promise<boolean> {
+  const { data, error } = await supabase.rpc("apply_email_results", {
+    p_updates: [update],
+  });
+
+  if (error) return false;
+  return Number(data ?? 0) > 0;
+}
+
+async function releaseRateLimitedItems(supabase: any, jobId: string, resetAt: string) {
+  const { error } = await supabase.rpc("release_rate_limited_items", {
+    p_job_id: jobId,
+    p_reset_at: resetAt,
+  });
+  if (error) {
+    // Best-effort release; the job pause below is still authoritative.
+    console.error("release_rate_limited_items failed", error.message);
+  }
+}
+
+async function pauseJobForRateLimit(supabase: any, jobId: string, resetAt: string) {
+  await supabase
+    .from("validation_jobs")
+    .update({
+      status: "paused",
+      provider_reset_at: resetAt,
+      error_message: "Clearout rate limit reached. Validation is paused and will continue after the limit resets.",
+    })
+    .eq("id", jobId);
 }
 
 async function recalculateJobProgress(supabase: any, jobId: string) {

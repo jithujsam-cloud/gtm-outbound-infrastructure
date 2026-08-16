@@ -63,8 +63,15 @@ export async function GET(
   }
 
   let emailRunStats = null;
+  let nextRequestAt: string | null = null;
   if (job.type === "email") {
     emailRunStats = await getEmailRunStats(supabase, jobId);
+    const { data: rateSettings } = await supabase
+      .from("integration_settings")
+      .select("clearout_next_request_at")
+      .eq("user_id", user.id)
+      .maybeSingle();
+    nextRequestAt = rateSettings?.clearout_next_request_at ?? null;
   }
 
   return NextResponse.json({
@@ -72,5 +79,6 @@ export async function GET(
     progress: { completed, failed, pending, total: job.total_leads },
     runStats,
     emailRunStats,
+    nextRequestAt,
   });
 }

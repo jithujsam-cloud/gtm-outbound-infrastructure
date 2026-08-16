@@ -42,6 +42,8 @@ export async function upsertIntegrationSettings(
     clearout_api_key?: string;
     llm_api_key?: string;
     llm_provider?: string;
+    clearout_requests_per_minute?: number;
+    clearout_timeout_seconds?: number;
   }
 ): Promise<IntegrationSettings> {
   const supabase = await createClient();

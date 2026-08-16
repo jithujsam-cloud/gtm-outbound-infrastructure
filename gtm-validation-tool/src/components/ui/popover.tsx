@@ -41,12 +41,12 @@ export function Popover({
       {isOpen && (
         <div
           ref={ref}
-          className={`absolute z-50 mt-1 min-w-[180px] rounded-md border bg-popover p-1 shadow-md ${
+          className={`fixed inset-x-3 top-16 z-50 rounded-md border bg-popover p-1 shadow-md sm:absolute sm:inset-auto sm:top-auto sm:mt-1 sm:min-w-[180px] sm:max-w-none sm:p-1 ${
             align === "end"
-              ? "right-0"
+              ? "sm:right-0"
               : align === "center"
-                ? "left-1/2 -translate-x-1/2"
-                : "left-0"
+                ? "sm:left-1/2 sm:-translate-x-1/2"
+                : "sm:left-0"
           }`}
         >
           {children}

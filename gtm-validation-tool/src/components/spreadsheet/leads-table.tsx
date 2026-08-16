@@ -507,7 +507,7 @@ export function LeadsTable({ projectId, initialData, initialTotal, refreshKey, o
             }
             align="end"
           >
-            <div className="w-[280px] max-h-[70vh] overflow-y-auto space-y-4 p-2">
+            <div className="w-full sm:w-[280px] max-h-[70vh] overflow-y-auto space-y-4 p-2">
               <FilterGroup label="ICP">
                 <FilterCheckbox label="ICP Match" checked={filters.vertical_match.includes("true")} onChange={() => toggleArrayFilter("vertical_match", "true")} />
                 <FilterCheckbox label="ICP No Match" checked={filters.vertical_match.includes("false")} onChange={() => toggleArrayFilter("vertical_match", "false")} />

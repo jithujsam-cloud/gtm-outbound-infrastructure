@@ -1,12 +1,15 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
-import { CheckCircle2, XCircle, Loader2, MailCheck, ShieldCheck } from "lucide-react";
+import { useState, useRef, useCallback, useEffect } from "react";
+import { CheckCircle2, XCircle, Loader2, MailCheck, ShieldCheck, Timer, Gauge } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { formatDuration, formatDateTime, type RunStats } from "@/lib/format";
+import { loadClearoutRateSettings, saveClearoutRateSettings } from "@/app/settings/actions";
+import { spacingSeconds } from "@/lib/clearout-rate";
 
 export interface EmailValidationDialogProps {
   projectId: string;
@@ -55,7 +58,74 @@ export function EmailValidationDialog({
   const [runStats, setRunStats] = useState<RunStats | null>(null);
   const [emailStats, setEmailStats] = useState<EmailStats>({ valid: 0, invalid: 0, unknown: 0 });
   const [rateLimited, setRateLimited] = useState<{ resetAt: string } | null>(null);
+  const [requestsPerMinute, setRequestsPerMinute] = useState(3);
+  const [timeoutSeconds, setTimeoutSeconds] = useState(45);
+  const [rpmInput, setRpmInput] = useState("3");
+  const [timeoutInput, setTimeoutInput] = useState("45");
+  const [rpmError, setRpmError] = useState<string | null>(null);
+  const [timeoutError, setTimeoutError] = useState<string | null>(null);
+  const [savingSettings, setSavingSettings] = useState(false);
+  const [nextRequestAt, setNextRequestAt] = useState<string | null>(null);
+  const [nextInSeconds, setNextInSeconds] = useState<number | null>(null);
   const seenLeadIds = useRef<Set<string>>(new Set());
+
+  useEffect(() => {
+    if (!open) return;
+    loadClearoutRateSettings().then((res) => {
+      if (res.error) {
+        toast.error("Failed to load Clearout settings");
+      } else {
+        setRequestsPerMinute(res.settings.requestsPerMinute);
+        setTimeoutSeconds(res.settings.timeoutSeconds);
+        setRpmInput(String(res.settings.requestsPerMinute));
+        setTimeoutInput(String(res.settings.timeoutSeconds));
+      }
+    });
+  }, [open]);
+
+  useEffect(() => {
+    if (!validating || !nextRequestAt) {
+      setNextInSeconds(null);
+      return;
+    }
+    const tick = () => {
+      const diff = Math.ceil((new Date(nextRequestAt).getTime() - Date.now()) / 1000);
+      setNextInSeconds(Math.max(0, diff));
+    };
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [validating, nextRequestAt]);
+
+  const commitSettings = useCallback(async (): Promise<boolean> => {
+    setRpmError(null);
+    setTimeoutError(null);
+
+    const result = await saveClearoutRateSettings({
+      requestsPerMinute: rpmInput,
+      timeoutSeconds: timeoutInput,
+    });
+
+    if (result.error) {
+      toast.error(result.error);
+      return false;
+    }
+
+    setRequestsPerMinute(result.settings.requestsPerMinute);
+    setTimeoutSeconds(result.settings.timeoutSeconds);
+    setRpmInput(String(result.settings.requestsPerMinute));
+    setTimeoutInput(String(result.settings.timeoutSeconds));
+
+    if (result.errors.requestsPerMinute) setRpmError(result.errors.requestsPerMinute);
+    if (result.errors.timeoutSeconds) setTimeoutError(result.errors.timeoutSeconds);
+
+    if (result.errors.requestsPerMinute || result.errors.timeoutSeconds) {
+      toast.error("Check the Clearout settings values.");
+      return false;
+    }
+
+    return true;
+  }, [rpmInput, timeoutInput]);
 
   const fetchJobDetail = useCallback(async (jobId: string) => {
     const res = await fetch(`/api/jobs/${jobId}/detail`);
@@ -126,6 +196,11 @@ export function EmailValidationDialog({
   const runValidation = async (all: boolean) => {
     if (!all && selectedIds.length === 0) return;
 
+    setSavingSettings(true);
+    const ok = await commitSettings();
+    setSavingSettings(false);
+    if (!ok) return;
+
     setValidating(true);
     setProgress({
       completed: 0,
@@ -174,6 +249,9 @@ export function EmailValidationDialog({
             } : p);
           }
           if (status.runStats) setRunStats(status.runStats);
+          if (typeof status.nextRequestAt === "string") {
+            setNextRequestAt(status.nextRequestAt);
+          }
 
           const job = status as any;
           if (job.provider_reset_at) {
@@ -299,6 +377,15 @@ export function EmailValidationDialog({
                 />
               </div>
 
+              {validating && nextInSeconds !== null && progress && progress.pending > 0 && (
+                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <Timer className="size-3.5" />
+                  {nextInSeconds > 0
+                    ? `Next Clearout request in ${nextInSeconds} second${nextInSeconds === 1 ? "" : "s"}`
+                    : "Waiting for next Clearout request slot"}
+                </div>
+              )}
+
               {activity.length > 0 && (
                 <div className="space-y-1 max-h-40 overflow-y-auto rounded-md border bg-muted/20 p-2">
                   {activity.map((item) => (
@@ -354,6 +441,62 @@ export function EmailValidationDialog({
             </div>
           )}
 
+          {(validating || !runStats) && (
+            <div className={`space-y-2 border-t pt-3 ${validating ? "opacity-70" : ""}`}>
+              <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+                <Gauge className="size-3.5" />
+                Validation settings
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="text-[10px] text-muted-foreground">Requests per minute</label>
+                  <Input
+                    type="number"
+                    min={1}
+                    max={1000}
+                    value={rpmInput}
+                    disabled={validating || savingSettings}
+                    aria-invalid={rpmError ? true : undefined}
+                    onChange={(e) => setRpmInput(e.target.value)}
+                    className="h-8 text-xs"
+                  />
+                  {rpmError && <p className="text-[10px] text-red-600 dark:text-red-400">{rpmError}</p>}
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] text-muted-foreground">Request timeout</label>
+                  <div className="flex items-center gap-1.5">
+                    <Input
+                      type="number"
+                      min={5}
+                      max={120}
+                      value={timeoutInput}
+                      disabled={validating || savingSettings}
+                      aria-invalid={timeoutError ? true : undefined}
+                      onChange={(e) => setTimeoutInput(e.target.value)}
+                      className="h-8 text-xs"
+                    />
+                    <span className="text-[10px] text-muted-foreground whitespace-nowrap">seconds</span>
+                  </div>
+                  {timeoutError && <p className="text-[10px] text-red-600 dark:text-red-400">{timeoutError}</p>}
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between text-xs rounded-md bg-muted/40 px-2 py-1.5">
+                <span className="text-muted-foreground">Request spacing</span>
+                <span className="font-medium tabular-nums">
+                  {spacingSeconds(requestsPerMinute).toFixed(spacingSeconds(requestsPerMinute) % 1 === 0 ? 0 : 1)} seconds between requests
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between text-xs rounded-md bg-muted/40 px-2 py-1.5">
+                <span className="text-muted-foreground">Provider</span>
+                <span className="font-medium">Clearout</span>
+              </div>
+            </div>
+          )}
+
           {runStats && !validating && (
             <EmailRunSummary
               stats={runStats}
@@ -376,7 +519,7 @@ export function EmailValidationDialog({
                 <Button
                   variant="outline"
                   size="sm"
-                  disabled={totalCount === 0 || validating}
+                  disabled={totalCount === 0 || validating || savingSettings}
                   onClick={() => runValidation(true)}
                 >
                   Validate All ({totalCount})
@@ -384,7 +527,7 @@ export function EmailValidationDialog({
                 <Button
                   size="sm"
                   className="gap-1.5"
-                  disabled={selectedIds.length === 0 || validating}
+                  disabled={selectedIds.length === 0 || validating || savingSettings}
                   onClick={() => runValidation(false)}
                 >
                   {validating ? (

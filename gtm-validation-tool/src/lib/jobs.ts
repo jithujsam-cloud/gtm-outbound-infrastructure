@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { DEFAULT_CLEAROUT_RPM, DEFAULT_CLEAROUT_TIMEOUT_SECONDS } from "@/lib/clearout-rate";
 
 export interface EmailRunStats {
   valid: number;
@@ -70,6 +71,18 @@ export async function createValidationJob(params: {
   const pendingLeads = leads.filter((l) => !isAlreadyValidated(l));
   const skippedLeads = leads.filter((l) => isAlreadyValidated(l));
 
+  let requestsPerMinute = DEFAULT_CLEAROUT_RPM;
+  let timeoutSeconds = DEFAULT_CLEAROUT_TIMEOUT_SECONDS;
+  if (type === "email") {
+    const { data: rateSettings } = await supabase
+      .from("integration_settings")
+      .select("clearout_requests_per_minute, clearout_timeout_seconds")
+      .eq("user_id", userId)
+      .maybeSingle();
+    requestsPerMinute = rateSettings?.clearout_requests_per_minute ?? DEFAULT_CLEAROUT_RPM;
+    timeoutSeconds = rateSettings?.clearout_timeout_seconds ?? DEFAULT_CLEAROUT_TIMEOUT_SECONDS;
+  }
+
   if (pendingLeads.length === 0) {
     throw new Error("All selected leads are already validated");
   }
@@ -135,6 +148,8 @@ export async function createValidationJob(params: {
       total_leads: pendingLeads.length,
       skipped_leads: skippedLeads.length,
       status: "queued",
+      requests_per_minute: type === "email" ? requestsPerMinute : null,
+      timeout_seconds: type === "email" ? timeoutSeconds : null,
     })
     .select("id")
     .single();

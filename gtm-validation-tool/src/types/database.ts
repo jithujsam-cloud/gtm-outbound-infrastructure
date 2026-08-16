@@ -146,6 +146,9 @@ export interface Database {
           supabase_url: string | null
           supabase_anon_key: string | null
           supabase_service_role_key: string | null
+          clearout_requests_per_minute: number
+          clearout_timeout_seconds: number
+          clearout_next_request_at: string | null
           created_at: string
           updated_at: string
         }
@@ -158,6 +161,9 @@ export interface Database {
           supabase_url?: string | null
           supabase_anon_key?: string | null
           supabase_service_role_key?: string | null
+          clearout_requests_per_minute?: number
+          clearout_timeout_seconds?: number
+          clearout_next_request_at?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -170,6 +176,9 @@ export interface Database {
           supabase_url?: string | null
           supabase_anon_key?: string | null
           supabase_service_role_key?: string | null
+          clearout_requests_per_minute?: number
+          clearout_timeout_seconds?: number
+          clearout_next_request_at?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -321,6 +330,8 @@ export interface Database {
           skipped_leads: number
           error_message: string | null
           provider_reset_at: string | null
+          requests_per_minute: number | null
+          timeout_seconds: number | null
           created_at: string
           started_at: string | null
           completed_at: string | null
@@ -342,6 +353,8 @@ export interface Database {
           skipped_leads?: number
           error_message?: string | null
           provider_reset_at?: string | null
+          requests_per_minute?: number | null
+          timeout_seconds?: number | null
           created_at?: string
           started_at?: string | null
           completed_at?: string | null
@@ -363,6 +376,8 @@ export interface Database {
           skipped_leads?: number
           error_message?: string | null
           provider_reset_at?: string | null
+          requests_per_minute?: number | null
+          timeout_seconds?: number | null
           created_at?: string
           started_at?: string | null
           completed_at?: string | null

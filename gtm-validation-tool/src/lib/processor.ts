@@ -486,11 +486,13 @@ export async function processEmailBatch(
     });
 
     let parsedResult: ReturnType<typeof parseClearout> | null = null;
+    let rawResult: unknown = null;
     let providerRateLimited = false;
     let resetAt: string | null = null;
 
     try {
       const result = await callClearout(clearoutApiKey, lead.email, timeoutMs);
+      rawResult = result;
       parsedResult = parseClearout(result);
     } catch (err: any) {
       if (isClearoutProviderRateLimit(err)) {
@@ -585,7 +587,7 @@ export async function processEmailBatch(
         duration_ms: Date.now() - startedAt,
         http_status: 200,
         error_message: "Clearout succeeded but the result could not be applied (lease expired or RPC unavailable).",
-        raw_response: check,
+        raw_response: rawResult,
       });
 
       await supabase.from("validation_job_items")
@@ -606,7 +608,7 @@ export async function processEmailBatch(
       http_status: 200,
       leads_in_request: 1,
       response_metadata: { status: check.status, safe_to_send: check.safe_to_send },
-      raw_response: check,
+      raw_response: rawResult,
     });
 
     processed++;

@@ -118,13 +118,25 @@ export function clearoutRateLimitResetAt(error: ClearoutError): string {
 }
 
 export function parseClearout(data: any): ClearoutParsed {
+  const d = data?.data ?? {};
+  const detail = d?.detail_info ?? {};
+
+  const rawSafe = d?.safe_to_send;
+  let safeToSend = false;
+  if (typeof rawSafe === "boolean") {
+    safeToSend = rawSafe;
+  } else if (typeof rawSafe === "string") {
+    const v = rawSafe.trim().toLowerCase();
+    safeToSend = v === "yes" || v === "true" || v === "1";
+  }
+
   return {
-    status: data?.data?.status || data?.status || "unknown",
-    safe_to_send: data?.data?.safe_to_send ?? false,
-    smtp_provider: data?.data?.smtp_provider || null,
-    mx_record: data?.data?.mx_record || null,
-    score: data?.data?.score ?? data?.score ?? null,
-    account: data?.data?.account || null,
-    domain: data?.data?.domain || null,
+    status: d?.status || "unknown",
+    safe_to_send: safeToSend,
+    smtp_provider: detail?.smtp_provider || d?.smtp_provider || null,
+    mx_record: detail?.mx_record || d?.mx_record || null,
+    score: d?.score ?? data?.score ?? null,
+    account: detail?.account || d?.account || null,
+    domain: detail?.domain || d?.domain || null,
   };
 }

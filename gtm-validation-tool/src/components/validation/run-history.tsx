@@ -146,7 +146,7 @@ export function RunHistory({ projectId, refreshKey = 0 }: { projectId?: string; 
       </div>
 
       <Dialog open={selectedId !== null} onOpenChange={(o) => { if (!o) setSelectedId(null); }}>
-        <DialogContent className="max-w-[calc(100%-1rem)] sm:max-w-4xl">
+        <DialogContent className="max-w-[calc(100%-1rem)] sm:max-w-4xl max-h-[calc(100vh-2rem)] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Run Details</DialogTitle>
             <DialogDescription>Operational detail for this validation run.</DialogDescription>

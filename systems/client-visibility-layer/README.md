@@ -1,5 +1,7 @@
 # Client Visibility Layer 👁️
 
+> **Implementation status:** implemented as a self-contained Next.js app (schema + app code are in this directory). Campaign data is seeded demo data — in production it would come from a sync layer outside this system.
+
 ## 🚧 The problem
 
 When I ran my outbound agency, every client wanted to "see what's happening." The default solution was handing over login credentials — Instantly logins, Smartlead logins, Gmail access — so they could check campaign status themselves.
@@ -19,6 +21,8 @@ The agency side is deliberately minimal: a client dashboard to review campaign s
 - The public portal (`/c/[slug]`) reads through Postgres SECURITY DEFINER functions scoped to a single client slug — `get_public_client_by_slug()` and `get_public_campaign_data()` return exactly one row per call.
 - There is no Supabase Auth, no RLS, no anon key in the browser. No login page. No session management.
 - The `status` column on clients acts as a kill switch. Set it to `paused` and the portal returns a "Dashboard Inactive" page.
+
+> **Honest limitation:** the agency **write** endpoints (`/api/create-client`, `/api/update-client-status`, `/api/update-infra-signals`) are unauthenticated by design — this is a single-operator tool for one agency user. Anyone who finds those URLs can create a client or flip a client's status. The protected surface (client-facing reads) is scoped by slug; the agency surface trusts that the tool is only deployed for its owner. If this tool ever grew multiple operators, auth would be the first addition.
 
 **📊 What the client sees:**
 - 4 stat cards: Leads Generated, Emails Sent, Open Rate, Reply Rate

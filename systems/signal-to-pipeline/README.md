@@ -1,5 +1,7 @@
 # Signal-to-Pipeline 🔍
 
+> **Implementation status:** importable n8n workflow definitions. Running them requires an n8n instance plus the credentials listed under Setup (Apify, Gemini, Clearout, Airtable). `YOUR_*` placeholders must be replaced.
+
 ## 🚧 The problem
 
 Most outbound is sent to static lists built from Apollo exports or CSV uploads. By the time a rep touches those leads, the data is weeks old and there is no context for why those accounts matter right now. Job postings are a live signal. A company hiring 15 engineers in Bengaluru this week is telling you what they are building, at what scale, and where the pressure is. That is a better opening than a guess based on headcount and industry tag.
@@ -18,13 +20,13 @@ Two workflows, one pipeline. The output of both feeds the same Airtable table, w
 - Apify Leads Finder runs against the same target list and pulls raw contact records
 - Leads upsert into Airtable immediately, matched by email
 - Gemini scores each contact for ICP fit across five verticals: D2C/E-commerce, Defense/Aviation, Fintech, Pharma, Semiconductor/Data Center. Returns true/false with a written explanation of what triggered the verdict
-- Email scoring runs deterministically: structure check (+20), name match against local part (+15 each for first and last), domain match (+25), pattern quality (+10), generic prefix penalty (-20). Threshold is 60 for VALID ✅
+- Gemini also assigns an email quality score (0–100) with written reasoning in the same structured call — the score is stored per lead, so its basis is traceable
 - Clearout API runs SMTP-level verification only on leads that pass the ICP check
 - Final upsert writes AI summary, vertical match, email score, Clearout status, and Safe To Send flag back to the same Airtable record
 
 ## 💡 Why it is built this way
 
-Job signals move faster than list hygiene cycles. By the time an Apollo export is cleaned and loaded, the hiring push that created those signals is already weeks in. Pulling from live postings means the signal and the outreach are in the same week. ICP scoring runs before Clearout because Clearout costs money per check. Running it on every lead in the raw dataset would burn credits on contacts that would be filtered out anyway. The email scoring is deterministic because fuzzy scoring from an LLM is not auditable: you cannot tell why a lead passed or failed. A point-based system with documented rules is. Clearout fires last, on the smallest possible set, as a final filter before the record moves into the send queue.
+Job signals move faster than list hygiene cycles. By the time an Apollo export is cleaned and loaded, the hiring push that created those signals is already weeks in. Pulling from live postings means the signal and the outreach are in the same week. ICP scoring runs before Clearout because Clearout costs money per check. Running it on every lead in the raw dataset would burn credits on contacts that would be filtered out anyway. Every score keeps its attribution — the email score and its written reasoning are recorded per lead, so a pass or fail can always be explained instead of waved off as "the AI said so". Clearout fires last, on the smallest possible set, as a final filter before the record moves into the send queue.
 
 ## 🛠️ Stack
 

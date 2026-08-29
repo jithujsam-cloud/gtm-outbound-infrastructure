@@ -1,5 +1,7 @@
 # Outbound Engine ✉️
 
+> **Implementation status:** importable n8n workflow definition. Running it requires an n8n instance plus the credentials listed under Setup (Claude, Gmail OAuth, Airtable) and a webhook endpoint reachable from the public internet. `YOUR_*` placeholders must be replaced.
+
 ## 🚧 The problem
 
 Identical copy sent at machine speed is what gets domains flagged. Most automation tools send the same subject and body to every lead in a batch, at uniform intervals, which is exactly the pattern spam filters are trained to catch. Most teams also have no visibility into what happened after the send: they know emails went out, but not whether any of them actually landed in an inbox that got opened. This system fixes both.

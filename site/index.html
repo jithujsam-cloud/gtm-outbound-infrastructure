@@ -5,8 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Jithu Jobin Sam</title>
 <meta name="description" content="Jithu Jobin Sam, GTM Engineer. Four years of enterprise outbound, now building the systems that run it. Founder of Clospect.">
-<meta name="theme-color" content="#FAF7F0" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#0A1430" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#FAF7F0">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Jithu Jobin Sam · GTM Engineer">
 <meta property="og:description" content="Four years of enterprise outbound, now building the systems that run it. Founder of Clospect.">
@@ -19,7 +18,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gelasio:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap">
 <style>
 /* Layout: Apple-style product page. Centered statements, generous white space,
-   soft rounded tiles, one idea per section. Cream paper, a blue primary,
+   soft rounded tiles, one idea per section. Light theme only. Cream paper, a blue primary,
    light-blue secondary surfaces, Georgia headings over a quiet sans body. */
 :root {
   --bg: #FAF7F0;
@@ -46,16 +45,7 @@
   --gutter: clamp(16px, 4vw, 40px);
   --r-lg: 28px;
   --r-md: 20px;
-}
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --bg: #0A1430; --tile: #101E3F; --tile-2: #17284F; --ink: #E9EFFC; --ink-2: #9EB1D8;
-    --line: #22355F; --accent: #82A4FF; --accent-soft: #1C2F5C; --on-accent: #0A1430; color-scheme: dark;
-  }
-}
-:root[data-theme="dark"] {
-  --bg: #0A1430; --tile: #101E3F; --tile-2: #17284F; --ink: #E9EFFC; --ink-2: #9EB1D8;
-  --line: #22355F; --accent: #82A4FF; --accent-soft: #1C2F5C; --on-accent: #0A1430; color-scheme: dark;
+  color-scheme: light;
 }
 
 *, *::before, *::after { box-sizing: border-box; }

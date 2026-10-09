@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <style>rect{fill:#2E5BD6}text{fill:#FAF7F0}@media (prefers-color-scheme:dark){rect{fill:#82A4FF}text{fill:#0A1430}}</style>
+  <style>rect{fill:#2E5BD6}text{fill:#FAF7F0}</style>
   <rect width="64" height="64" rx="16"/>
   <text x="32" y="42" text-anchor="middle" font-family="Georgia,Gelasio,Times New Roman,serif" font-size="30" font-weight="400">JJ</text>
 </svg>

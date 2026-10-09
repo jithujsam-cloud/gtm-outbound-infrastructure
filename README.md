@@ -83,9 +83,14 @@ Built and implemented, verified in code:
 - **The job engine** — the database is the queue. `claim_job_items` uses `FOR UPDATE SKIP LOCKED` with a 60s lease; results are written atomically through `apply_icp_results` / `apply_email_results`, which verify lease ownership inside the transaction so a stale worker cannot overwrite fresh data. Retries use exponential backoff (1s → 16s), auto-pause at >50% failure, crash recovery on browser close. Up to 200 leads per run, 10 claimed per batch.
 - **Auth & multi-user isolation** — Supabase Auth, cookie sessions, proxy-level redirect plus per-route `getUser` checks, and per-user RLS across all tables.
 - **Observability** — every external API call is logged (`api_operation_logs`) with tokens, latency, and computed cost; a run-history UI and a logs page surface it.
-- **16 database migrations** for the schema above, each a standalone SQL file.
+- **17 database migrations** for the schema above, each a standalone SQL file. Migration 00017 hardens the RPCs: they run as `SECURITY INVOKER` so row-level security enforces ownership inside them, and `anon`/`PUBLIC` execute rights are revoked. (Written but not yet applied against a live database in this repo's history — run it in a staging project first.)
+- **CI** — GitHub Actions builds both Next.js apps on every push, and type-checks the client portal.
 
-Honest limitations: no automated test suite, and type errors from Supabase-generated types are currently ignored at build time.
+Honest limitations:
+
+- No automated test suite yet. The first tests to add are lease expiry and double-claim behaviour against a real Postgres.
+- Build-time type checking is switched off (`ignoreBuildErrors`). Roughly 126 errors exist because the hand-written `src/types/database.ts` has drifted from the schema, so most Supabase queries resolve to `never`. Fix: regenerate types with `supabase gen types typescript`, then remove the flag.
+- Integration API keys are stored as plaintext columns protected by RLS, not encrypted at rest.
 
 ---
 

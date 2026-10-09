@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Jithu Jobin Sam</title>
 <meta name="description" content="Jithu Jobin Sam, GTM Engineer. Four years of enterprise outbound, now building the systems that run it. Founder of Clospect.">
-<meta name="theme-color" content="#FBFCFE" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#FAF7F0" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0A1430" media="(prefers-color-scheme: dark)">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Jithu Jobin Sam · GTM Engineer">
@@ -16,22 +16,24 @@
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gelasio:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap">
 <style>
 /* Layout: Apple-style product page. Centered statements, generous white space,
-   soft rounded tiles, one idea per section. Everything is one blue, in many tints. */
+   soft rounded tiles, one idea per section. Cream paper, a blue primary,
+   light-blue secondary surfaces, Georgia headings over a quiet sans body. */
 :root {
-  --bg: #FBFCFE;
-  --tile: #F0F4FB;
-  --tile-2: #E3EBF8;
+  --bg: #FAF7F0;
+  --tile: #E9EFFA;
+  --tile-2: #DAE4F7;
   --ink: #0F2452;
-  --ink-2: #51648C;
-  --line: #D6DFEF;
+  --ink-2: #4E5F84;
+  --line: #E2DACB;
   --accent: #2E5BD6;
-  --accent-soft: #DCE6FB;
+  --accent-soft: #D3E0FA;
   --on-accent: #FFFFFF;
 
   --font: "Inter", -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+  --serif: Georgia, "Gelasio", "Iowan Old Style", "Times New Roman", serif;
 
   --t-small: .875rem;
   --t-body: 1.0625rem;
@@ -68,10 +70,10 @@ a { color: var(--accent); text-decoration: none; }
 a:hover { text-decoration: underline; text-underline-offset: 3px; }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 8px; }
 ::selection { background: var(--accent-soft); }
-h1, h2, h3 { margin: 0; font-weight: 600; letter-spacing: -.028em; line-height: 1.08; text-wrap: balance; color: var(--ink); }
+h1, h2, h3 { margin: 0; font-family: var(--serif); font-weight: 400; letter-spacing: -.012em; line-height: 1.12; text-wrap: balance; color: var(--ink); }
 h1 { font-size: var(--t-h1); }
 h2 { font-size: var(--t-h2); }
-h3 { font-size: var(--t-h3); letter-spacing: -.02em; line-height: 1.2; }
+h3 { font-size: var(--t-h3); letter-spacing: -.005em; line-height: 1.22; }
 p { margin: 0; }
 .wrap { max-width: var(--wrap); margin-inline: auto; padding-inline: var(--gutter); }
 .kicker { font-size: var(--t-small); font-weight: 600; color: var(--accent); letter-spacing: 0; margin: 0; }
@@ -151,7 +153,7 @@ p { margin: 0; }
   background: var(--bg); box-shadow: 0 10px 30px -14px color-mix(in srgb, var(--ink) 40%, transparent);
   font-size: .82rem; color: var(--ink-2); cursor: default; transition: transform .25s ease;
 }
-.chip b { color: var(--ink); font-weight: 600; font-size: 1rem; font-variant-numeric: tabular-nums; }
+.chip b { color: var(--ink); font-family: var(--serif); font-weight: 400; font-size: 1.1rem; font-variant-numeric: lining-nums tabular-nums; }
 .chip:hover { transform: translateY(-4px); }
 .chip.c1 { left: 7%; top: 22%; } .chip.c2 { left: 4%; top: 56%; } .chip.c3 { right: 7%; top: 22%; } .chip.c4 { right: 4%; top: 56%; }
 .say {
@@ -185,7 +187,7 @@ p { margin: 0; }
 .chapter .text p.body strong { color: var(--ink); font-weight: 600; }
 .chapter .note { display: flex; gap: 2rem; flex-wrap: wrap; padding-top: 1rem; border-top: 1px solid var(--line); }
 .chapter .note div { display: grid; }
-.chapter .note b { font-size: 1.5rem; font-weight: 600; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+.chapter .note b { font-family: var(--serif); font-size: 1.6rem; font-weight: 400; letter-spacing: -.01em; font-variant-numeric: lining-nums tabular-nums; }
 .chapter .note span { font-size: var(--t-small); color: var(--ink-2); }
 @media (max-width: 760px) {
   .chapter { grid-template-columns: 1fr; }
@@ -212,7 +214,7 @@ p { margin: 0; }
 .steps { list-style: none; margin: 0; padding: clamp(1.2rem, 2.5vw, 1.8rem); background: var(--tile); border-radius: var(--r-lg); display: grid; gap: .25rem; }
 .step { display: grid; grid-template-columns: 2rem minmax(0, 1fr); gap: .9rem; padding: .7rem .6rem; border-radius: 14px; transition: background .25s ease; }
 .step .n { width: 2rem; height: 2rem; border-radius: 50%; display: grid; place-items: center; font-size: .78rem; font-weight: 600; background: var(--bg); color: var(--ink-2); transition: background .25s, color .25s; font-variant-numeric: tabular-nums; }
-.step h3 { font-size: 1rem; letter-spacing: -.01em; line-height: 1.3; padding-top: .3rem; }
+.step h3 { font-family: var(--font); font-weight: 600; font-size: 1rem; letter-spacing: -.01em; line-height: 1.3; padding-top: .3rem; }
 .step h3 span { font-weight: 400; color: var(--ink-2); }
 .step p { font-size: .9rem; color: var(--ink-2); margin-top: .2rem; line-height: 1.45; }
 .step.on { background: var(--bg); }
@@ -249,7 +251,7 @@ p { margin: 0; }
 .card { scroll-snap-align: start; margin: 0; background: var(--tile); border-radius: var(--r-md); padding: 1.2rem 1.2rem 1.4rem; display: grid; gap: .9rem; }
 .card .face { height: 150px; width: 100%; }
 .card .t { font-size: .78rem; font-weight: 600; color: var(--accent); }
-.card .c { font-size: 1.02rem; font-weight: 500; line-height: 1.35; letter-spacing: -.015em; }
+.card .c { font-family: var(--serif); font-size: 1.08rem; line-height: 1.38; }
 
 /* paths */
 .paths { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
@@ -273,7 +275,7 @@ p { margin: 0; }
 
 /* stack */
 .stack { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2.5rem 2rem; }
-.stack h3 { font-size: 1rem; letter-spacing: -.01em; margin-bottom: .6rem; }
+.stack h3 { font-family: var(--font); font-weight: 600; font-size: 1rem; letter-spacing: -.01em; margin-bottom: .6rem; }
 .stack p { color: var(--ink-2); font-size: .95rem; line-height: 1.6; }
 @media (max-width: 760px) { .stack { grid-template-columns: 1fr 1fr; } }
 @media (max-width: 480px) { .stack { grid-template-columns: 1fr; } }

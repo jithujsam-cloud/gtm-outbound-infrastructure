@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Jithu Jobin Sam · GTM engineer</title>
+<meta name="description" content="Jithu Jobin Sam is a GTM engineer in Delhi. He chooses the accounts, finds the moment, writes the message, and builds the systems that make outbound repeatable.">
+<meta name="theme-color" content="#f6f7f9">
+<meta property="og:type" content="profile">
+<meta property="og:title" content="Jithu Jobin Sam · GTM engineer">
+<meta property="og:description" content="Choosing the accounts, finding the moment, writing the message, and building the systems that make it repeatable.">
+<meta property="og:image" content="/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --paper: #f6f7f9;
+  --ink: #16181d;
+  --soft: #596070;
+  --surface: #eceef2;
+  --cobalt: #2747e0;
+  --navy: #101a3a;
+  --font: "Schibsted Grotesk", system-ui, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+  --wrap: 1120px;
+  --gutter: clamp(20px, 4vw, 40px);
+  color-scheme: light;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 400 1.125rem/1.6 var(--font); -webkit-font-smoothing: antialiased; }
+img { display: block; max-width: 100%; height: auto; }
+a { color: var(--cobalt); text-underline-offset: 3px; text-decoration-thickness: 1px; }
+a:hover { text-decoration-thickness: 2px; }
+h1, h2, h3, p, ul, ol, dl, dd { margin: 0; padding: 0; }
+ul, ol { list-style: none; }
+:focus-visible { outline: 3px solid var(--cobalt); outline-offset: 3px; border-radius: 2px; }
+::selection { background: var(--cobalt); color: #fff; }
+p, li, dd { text-wrap: pretty; }
+.wrap { width: min(var(--wrap), 100% - 2 * var(--gutter)); margin-inline: auto; }
+
+/* top bar */
+.top { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding-block: 24px; }
+.top .me { font-weight: 700; text-decoration: none; color: var(--ink); }
+.top nav { display: flex; gap: 24px; font-size: 1rem; }
+.top nav a { color: var(--soft); text-decoration: none; }
+.top nav a:hover { color: var(--ink); }
+
+/* buttons */
+.btn { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 0 22px; border-radius: 6px; font: 600 1rem/1 var(--font); text-decoration: none; transition: background-color .15s ease, color .15s ease, transform .15s ease; }
+.btn.primary { background: var(--cobalt); color: #fff; }
+.btn.primary:hover { background: var(--navy); }
+.btn.plain { background: var(--surface); color: var(--ink); }
+.btn.plain:hover { background: #dfe2e8; }
+.btn:active { transform: translateY(1px); }
+
+/* hero */
+.hero { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: clamp(32px, 6vw, 88px); align-items: end; padding-block: clamp(48px, 9vw, 112px) clamp(72px, 10vw, 128px); }
+.hero h1 { font-size: clamp(3.25rem, 8.4vw, 7.25rem); font-weight: 800; line-height: .9; letter-spacing: -0.045em; }
+.hero .role { margin-top: 20px; font-size: clamp(1.25rem, 1.1rem + .7vw, 1.6rem); font-weight: 500; color: var(--soft); }
+.hero .say { margin-top: 28px; font-size: clamp(1.25rem, 1.1rem + .7vw, 1.6rem); line-height: 1.4; max-width: 30ch; font-weight: 500; }
+.hero .acts { margin-top: 36px; display: flex; gap: 12px; flex-wrap: wrap; }
+.hero .open { margin-top: 22px; display: flex; align-items: center; gap: 10px; font-size: 1rem; color: var(--soft); }
+.hero .open i { width: 9px; height: 9px; border-radius: 50%; background: #1d9e5a; flex: none; }
+.portrait { margin: 0; }
+.portrait img { width: 100%; aspect-ratio: 4 / 5; object-fit: cover; object-position: 50% 28%; border-radius: 10px; background: var(--surface); }
+.portrait figcaption { margin-top: 12px; font-size: .95rem; color: var(--soft); }
+
+/* one orchestrated load moment */
+@media (prefers-reduced-motion: no-preference) {
+  .hero h1, .hero .role, .hero .say, .hero .acts, .hero .open, .portrait { animation: up .8s cubic-bezier(.2, .7, .2, 1) both; }
+  .hero .role { animation-delay: .08s; } .hero .say { animation-delay: .16s; } .hero .acts { animation-delay: .24s; } .hero .open { animation-delay: .3s; } .portrait { animation-delay: .1s; }
+  @keyframes up { from { opacity: 0; transform: translateY(18px); } }
+}
+
+/* sections */
+section { padding-block: clamp(64px, 9vw, 112px); }
+.split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: clamp(24px, 5vw, 72px); }
+h2 { font-size: clamp(1.75rem, 1.4rem + 1.4vw, 2.5rem); font-weight: 700; letter-spacing: -0.025em; line-height: 1.1; }
+.intro { margin-top: 14px; color: var(--soft); max-width: 32ch; }
+
+/* what I do */
+.do { display: grid; gap: 34px; }
+.do dt { font-weight: 700; font-size: 1.25rem; letter-spacing: -0.01em; }
+.do dd { margin-top: 6px; color: var(--ink); max-width: 60ch; }
+
+/* how I think: statements, set large */
+.think { background: var(--surface); }
+.think ul { margin-top: clamp(28px, 4vw, 48px); display: grid; gap: clamp(26px, 3vw, 38px); }
+.think li { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 12px clamp(24px, 5vw, 72px); align-items: baseline; }
+.think b { font-size: clamp(1.4rem, 1.15rem + 1.1vw, 2.1rem); font-weight: 700; letter-spacing: -0.025em; line-height: 1.15; }
+.think span { color: var(--soft); max-width: 46ch; }
+
+/* experience */
+.story p { max-width: 62ch; }
+.story p + p { margin-top: 16px; }
+.roles { margin-top: 40px; display: grid; gap: 26px; }
+.roles li { display: grid; grid-template-columns: 9rem minmax(0, 1fr); gap: 4px 24px; }
+.roles .when { color: var(--soft); font-variant-numeric: tabular-nums; }
+.roles b { font-weight: 700; }
+.roles span { color: var(--soft); }
+.roles p { grid-column: 2; max-width: 58ch; }
+.built { margin-top: 48px; }
+.built h3, .tools h3 { font-size: 1.25rem; font-weight: 700; letter-spacing: -0.01em; }
+.built ul { margin-top: 14px; display: grid; gap: 12px; }
+.built li { max-width: 62ch; }
+.built li a { font-weight: 600; }
+.tools { margin-top: 40px; }
+.tools p { margin-top: 10px; max-width: 62ch; }
+
+/* about */
+.about p { max-width: 58ch; }
+.about p + p { margin-top: 16px; }
+
+/* contact */
+.contact { background: var(--navy); color: #eef1fb; }
+.contact h2 { color: #fff; font-size: clamp(2.25rem, 1.6rem + 2.8vw, 4rem); letter-spacing: -0.035em; }
+.contact .lead { margin-top: 18px; max-width: 46ch; color: #c9d0e6; font-size: 1.25rem; }
+.contact .acts { margin-top: 32px; display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+.contact .btn.primary { background: #fff; color: var(--navy); }
+.contact .btn.primary:hover { background: #dfe5ff; }
+.contact .btn.plain { background: rgba(255, 255, 255, .1); color: #fff; }
+.contact .btn.plain:hover { background: rgba(255, 255, 255, .18); }
+.contact .mail { margin-top: 26px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; color: #c9d0e6; }
+.contact .mail a { color: #fff; }
+.contact .mail button { font: 500 .95rem/1 var(--font); color: #fff; background: rgba(255, 255, 255, .1); border: 0; border-radius: 6px; padding: 9px 12px; cursor: pointer; }
+.contact .mail button:hover { background: rgba(255, 255, 255, .18); }
+
+footer { padding-block: 28px 40px; font-size: 1rem; color: var(--soft); }
+footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+footer nav { display: flex; gap: 20px; }
+footer a { color: var(--soft); }
+
+@media (max-width: 820px) {
+  .top nav { display: none; }
+  .hero { grid-template-columns: 1fr; align-items: start; padding-top: 32px; }
+  .portrait { order: -1; max-width: 220px; }
+  .split { grid-template-columns: 1fr; }
+  .think li { grid-template-columns: 1fr; }
+  .roles li { grid-template-columns: 1fr; }
+  .roles p { grid-column: 1; }
+}
+</style>
+</head>
+<body>
+
+<header class="wrap top">
+  <a class="me" href="#top">Jithu Jobin Sam</a>
+  <nav aria-label="Sections"><a href="#work">What I do</a><a href="#thinking">How I work</a><a href="#experience">Experience</a><a href="#contact">Contact</a></nav>
+</header>
+
+<main id="top">
+  <div class="wrap hero">
+    <div>
+      <h1>Jithu Jobin&nbsp;Sam</h1>
+      <p class="role">GTM engineer in Delhi</p>
+      <p class="say">I work on the stretch between a good list and a booked meeting: choosing the accounts, finding the moment, writing the message, and building the systems that make it repeatable.</p>
+      <div class="acts">
+        <a class="btn primary" href="mailto:jithujsam@gmail.com?subject=GTM%20engineer%20role">Email me</a>
+        <a class="btn plain" href="Jithu-Jobin-Sam-CV.pdf" download>Download CV</a>
+      </div>
+      <p class="open"><i aria-hidden="true"></i>Open to full-time GTM engineer roles</p>
+    </div>
+    <figure class="portrait">
+      <img src="assets/jithu.jpg" width="900" height="1200" alt="Jithu Jobin Sam, smiling, in glasses and a dark hoodie, at a café table at night">
+    </figure>
+  </div>
+
+  <section id="work">
+    <div class="wrap split">
+      <div>
+        <h2>What I do</h2>
+        <p class="intro">GTM engineering, as I practise it, is four jobs held by one person.</p>
+      </div>
+      <dl class="do">
+        <div><dt>Targeting</dt><dd>Define the ICP, map the buying committee, and pick accounts that have a reason to talk now: a regulation, a launch, a hiring spike.</dd></div>
+        <div><dt>Outreach</dt><dd>Write the positioning and the copy, run email, LinkedIn and calls, and keep the sending domains healthy enough to land in the inbox.</dd></div>
+        <div><dt>Systems</dt><dd>Turn work that repeats into workflows: enrichment, AI scoring, verification and sending, built in n8n and code, and sized to the budget.</dd></div>
+        <div><dt>Operations</dt><dd>Track every opportunity in the CRM, hand qualified accounts to sales, and train the people who run the playbook after me.</dd></div>
+      </dl>
+    </div>
+  </section>
+
+  <section class="think" id="thinking">
+    <div class="wrap">
+      <h2>How I work</h2>
+      <ul>
+        <li><b>Choose the account before the message.</b><span>Research the company, map the buyers and qualify fit first, so the message reaches the right function.</span></li>
+        <li><b>Time it to a reason to act.</b><span>Funding news, regulation, a traffic peak or a launch gives the buyer a reason to reply this month.</span></li>
+        <li><b>Own the whole loop.</b><span>Research, copy, outreach, qualification and handoff stay with one person, so nothing is lost between steps.</span></li>
+        <li><b>Build a tool when the work repeats.</b><span>A process done three times becomes a workflow. A workflow other people need becomes a product.</span></li>
+        <li><b>Learn by shipping.</b><span>I pick up a new tool by building something real with it, then fold the result back into the sales process.</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="experience">
+    <div class="wrap split">
+      <div>
+        <h2>Experience</h2>
+        <p class="intro">Four years in GTM, told once.</p>
+      </div>
+      <div>
+        <div class="story">
+          <p>I joined MapmyIndia in 2022 to answer inbound leads, moved to outbound within the year, and for more than three years was the only person generating outbound leads for enterprise sales. That meant selling location technology into banks, NBFCs, fintech, retail, logistics, gaming, automotive, public sector and real estate, each with its own use case and its own reason to reply.</p>
+          <p>Along the way the work moved from manual outreach to automated systems, and the team I trained now runs the playbook. In 2026 I started Clospect to build the same engine for other B2B companies.</p>
+        </div>
+        <ul class="roles">
+          <li><span class="when">2022 – now</span><div><b>MapmyIndia</b> <span>Lead Generation Executive</span></div><p>I joined as an inside sales trainee, then took over enterprise outbound. I work with the Chief Business Officer on which industries to pursue, and interview and train new outbound hires.</p></li>
+          <li><span class="when">2026 – now</span><div><b>Clospect</b> <span>Founder</span></div><p>Outbound infrastructure, AI workflows and campaign execution for B2B SaaS and recruitment companies.</p></li>
+          <li><span class="when">2019 – 2022</span><div><b>New Delhi Institution of Management</b> <span>BBA</span></div></li>
+        </ul>
+        <div class="built">
+          <h3>Things I’ve built</h3>
+          <ul>
+            <li><a href="https://klaroh.online" target="_blank" rel="noopener">Klaroh</a>, client reporting for cold-email agencies, in private beta.</li>
+            <li><a href="https://github.com/jithujsam-cloud/gtm-outbound-infrastructure/tree/main/gtm-validation-tool" target="_blank" rel="noopener">GTM Validation Tool</a>, which imports lead lists, scores ICP fit with AI and verifies emails.</li>
+            <li><a href="https://github.com/jithujsam-cloud/gtm-outbound-infrastructure/tree/main/systems" target="_blank" rel="noopener">Outbound workflows</a> in n8n for hiring signals, lead qualification and sending.</li>
+          </ul>
+        </div>
+        <div class="tools">
+          <h3>Tools I reach for</h3>
+          <p>n8n, Apify, Clearout, Smartlead, Instantly, Apollo, Sales Navigator, Airtable, HubSpot, Gemini, Claude Code, Next.js and Supabase.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="about" id="about">
+    <div class="wrap split">
+      <div><h2>A bit more</h2></div>
+      <div>
+        <p>I came into GTM through a business degree and an inside-sales desk rather than a computer science course. That is why I build for the person who has to use the system on a Monday morning, not for the diagram.</p>
+        <p>Most of what I know about automation I learned by rebuilding my own week as software. I like a clean CRM, a short email and a domain that passes its checks. I have opinions about DMARC.</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<section class="contact" id="contact">
+  <div class="wrap">
+    <h2>Hiring a GTM engineer?</h2>
+    <p class="lead">I’m looking for a full-time role where go-to-market and engineering sit in the same seat. Email is the quickest way to reach me.</p>
+    <div class="acts">
+      <a class="btn primary" href="mailto:jithujsam@gmail.com?subject=GTM%20engineer%20role">Email me</a>
+      <a class="btn plain" href="Jithu-Jobin-Sam-CV.pdf" download>Download CV</a>
+      <a class="btn plain" href="https://www.linkedin.com/in/jithujsam" target="_blank" rel="noopener">LinkedIn</a>
+    </div>
+    <p class="mail"><a href="mailto:jithujsam@gmail.com">jithujsam@gmail.com</a><button type="button" id="copy">Copy address</button></p>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <span>© 2026 Jithu Jobin Sam</span>
+    <nav aria-label="Elsewhere"><a href="https://www.linkedin.com/in/jithujsam" target="_blank" rel="noopener">LinkedIn</a><a href="https://github.com/jithujsam-cloud/gtm-outbound-infrastructure" target="_blank" rel="noopener">GitHub</a><a href="https://clospect.com" target="_blank" rel="noopener">Clospect</a></nav>
+  </div>
+</footer>
+
+<script>
+(function () {
+  var b = document.getElementById("copy");
+  b.addEventListener("click", function () {
+    var done = function () { b.textContent = "Copied"; setTimeout(function () { b.textContent = "Copy address"; }, 1600); };
+    try { navigator.clipboard.writeText("jithujsam@gmail.com").then(done, function () { b.textContent = "Select the address to copy"; }); }
+    catch (e) { b.textContent = "Select the address to copy"; }
+  });
+})();
+</script>
+</body>
+</html>

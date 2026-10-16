@@ -1,0 +1,22 @@
+# Personal website
+
+Jithu Jobin Sam's personal website: who he is, what a GTM engineer does in his hands, how he works, his experience in one short story, and a clear way to get in touch. Static HTML, no build step, no dependencies.
+
+| File | Purpose |
+|---|---|
+| `index.html` | The whole page. Font: Schibsted Grotesk from Google Fonts. |
+| `Jithu-Jobin-Sam-CV.pdf` | One-page CV, linked from the page |
+| `cv-source.html` | Source for the CV. Edit it, then re-export to PDF (print to A4, background graphics on). Not deployed. |
+| `404.html` | Not-found page, served automatically by Vercel |
+| `favicon.svg`, `og.png` | Tab icon and link-preview image |
+| `assets/jithu.jpg` | Portrait |
+| `vercel.json` | Clean URLs, security headers, caching |
+
+## Deploy on Vercel
+
+1. **Add New → Project**, import `jithujsam-cloud/gtm-outbound-infrastructure`.
+2. Set **Root Directory** to `website`.
+3. Framework Preset: **Other**. Leave Build Command and Output Directory empty.
+4. Deploy, then attach your domain and change `og:image` in `index.html` to the absolute URL (for example `https://yourdomain.com/og.png`).
+
+The older experimental design is kept in `site/` for reference only.

@@ -252,6 +252,22 @@ p { margin: 0; }
 .path.alt { background: var(--accent-soft); }
 @media (max-width: 860px) { .paths { grid-template-columns: 1fr; } }
 
+/* programmes */
+.cases { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; }
+.cases .proj { grid-template-rows: auto auto 1fr auto; }
+.accounts { margin-top: clamp(2rem, 5vw, 3rem); display: grid; gap: .8rem; justify-items: center; text-align: center; }
+.accounts .tags { display: flex; flex-wrap: wrap; justify-content: center; gap: .45rem; max-width: 52rem; }
+.accounts .tag { background: var(--tile); }
+@media (max-width: 960px) { .cases { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 600px) { .cases { grid-template-columns: 1fr; } }
+
+/* rules */
+.rules { list-style: none; margin: 0; padding: 0; display: grid; gap: .75rem; counter-reset: rule; max-width: 44rem; margin-inline: auto; }
+.rules li { counter-increment: rule; display: grid; grid-template-columns: 2.4rem minmax(0, 1fr); column-gap: 1rem; background: var(--tile); border-radius: var(--r-md); padding: 1.1rem 1.4rem; }
+.rules li::before { content: counter(rule); grid-row: span 2; width: 2.4rem; height: 2.4rem; border-radius: 50%; display: grid; place-items: center; background: var(--accent); color: var(--on-accent); font-weight: 600; font-size: .9rem; }
+.rules b { font-family: var(--serif); font-weight: 400; font-size: 1.2rem; line-height: 1.3; }
+.rules span { color: var(--ink-2); font-size: .95rem; }
+
 /* about */
 .about { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(2rem, 6vw, 5rem); align-items: center; }
 .about .photo { border-radius: var(--r-lg); overflow: hidden; aspect-ratio: 4 / 5; max-width: 100%; }
@@ -339,6 +355,7 @@ footer a { color: var(--ink-2); }
     <a class="name" href="#top"><span class="face" style="--src:var(--f-calm)"></span>Jithu Jobin Sam</a>
     <nav class="links" id="navLinks" aria-label="Sections">
       <a href="#story">Story</a>
+      <a href="#programmes">Programmes</a>
       <a href="#what">What I do</a>
       <a href="#pipeline">How it works</a>
       <a href="#work">Work</a>
@@ -379,12 +396,12 @@ footer a { color: var(--ink-2); }
         <h2>From cold calls to the systems behind them.</h2>
       </div>
       <div class="story">
-        <article class="chapter" data-mood="neutral" data-say="2022. A phone, a list and a lot of dialling.">
-          <div class="art"><span class="year">2022</span><span class="face" style="--src:var(--f-neutral)"></span></div>
+        <article class="chapter" data-mood="neutral" data-say="July 2022. Inbound first, outbound six months later.">
+          <div class="art"><span class="year">July 2022</span><span class="face" style="--src:var(--f-neutral)"></span></div>
           <div class="text">
             <p class="kicker">Chapter one</p>
-            <h3>I started on the phones.</h3>
-            <p class="body">I joined MapmyIndia as an Inside Sales Trainee. <strong>Cold calls, LinkedIn messages and emails</strong> for a location-intelligence platform sold to large enterprises. I learned what buyers care about, and what makes them hang up.</p>
+            <h3>I started by answering the door.</h3>
+            <p class="body">I joined MapmyIndia as an Inside Sales Trainee, qualifying <strong>inbound leads</strong> for a location platform and learning the product, its use cases and its buyers. About six months in I walked out the door instead and moved to outbound: email, LinkedIn and calls, with a different use case for every industry.</p>
           </div>
         </article>
         <article class="chapter" data-mood="curious" data-say="Within a year, all of enterprise outbound was mine.">
@@ -419,6 +436,60 @@ footer a { color: var(--ink-2); }
             <p class="body">In January 2026 I founded <strong>Clospect</strong> to build the same GTM systems for B2B SaaS and recruitment companies: sending infrastructure, AI workflows and revenue operations. That includes a production web app that a non-technical operator can run alone.</p>
           </div>
         </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section tight" id="programmes" data-mood="curious" data-say="One buyer, one problem, one reason to reply this month.">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="kicker">Case files</p>
+        <h2>Programmes, not blasts.</h2>
+        <p class="lead">Each one paired a buyer group with one specific problem, timed to a reason to act.</p>
+      </div>
+      <div class="cases">
+        <article class="proj" data-mood="excited" data-say="Timed before the IPL traffic peak. Cricket helped.">
+          <span class="where">Early 2023 · Online gaming</span>
+          <h3>Location accuracy, before the IPL.</h3>
+          <p class="muted">Positioned against Google Maps for restricted states, with a compliance angle for fantasy and real-money gaming operators.</p>
+          <div class="tags"><span class="tag">API tests</span><span class="tag">Proposals</span><span class="tag">Paying customers</span></div>
+        </article>
+        <article class="proj" data-mood="skeptic" data-say="When the regulator gives you a reason, use it.">
+          <span class="where">Late 2023 · Banks and payments</span>
+          <h3>Every POS transaction needs a location.</h3>
+          <p class="muted">A regulation-led programme. Conversations with IDFC FIRST Bank, HDFC Bank and Axis Bank.</p>
+          <div class="tags"><span class="tag">Compliance</span><span class="tag">BFSI</span></div>
+        </article>
+        <article class="proj" data-mood="content" data-say="Collections heads reply to efficiency.">
+          <span class="where">2024 · Banks, NBFCs, fintechs</span>
+          <h3>Better collections, with a map.</h3>
+          <p class="muted">Location intelligence for collection teams. Meetings with collections heads at large lenders.</p>
+          <div class="tags"><span class="tag">Collections</span><span class="tag">NBFC</span></div>
+        </article>
+        <article class="proj" data-mood="surprised" data-say="Faster repossession. Lower NPAs. Fewer sad spreadsheets.">
+          <span class="where">2024 to 2025 · Lenders and car platforms</span>
+          <h3>Used-car-loan recovery.</h3>
+          <p class="muted">Lower NPAs and faster asset recovery, including conversations with platforms like Cars24.</p>
+          <div class="tags"><span class="tag">Recovery</span><span class="tag">Lending</span></div>
+        </article>
+        <article class="proj" data-mood="smile" data-say="Visibility for field teams. Accountability for everyone else.">
+          <span class="where">2025 · Microfinance and enterprises</span>
+          <h3>Field-force productivity.</h3>
+          <p class="muted">Visibility and accountability for field teams. Calls with product and debt-management leaders.</p>
+          <div class="tags"><span class="tag">Field teams</span><span class="tag">NBFC</span></div>
+        </article>
+        <article class="proj" data-mood="laugh" data-say="Finding your way around an airport is a real problem.">
+          <span class="where">2026 · Real estate, hospitals, airports</span>
+          <h3>Wayfinding for very large buildings.</h3>
+          <p class="muted">Indoor navigation outbound, from the account database to account-specific decks. Conversations with DLF, Pacific and Apollo.</p>
+          <div class="tags"><span class="tag">Indoor navigation</span><span class="tag">ICP</span></div>
+        </article>
+      </div>
+      <div class="accounts">
+        <p class="kicker">Doors I've knocked on</p>
+        <div class="tags">
+          <span class="tag">HDFC Bank</span><span class="tag">ICICI Bank</span><span class="tag">Axis Bank</span><span class="tag">IDFC FIRST Bank</span><span class="tag">Tata Capital</span><span class="tag">L&amp;T Finance</span><span class="tag">Muthoot Fincorp</span><span class="tag">HDB Financial</span><span class="tag">Mahindra Finance</span><span class="tag">Shriram Finance</span><span class="tag">TVS Credit</span><span class="tag">Paytm</span><span class="tag">Credgenics</span><span class="tag">PaySprint</span><span class="tag">Tata Consumer Products</span><span class="tag">DLF</span><span class="tag">Apollo</span>
+        </div>
       </div>
     </div>
   </section>
@@ -492,13 +563,28 @@ footer a { color: var(--ink-2); }
     </div>
   </section>
 
-  <section class="section tight" id="work" data-mood="content" data-say="These run in production.">
+  <section class="section tight" id="work" data-mood="content" data-say="Some live, some in beta. I'll say which.">
     <div class="wrap">
       <div class="section-head">
         <p class="kicker">Selected work</p>
         <h2>Things I've built.</h2>
       </div>
       <div class="work">
+        <article class="proj big" data-mood="laugh" data-say="Agencies kept sending screenshots. I built the report instead.">
+          <div class="left">
+            <span class="where">Private beta · Clospect</span>
+            <h3>Klaroh</h3>
+            <p class="muted">A client visibility platform for cold-email agencies. See every client's campaigns, replies and sending health in one place, then give each client a private, branded report that opens without a login.</p>
+            <div class="tags"><span class="tag">Next.js</span><span class="tag">TypeScript</span><span class="tag">Supabase</span><span class="tag">Instantly API</span><span class="tag">Vercel</span></div>
+            <a class="more" href="https://klaroh.online" target="_blank" rel="noopener">Visit klaroh.online</a>
+          </div>
+          <ul>
+            <li>Multi-tenant workspaces with roles, row-level security and encrypted provider credentials.</li>
+            <li>Instantly sync, a unified reply inbox, and mailbox, warm-up and domain checks.</li>
+            <li>A shared metric layer that withholds any number it cannot verify.</li>
+            <li>It reads campaign data and never sends email.</li>
+          </ul>
+        </article>
         <article class="proj big" data-mood="excited" data-say="I turned my n8n flow into a real app.">
           <div class="left">
             <span class="where">Production web app · Clospect</span>
@@ -620,6 +706,7 @@ footer a { color: var(--ink-2); }
         <dl class="facts">
           <dt>Based in</dt><dd>New Delhi, India. Works remotely.</dd>
           <dt>Now</dt><dd>Lead Generation Executive at MapmyIndia, and founder of Clospect</dd>
+          <dt>Track record</dt><dd>Sole owner of enterprise outbound for 3+ years, and the person who trained the team that now runs the playbook</dd>
           <dt>Studied</dt><dd>BBA, New Delhi Institution of Management, 2019–2022</dd>
         </dl>
       </div>
@@ -640,6 +727,22 @@ footer a { color: var(--ink-2); }
         <div><h3>Revenue operations</h3><p>Pipeline attribution, account-to-SQL conversion, funnel reporting, campaign math, stack evaluation</p></div>
         <div><h3>Platforms</h3><p>Instantly, Smartlead, Apollo, Airtable, Google Sheets, HubSpot</p></div>
       </div>
+    </div>
+  </section>
+
+  <section class="section tight" id="rules" data-mood="content" data-say="Five rules. No exceptions, mostly.">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="kicker">House rules</p>
+        <h2>How I work.</h2>
+      </div>
+      <ol class="rules">
+        <li><b>Choose the account before the message.</b><span>Research, map the buyers and qualify fit first.</span></li>
+        <li><b>Time it to a reason to act.</b><span>Funding, regulation, a traffic peak or a launch.</span></li>
+        <li><b>Own the whole loop.</b><span>Research to handoff, so nothing falls between steps.</span></li>
+        <li><b>Build a tool when the work repeats.</b><span>Three times is a workflow. A workflow others need is a product.</span></li>
+        <li><b>Learn by shipping.</b><span>That's how n8n, Claude Code and Klaroh joined the toolkit.</span></li>
+      </ol>
     </div>
   </section>
 

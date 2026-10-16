@@ -1,6 +1,6 @@
 # Personal website
 
-Jithu Jobin Sam's personal website: who he is, what a GTM engineer does in his hands, how he works, his experience in one short story, and a clear way to get in touch. Static HTML, no build step, no dependencies.
+Jithu Jobin Sam's personal website: an introduction, his experience, three projects with their real status, a selection of enterprise programmes, skills, and a clear way to get in touch. Static HTML, no build step, no dependencies.
 
 | File | Purpose |
 |---|---|

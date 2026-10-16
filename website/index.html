@@ -4,11 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Jithu Jobin Sam · GTM engineer</title>
-<meta name="description" content="Jithu Jobin Sam is a GTM engineer in Delhi. He chooses the accounts, finds the moment, writes the message, and builds the systems that make outbound repeatable.">
+<meta name="description" content="Jithu Jobin Sam builds systems for outbound GTM. Four years running enterprise outbound at MapmyIndia, and the automation and software he built to make it repeatable.">
 <meta name="theme-color" content="#f6f7f9">
 <meta property="og:type" content="profile">
 <meta property="og:title" content="Jithu Jobin Sam · GTM engineer">
-<meta property="og:description" content="Choosing the accounts, finding the moment, writing the message, and building the systems that make it repeatable.">
+<meta property="og:description" content="Four years running enterprise outbound at MapmyIndia, and the automation and software built to make it repeatable.">
 <meta property="og:image" content="/og.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
@@ -60,8 +60,10 @@ p, li, dd { text-wrap: pretty; }
 .hero { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: clamp(32px, 6vw, 88px); align-items: end; padding-block: clamp(48px, 9vw, 112px) clamp(72px, 10vw, 128px); }
 .hero h1 { font-size: clamp(3.25rem, 8.4vw, 7.25rem); font-weight: 800; line-height: .9; letter-spacing: -0.045em; }
 .hero .role { margin-top: 20px; font-size: clamp(1.25rem, 1.1rem + .7vw, 1.6rem); font-weight: 500; color: var(--soft); }
-.hero .say { margin-top: 28px; font-size: clamp(1.25rem, 1.1rem + .7vw, 1.6rem); line-height: 1.4; max-width: 30ch; font-weight: 500; }
-.hero .acts { margin-top: 36px; display: flex; gap: 12px; flex-wrap: wrap; }
+.hero .say { margin-top: 28px; font-size: clamp(1.5rem, 1.2rem + 1.2vw, 2.1rem); line-height: 1.2; letter-spacing: -0.02em; max-width: 24ch; font-weight: 700; }
+.hero .intro-2 { margin-top: 16px; max-width: 52ch; }
+.hero .links-row { margin-top: 18px; display: flex; gap: 20px; font-weight: 600; }
+.hero .acts { margin-top: 32px; display: flex; gap: 12px; flex-wrap: wrap; }
 .hero .open { margin-top: 22px; display: flex; align-items: center; gap: 10px; font-size: 1rem; color: var(--soft); }
 .hero .open i { width: 9px; height: 9px; border-radius: 50%; background: #1d9e5a; flex: none; }
 .portrait { margin: 0; }
@@ -70,7 +72,7 @@ p, li, dd { text-wrap: pretty; }
 
 /* one orchestrated load moment */
 @media (prefers-reduced-motion: no-preference) {
-  .hero h1, .hero .role, .hero .say, .hero .acts, .hero .open, .portrait { animation: up .8s cubic-bezier(.2, .7, .2, 1) both; }
+  .hero h1, .hero .role, .hero .say, .hero .intro-2, .hero .acts, .hero .links-row, .hero .open, .portrait { animation: up .8s cubic-bezier(.2, .7, .2, 1) both; }
   .hero .role { animation-delay: .08s; } .hero .say { animation-delay: .16s; } .hero .acts { animation-delay: .24s; } .hero .open { animation-delay: .3s; } .portrait { animation-delay: .1s; }
   @keyframes up { from { opacity: 0; transform: translateY(18px); } }
 }
@@ -81,19 +83,23 @@ section { padding-block: clamp(64px, 9vw, 112px); }
 h2 { font-size: clamp(1.75rem, 1.4rem + 1.4vw, 2.5rem); font-weight: 700; letter-spacing: -0.025em; line-height: 1.1; }
 .intro { margin-top: 14px; color: var(--soft); max-width: 32ch; }
 
-/* what I do */
-.do { display: grid; gap: 34px; }
-.do dt { font-weight: 700; font-size: 1.25rem; letter-spacing: -0.01em; }
-.do dd { margin-top: 6px; color: var(--ink); max-width: 60ch; }
-
-/* how I think: statements, set large */
-.think { background: var(--surface); }
-.think ul { margin-top: clamp(28px, 4vw, 48px); display: grid; gap: clamp(26px, 3vw, 38px); }
-.think li { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 12px clamp(24px, 5vw, 72px); align-items: baseline; }
-.think b { font-size: clamp(1.4rem, 1.15rem + 1.1vw, 2.1rem); font-weight: 700; letter-spacing: -0.025em; line-height: 1.15; }
-.think span { color: var(--soft); max-width: 46ch; }
+/* selected work */
+.case + .case { margin-top: clamp(56px, 7vw, 88px); }
+.case h3 { font-size: clamp(1.5rem, 1.25rem + 1vw, 2rem); font-weight: 700; letter-spacing: -0.025em; line-height: 1.15; }
+.case .ctx { margin-top: 8px; color: var(--soft); }
+.case .ctx a { font-weight: 600; }
+.case dl { display: grid; gap: 22px; }
+.case dt { font-weight: 700; }
+.case dd { margin-top: 4px; max-width: 62ch; }
+.flow { grid-column: 1 / -1; margin-top: 8px; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; counter-reset: step; }
+.flow li { background: var(--surface); border-radius: 8px; padding: 14px 14px 16px; counter-increment: step; position: relative; }
+.flow li::before { content: counter(step); display: block; font-size: .9rem; font-weight: 600; color: var(--cobalt); }
+.flow b { display: block; margin-top: 6px; font-weight: 700; }
+.flow span { display: block; margin-top: 2px; font-size: .95rem; color: var(--soft); line-height: 1.4; }
+.flow-note { grid-column: 1 / -1; font-size: 1rem; color: var(--soft); max-width: 70ch; }
 
 /* experience */
+.story { max-width: 64ch; }
 .story p { max-width: 62ch; }
 .story p + p { margin-top: 16px; }
 .roles { margin-top: 40px; display: grid; gap: 26px; }
@@ -110,9 +116,23 @@ h2 { font-size: clamp(1.75rem, 1.4rem + 1.4vw, 2.5rem); font-weight: 700; letter
 .tools { margin-top: 40px; }
 .tools p { margin-top: 10px; max-width: 62ch; }
 
-/* about */
-.about p { max-width: 58ch; }
-.about p + p { margin-top: 16px; }
+/* projects: status and proof lines */
+.case .status { display: inline-block; margin-top: 12px; font-size: .95rem; font-weight: 600; padding: 4px 10px; border-radius: 999px; background: var(--surface); color: var(--ink); }
+.case .proof { margin-top: 12px; display: flex; flex-direction: column; gap: 6px; font-weight: 600; }
+
+/* programmes */
+.progs { margin-top: clamp(32px, 4vw, 48px); display: grid; gap: 28px; }
+.progs li { display: grid; grid-template-columns: 9rem minmax(0, 1fr); gap: 4px 24px; }
+.progs .when { color: var(--soft); font-variant-numeric: tabular-nums; }
+.progs b { font-weight: 700; }
+.progs p { grid-column: 2; max-width: 62ch; }
+.progs .stage { color: var(--soft); }
+.fine { margin-top: 32px; font-size: 1rem; color: var(--soft); max-width: 70ch; }
+
+/* skills */
+.skills { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px 48px; }
+.skills h3 { font-size: 1.125rem; font-weight: 700; }
+.skills p { margin-top: 4px; }
 
 /* contact */
 .contact { background: var(--navy); color: #eef1fb; }
@@ -141,6 +161,10 @@ footer a { color: var(--soft); }
   .think li { grid-template-columns: 1fr; }
   .roles li { grid-template-columns: 1fr; }
   .roles p { grid-column: 1; }
+  .flow { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .progs li { grid-template-columns: 1fr; }
+  .progs p { grid-column: 1; }
+  .skills { grid-template-columns: 1fr; }
 }
 </style>
 </head>
@@ -148,19 +172,21 @@ footer a { color: var(--soft); }
 
 <header class="wrap top">
   <a class="me" href="#top">Jithu Jobin Sam</a>
-  <nav aria-label="Sections"><a href="#work">What I do</a><a href="#thinking">How I work</a><a href="#experience">Experience</a><a href="#contact">Contact</a></nav>
+  <nav aria-label="Sections"><a href="#experience">Experience</a><a href="#projects">Projects</a><a href="#programmes">Enterprise work</a><a href="#contact">Contact</a></nav>
 </header>
 
 <main id="top">
   <div class="wrap hero">
     <div>
       <h1>Jithu Jobin&nbsp;Sam</h1>
-      <p class="role">GTM engineer in Delhi</p>
-      <p class="say">I work on the stretch between a good list and a booked meeting: choosing the accounts, finding the moment, writing the message, and building the systems that make it repeatable.</p>
+      <p class="role">GTM engineer, Delhi</p>
+      <p class="say">I build systems for outbound GTM.</p>
+      <p class="intro-2">I’ve spent four years running enterprise outbound at MapmyIndia. Along the way, I started building the automation, workflows and software to make that work more repeatable.</p>
       <div class="acts">
         <a class="btn primary" href="mailto:jithujsam@gmail.com?subject=GTM%20engineer%20role">Email me</a>
         <a class="btn plain" href="Jithu-Jobin-Sam-CV.pdf" download>Download CV</a>
       </div>
+      <p class="links-row"><a href="https://www.linkedin.com/in/jithujsam" target="_blank" rel="noopener">LinkedIn</a><a href="https://github.com/jithujsam-cloud/gtm-outbound-infrastructure" target="_blank" rel="noopener">GitHub</a></p>
       <p class="open"><i aria-hidden="true"></i>Open to full-time GTM engineer roles</p>
     </div>
     <figure class="portrait">
@@ -168,72 +194,106 @@ footer a { color: var(--soft); }
     </figure>
   </div>
 
-  <section id="work">
-    <div class="wrap split">
-      <div>
-        <h2>What I do</h2>
-        <p class="intro">GTM engineering, as I practise it, is four jobs held by one person.</p>
-      </div>
-      <dl class="do">
-        <div><dt>Targeting</dt><dd>Define the ICP, map the buying committee, and pick accounts that have a reason to talk now: a regulation, a launch, a hiring spike.</dd></div>
-        <div><dt>Outreach</dt><dd>Write the positioning and the copy, run email, LinkedIn and calls, and keep the sending domains healthy enough to land in the inbox.</dd></div>
-        <div><dt>Systems</dt><dd>Turn work that repeats into workflows: enrichment, AI scoring, verification and sending, built in n8n and code, and sized to the budget.</dd></div>
-        <div><dt>Operations</dt><dd>Track every opportunity in the CRM, hand qualified accounts to sales, and train the people who run the playbook after me.</dd></div>
-      </dl>
-    </div>
-  </section>
-
-  <section class="think" id="thinking">
-    <div class="wrap">
-      <h2>How I work</h2>
-      <ul>
-        <li><b>Choose the account before the message.</b><span>Research the company, map the buyers and qualify fit first, so the message reaches the right function.</span></li>
-        <li><b>Time it to a reason to act.</b><span>Funding news, regulation, a traffic peak or a launch gives the buyer a reason to reply this month.</span></li>
-        <li><b>Own the whole loop.</b><span>Research, copy, outreach, qualification and handoff stay with one person, so nothing is lost between steps.</span></li>
-        <li><b>Build a tool when the work repeats.</b><span>A process done three times becomes a workflow. A workflow other people need becomes a product.</span></li>
-        <li><b>Learn by shipping.</b><span>I pick up a new tool by building something real with it, then fold the result back into the sales process.</span></li>
-      </ul>
-    </div>
-  </section>
-
   <section id="experience">
     <div class="wrap split">
-      <div>
-        <h2>Experience</h2>
-        <p class="intro">Four years in GTM, told once.</p>
-      </div>
+      <div><h2>Experience</h2></div>
       <div>
         <div class="story">
-          <p>I joined MapmyIndia in 2022 to answer inbound leads, moved to outbound within the year, and for more than three years was the only person generating outbound leads for enterprise sales. That meant selling location technology into banks, NBFCs, fintech, retail, logistics, gaming, automotive, public sector and real estate, each with its own use case and its own reason to reply.</p>
-          <p>Along the way the work moved from manual outreach to automated systems, and the team I trained now runs the playbook. In 2026 I started Clospect to build the same engine for other B2B companies.</p>
+          <p>I joined MapmyIndia in July 2022 as an inside sales trainee, answering inbound leads for its location platform. About six months in I moved to outbound, and within the year I was working on enterprise accounts.</p>
+          <p>For more than three years I was the only person generating outbound leads for enterprise sales. I worked with the Chief Business Officer on which industries and use cases to pursue, researched the accounts, wrote the positioning and the copy, ran the outreach by email, LinkedIn and phone, and tracked every opportunity in the CRM until it went to sales.</p>
+          <p>When the team grew, I interviewed and trained the new outbound hires, and they now run the playbook I built. In 2025 I started teaching myself n8n, Apify, Gemini and Claude Code by automating my own workflow, and that became the projects below.</p>
         </div>
         <ul class="roles">
-          <li><span class="when">2022 – now</span><div><b>MapmyIndia</b> <span>Lead Generation Executive</span></div><p>I joined as an inside sales trainee, then took over enterprise outbound. I work with the Chief Business Officer on which industries to pursue, and interview and train new outbound hires.</p></li>
-          <li><span class="when">2026 – now</span><div><b>Clospect</b> <span>Founder</span></div><p>Outbound infrastructure, AI workflows and campaign execution for B2B SaaS and recruitment companies.</p></li>
+          <li><span class="when">2022 – now</span><div><b>MapmyIndia</b> <span>Lead Generation Executive</span></div><p>Enterprise outbound across banks, NBFCs, fintech, retail, logistics, gaming, automotive, public sector and real estate. I now also own outbound for the new indoor navigation offering.</p></li>
+          <li><span class="when">2026 – now</span><div><b>Clospect</b> <span>Founder</span></div><p>Outbound infrastructure, AI workflows and campaign execution for B2B SaaS and recruitment companies. I ran outbound end to end for a recruitment client, from ICP and sending setup to campaigns.</p></li>
           <li><span class="when">2019 – 2022</span><div><b>New Delhi Institution of Management</b> <span>BBA</span></div></li>
         </ul>
-        <div class="built">
-          <h3>Things I’ve built</h3>
-          <ul>
-            <li><a href="https://klaroh.online" target="_blank" rel="noopener">Klaroh</a>, client reporting for cold-email agencies, in private beta.</li>
-            <li><a href="https://github.com/jithujsam-cloud/gtm-outbound-infrastructure/tree/main/gtm-validation-tool" target="_blank" rel="noopener">GTM Validation Tool</a>, which imports lead lists, scores ICP fit with AI and verifies emails.</li>
-            <li><a href="https://github.com/jithujsam-cloud/gtm-outbound-infrastructure/tree/main/systems" target="_blank" rel="noopener">Outbound workflows</a> in n8n for hiring signals, lead qualification and sending.</li>
-          </ul>
-        </div>
-        <div class="tools">
-          <h3>Tools I reach for</h3>
-          <p>n8n, Apify, Clearout, Smartlead, Instantly, Apollo, Sales Navigator, Airtable, HubSpot, Gemini, Claude Code, Next.js and Supabase.</p>
-        </div>
       </div>
     </div>
   </section>
 
-  <section class="about" id="about">
+  <section id="projects">
+    <div class="wrap">
+      <h2>Selected projects</h2>
+      <p class="intro">Each one started as a problem I kept running into.</p>
+
+      <article class="case split" style="margin-top: clamp(36px, 5vw, 56px)">
+        <div>
+          <h3>Klaroh</h3>
+          <p class="ctx">Client reporting for cold-email agencies, 2026</p>
+          <span class="status">Private beta</span>
+          <p class="proof"><a href="https://klaroh.online" target="_blank" rel="noopener">klaroh.online</a><a href="https://github.com/jithujsam-cloud/gtm-outbound-infrastructure#1-klaroh--agency-operations-and-client-visibility" target="_blank" rel="noopener">Project notes on GitHub</a></p>
+        </div>
+        <dl>
+          <div><dt>The problem</dt><dd>Agencies running cold email for several clients struggle to keep an eye on each client’s campaign performance and sending health, and end up reporting with screenshots and PDFs.</dd></div>
+          <div><dt>What I built</dt><dd>A multi-tenant dashboard that syncs campaign data from Instantly, shows every client’s campaigns, replies and mailbox health in one place, and gives each client a private, branded report that opens without a login. Workspaces are isolated with row-level security, provider keys are encrypted, and any metric whose source cannot be verified is left out rather than guessed.</dd></div>
+          <div><dt>What works today</dt><dd>Instantly is the only connected sending tool. Data is synced on a schedule and on demand, not live. Klaroh reads campaign data and never sends email. The application code lives in a separate private repository.</dd></div>
+        </dl>
+      </article>
+
+      <article class="case split">
+        <div>
+          <h3>GTM Validation Tool</h3>
+          <p class="ctx">Lead list validation, 2026</p>
+          <span class="status">Working code</span>
+          <p class="proof"><a href="https://github.com/jithujsam-cloud/gtm-outbound-infrastructure/tree/main/gtm-validation-tool" target="_blank" rel="noopener">Code and README</a></p>
+        </div>
+        <dl>
+          <div><dt>The problem</dt><dd>Verifying every email in a raw lead list costs money, and long verification runs fail halfway through when a provider rate-limits or a request times out.</dd></div>
+          <div><dt>What I built</dt><dd>A Next.js and Supabase app that imports a CSV, scores each lead against the project’s ICP with structured AI output, and only then verifies emails through Clearout. Verification runs on a PostgreSQL job queue that claims work with leases, retries failures, handles rate limits and logs API cost, so a job can pause and resume without paying for the same check twice.</dd></div>
+          <div><dt>What works today</dt><dd>The import, scoring and verification flow is implemented. Automated test coverage is incomplete and build-time type checking is disabled; both are listed as open work in the README.</dd></div>
+        </dl>
+      </article>
+
+      <article class="case split">
+        <div>
+          <h3>Signal-to-pipeline workflows</h3>
+          <p class="ctx">n8n automation, 2025 to 2026</p>
+          <span class="status">Importable workflows</span>
+          <p class="proof"><a href="https://github.com/jithujsam-cloud/gtm-outbound-infrastructure/tree/main/systems" target="_blank" rel="noopener">Workflow files and READMEs</a></p>
+        </div>
+        <dl>
+          <div><dt>The problem</dt><dd>Lists exported from a database are weeks old by the time anyone emails them, and enriching every row burns budget on contacts that never fit.</dd></div>
+          <div><dt>What I built</dt><dd>Two n8n systems. The first starts from live hiring signals and runs the cheap checks before the paid one, storing every score with its written reason. The second sends from the qualified queue on a controlled cadence and records opens with a self-hosted pixel.</dd></div>
+          <div><dt>What works today</dt><dd>These are workflow files, not a hosted product. Running them needs your own n8n instance and API keys for Apify, Gemini, Clearout, Airtable, Claude and Gmail.</dd></div>
+        </dl>
+        <ol class="flow" aria-label="The steps a lead goes through">
+          <li><b>Signal</b><span>Apify pulls job postings by industry and role</span></li>
+          <li><b>Score</b><span>Gemini checks ICP fit and writes why</span></li>
+          <li><b>Grade</b><span>Email quality scored 0 to 100, with reasons</span></li>
+          <li><b>Verify</b><span>Clearout checks only the leads that passed</span></li>
+          <li><b>Queue</b><span>Airtable marks the lead safe to send</span></li>
+          <li><b>Send</b><span>Claude rewrites each email; Gmail sends with random gaps</span></li>
+          <li><b>Track</b><span>A self-hosted pixel records the open</span></li>
+        </ol>
+        <p class="flow-note">A lead that fails the ICP check stops at step 2, so it never costs a verification credit.</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="think" id="programmes">
+    <div class="wrap">
+      <h2>Enterprise programmes</h2>
+      <p class="intro">At MapmyIndia each programme paired one buyer group with one problem and a reason to act. A selection, with the stage each one reached.</p>
+      <ul class="progs">
+        <li><span class="when">Early 2023</span><div><b>Online gaming</b></div><p>Location accuracy and compliance for fantasy and real-money gaming operators in states that restrict play, positioned against Google Maps and timed before the IPL traffic peak. <span class="stage">Reached API tests, proofs of concept and proposals; some operators became paying customers.</span></p></li>
+        <li><span class="when">Late 2023</span><div><b>POS-device compliance</b></div><p>A regulation-led programme for banks and payment companies on capturing the location of every POS-device transaction. <span class="stage">Reached conversations with large private banks.</span></p></li>
+        <li><span class="when">2024 – 2025</span><div><b>Collections and loan recovery</b></div><p>Location intelligence for collection teams at banks, NBFCs and fintechs, and faster asset recovery for lenders and car platforms. <span class="stage">Reached meetings with collections heads at large lenders.</span></p></li>
+        <li><span class="when">2026</span><div><b>Indoor navigation</b></div><p>Wayfinding for large buildings: I built the account database, defined the ICP and buyer roles, and wrote account-specific decks for hospitals, airports and real estate. <span class="stage">Conversations are under way.</span></p></li>
+      </ul>
+      <p class="fine">Stages are stated as they happened. No customer data or confidential details are shared here.</p>
+    </div>
+  </section>
+
+  <section id="skills">
     <div class="wrap split">
-      <div><h2>A bit more</h2></div>
-      <div>
-        <p>I came into GTM through a business degree and an inside-sales desk rather than a computer science course. That is why I build for the person who has to use the system on a Monday morning, not for the diagram.</p>
-        <p>Most of what I know about automation I learned by rebuilding my own week as software. I like a clean CRM, a short email and a domain that passes its checks. I have opinions about DMARC.</p>
+      <div><h2>Skills</h2></div>
+      <div class="skills">
+        <div><h3>Prospecting</h3><p>ICP definition, buying-committee mapping, signal-led targeting, Apollo, Sales Navigator, Lusha.</p></div>
+        <div><h3>Sending and deliverability</h3><p>Smartlead, Instantly, secondary domains, SPF, DKIM, DMARC, inbox warm-up.</p></div>
+        <div><h3>Automation and AI</h3><p>n8n (self-hosted), Apify, Clearout, Gemini, Claude, Claude Code, webhooks and APIs.</p></div>
+        <div><h3>Building</h3><p>Next.js, TypeScript, Supabase and PostgreSQL, Vercel.</p></div>
+        <div><h3>CRM and data</h3><p>CRM opportunity tracking, Airtable, Google Sheets. Working knowledge of HubSpot and Clay.</p></div>
       </div>
     </div>
   </section>
@@ -242,11 +302,12 @@ footer a { color: var(--soft); }
 <section class="contact" id="contact">
   <div class="wrap">
     <h2>Hiring a GTM engineer?</h2>
-    <p class="lead">I’m looking for a full-time role where go-to-market and engineering sit in the same seat. Email is the quickest way to reach me.</p>
+    <p class="lead">I’m looking for a full-time role where go-to-market and engineering sit in the same seat. I’d be glad to talk it through. Email is the quickest way to reach me.</p>
     <div class="acts">
       <a class="btn primary" href="mailto:jithujsam@gmail.com?subject=GTM%20engineer%20role">Email me</a>
       <a class="btn plain" href="Jithu-Jobin-Sam-CV.pdf" download>Download CV</a>
       <a class="btn plain" href="https://www.linkedin.com/in/jithujsam" target="_blank" rel="noopener">LinkedIn</a>
+      <a class="btn plain" href="https://github.com/jithujsam-cloud/gtm-outbound-infrastructure" target="_blank" rel="noopener">GitHub</a>
     </div>
     <p class="mail"><a href="mailto:jithujsam@gmail.com">jithujsam@gmail.com</a><button type="button" id="copy">Copy address</button></p>
   </div>
@@ -258,7 +319,6 @@ footer a { color: var(--soft); }
     <nav aria-label="Elsewhere"><a href="https://www.linkedin.com/in/jithujsam" target="_blank" rel="noopener">LinkedIn</a><a href="https://github.com/jithujsam-cloud/gtm-outbound-infrastructure" target="_blank" rel="noopener">GitHub</a><a href="https://clospect.com" target="_blank" rel="noopener">Clospect</a></nav>
   </div>
 </footer>
-
 <script>
 (function () {
   var b = document.getElementById("copy");

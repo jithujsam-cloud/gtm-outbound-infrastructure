@@ -4,13 +4,14 @@ Static personal site for Jithu Jobin Sam (GTM engineer). One HTML file with inli
 
 | File | Purpose |
 |---|---|
-| `index.html` | The whole page. Fonts (Inter, Inter Tight, JetBrains Mono) load from Google Fonts. |
+| `index.html` | The whole page. Fonts (Young Serif, Source Serif 4) load from Google Fonts. |
 | `404.html` | Not-found page, served automatically by Vercel |
 | `vercel.json` | Clean URLs, security headers, asset caching |
 | `favicon.svg`, `og.png` | Tab icon and link-preview image |
-| `assets/jithu.jpg` | Photo used in the closing section |
+| `assets/jithu.jpg` | Portrait used in the letter and the contact band |
+| `assets/world/` | Openly licensed pictures and one clip of Delhi, credited in the page footer. `credits.json` records each source and licence. |
 
-The page has a live status in the header that reads the current time in Delhi and shows whether the outbound engine's weekday 9 to 6 sending window is open. The "Run a sample lead" demo uses an invented company and contact.
+The page has a live sentence that reads the current time in Delhi and says whether the outbound engine's weekday 9 to 6 sending window is open. The "Run a sample lead" demo uses an invented company and contact.
 
 ## Deploy on Vercel
 

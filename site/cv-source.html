@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Jithu Jobin Sam · CV</title>
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* Source for Jithu-Jobin-Sam-CV.pdf (A4, one page). Edit here, then re-export. */
+@page { size: A4; margin: 0; }
+* { box-sizing: border-box; }
+body { margin: 0; font: 400 9.6pt/1.45 "Schibsted Grotesk", Helvetica, Arial, sans-serif; color: #16181d; }
+.page { width: 210mm; height: 297mm; padding: 16mm 17mm 14mm; display: grid; grid-template-rows: auto 1fr; }
+h1, h2, h3, p, ul { margin: 0; padding: 0; }
+ul { list-style: none; }
+a { color: #2747e0; text-decoration: none; }
+header { display: grid; grid-template-columns: 1fr auto; gap: 6mm; align-items: end; padding-bottom: 7mm; }
+h1 { font-size: 26pt; font-weight: 800; letter-spacing: -0.04em; line-height: .95; }
+.role { margin-top: 2.5mm; font-size: 12pt; font-weight: 500; color: #596070; }
+.contact { text-align: right; font-size: 9pt; line-height: 1.6; }
+.cols { display: grid; grid-template-columns: 1fr 58mm; gap: 9mm; }
+h2 { font-size: 10.5pt; font-weight: 700; letter-spacing: -0.01em; margin-bottom: 2.5mm; color: #16181d; }
+section + section { margin-top: 6mm; }
+.summary { font-size: 10.2pt; line-height: 1.5; }
+.job + .job { margin-top: 4.5mm; }
+.job .h { display: flex; justify-content: space-between; gap: 4mm; }
+.job b { font-weight: 700; }
+.job .when { color: #596070; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.job .t { color: #596070; }
+.job ul { margin-top: 1.5mm; display: grid; gap: 1.2mm; }
+.job li { padding-left: 3.2mm; position: relative; }
+.job li::before { content: ""; position: absolute; left: 0; top: .62em; width: 1.3mm; height: 1.3mm; border-radius: 50%; background: #2747e0; }
+.side { background: #eceef2; border-radius: 3mm; padding: 6mm 5.5mm; align-self: start; }
+.side section + section { margin-top: 5mm; }
+.side h3 { font-size: 9pt; font-weight: 700; margin-bottom: 1mm; }
+.side p { color: #16181d; }
+.side .grp + .grp { margin-top: 2.8mm; }
+.built li + li { margin-top: 2mm; }
+.built b { font-weight: 700; }
+</style>
+</head>
+<body>
+<div class="page">
+  <header>
+    <div>
+      <h1>Jithu Jobin Sam</h1>
+      <p class="role">GTM engineer, Delhi, India</p>
+    </div>
+    <div class="contact">
+      <a href="mailto:jithujsam@gmail.com">jithujsam@gmail.com</a><br>
+      <a href="https://www.linkedin.com/in/jithujsam">linkedin.com/in/jithujsam</a><br>
+      <a href="https://github.com/jithujsam-cloud/gtm-outbound-infrastructure">github.com/jithujsam-cloud</a>
+    </div>
+  </header>
+  <div class="cols">
+    <div>
+      <section>
+        <h2>Summary</h2>
+        <p class="summary">GTM engineer with four years in enterprise outbound. I choose the accounts, find the moment, write the message, and build the systems that make it repeatable. For more than three years I was the only person generating outbound leads for enterprise sales at MapmyIndia, and I moved that work from manual outreach to automated, AI-assisted systems.</p>
+      </section>
+      <section>
+        <h2>Experience</h2>
+        <div class="job">
+          <div class="h"><span><b>MapmyIndia</b> <span class="t">Lead Generation Executive</span></span><span class="when">Jul 2022 – present</span></div>
+          <ul>
+            <li>Joined as Inside Sales Trainee on inbound; moved to outbound within six months and became sole owner of enterprise outbound for the sales team.</li>
+            <li>Ran industry programmes into banks, NBFCs, fintech, gaming, logistics, retail and real estate, each paired with one problem and timed to a reason to act (regulation, a traffic peak, a launch).</li>
+            <li>Worked with the Chief Business Officer on which industries and use cases to pursue; wrote the positioning and copy after sign-off.</li>
+            <li>Tracked every outbound opportunity in the CRM through pre-sale, proposal and negotiation, and handed qualified accounts to sales and pre-sales.</li>
+            <li>Built the outbound playbook (research, buying-committee mapping, ICP qualification, sequences, daily tracking); interviewed and trained the hires who now run it.</li>
+            <li>Now owns outbound for the new indoor navigation offering: account database, ICP, buyer roles and account-specific decks.</li>
+          </ul>
+        </div>
+        <div class="job">
+          <div class="h"><span><b>Clospect</b> <span class="t">Founder</span></span><span class="when">Jan 2026 – present</span></div>
+          <ul>
+            <li>GTM systems practice: sending infrastructure, AI workflows and campaign execution for B2B SaaS and recruitment companies.</li>
+            <li>Ran outbound end to end for a recruitment client, from ICP and sending infrastructure to campaign execution.</li>
+            <li>Built a hiring-signal platform that reads LinkedIn job activity and drafts account-level openers.</li>
+          </ul>
+        </div>
+      </section>
+      <section>
+        <h2>Education</h2>
+        <div class="job"><div class="h"><span><b>New Delhi Institution of Management</b> <span class="t">BBA</span></span><span class="when">2019 – 2022</span></div></div>
+      </section>
+    </div>
+    <aside class="side">
+      <section>
+        <h2>Built</h2>
+        <ul class="built">
+          <li><b>Klaroh.</b> Client reporting for cold-email agencies. Next.js, Supabase, Instantly API. Private beta.</li>
+          <li><b>GTM Validation Tool.</b> Lead import, AI ICP scoring and email verification on a resumable Postgres job queue.</li>
+          <li><b>Outbound workflows.</b> n8n systems for hiring signals, staged qualification and controlled sending.</li>
+        </ul>
+      </section>
+      <section>
+        <h2>Skills</h2>
+        <div class="grp"><h3>Prospecting</h3><p>ICP definition, buying-committee mapping, signal-led targeting, Apollo, Sales Navigator, Lusha</p></div>
+        <div class="grp"><h3>Sending</h3><p>Smartlead, Instantly, secondary domains, SPF, DKIM, DMARC, warm-up</p></div>
+        <div class="grp"><h3>Automation and AI</h3><p>n8n (self-hosted), Apify, Clearout, Gemini, ChatGPT, Claude, Claude Code, webhooks and APIs</p></div>
+        <div class="grp"><h3>Build</h3><p>Next.js, TypeScript, Supabase, PostgreSQL, Vercel</p></div>
+        <div class="grp"><h3>Data and CRM</h3><p>CRM opportunity tracking, HubSpot, Airtable, Google Sheets</p></div>
+      </section>
+    </aside>
+  </div>
+</div>
+</body>
+</html>

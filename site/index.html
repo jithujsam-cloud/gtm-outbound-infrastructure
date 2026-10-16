@@ -15,318 +15,601 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script>
+  /* Hide animated elements only when motion is allowed; a safety timer reveals everything if the library never arrives. */
+  if (!matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    document.documentElement.classList.add("anim");
+    setTimeout(function () { if (!window.__motionReady) document.documentElement.classList.remove("anim"); }, 2500);
+  }
+</script>
 <style>
 :root {
   --paper: #f6f7f9;
-  --ink: #16181d;
-  --soft: #596070;
-  --surface: #eceef2;
+  --white: #ffffff;
+  --ink: #14161b;
+  --soft: #5a6170;
+  --faint: #8a90a0;
+  --line: #e3e6ec;
+  --surface: #eceef3;
   --cobalt: #2747e0;
-  --navy: #101a3a;
+  --cobalt-2: #5b7bff;
+  --cobalt-soft: #e7ecff;
+  --navy: #0d1633;
+  --navy-2: #16214a;
+  --green: #1d9e5a;
+  --amber: #c98a12;
   --font: "Schibsted Grotesk", system-ui, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
-  --wrap: 1120px;
+  --wrap: 1180px;
   --gutter: clamp(20px, 4vw, 40px);
+  --r: 20px;
   color-scheme: light;
 }
 *, *::before, *::after { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
-body { margin: 0; background: var(--paper); color: var(--ink); font: 400 1.125rem/1.6 var(--font); -webkit-font-smoothing: antialiased; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 400 1.0625rem/1.65 var(--font); -webkit-font-smoothing: antialiased; overflow-x: hidden; }
 img { display: block; max-width: 100%; height: auto; }
-a { color: var(--cobalt); text-underline-offset: 3px; text-decoration-thickness: 1px; }
-a:hover { text-decoration-thickness: 2px; }
-h1, h2, h3, p, ul, ol, dl, dd { margin: 0; padding: 0; }
+a { color: inherit; }
+h1, h2, h3, p, ul, ol, dl, dd, figure { margin: 0; padding: 0; }
 ul, ol { list-style: none; }
-:focus-visible { outline: 3px solid var(--cobalt); outline-offset: 3px; border-radius: 2px; }
+button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+:focus-visible { outline: 3px solid var(--cobalt); outline-offset: 3px; border-radius: 6px; }
 ::selection { background: var(--cobalt); color: #fff; }
 p, li, dd { text-wrap: pretty; }
+h1, h2, h3 { text-wrap: balance; }
 .wrap { width: min(var(--wrap), 100% - 2 * var(--gutter)); margin-inline: auto; }
 
-/* top bar */
-.top { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding-block: 24px; }
-.top .me { font-weight: 700; text-decoration: none; color: var(--ink); }
-.top nav { display: flex; gap: 24px; font-size: 1rem; }
-.top nav a { color: var(--soft); text-decoration: none; }
-.top nav a:hover { color: var(--ink); }
+/* initial states for animated elements (only when motion is allowed and the library is loading) */
+.anim [data-reveal], .anim .word, .anim [data-pop] { opacity: 0; }
 
-/* buttons */
-.btn { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 0 22px; border-radius: 6px; font: 600 1rem/1 var(--font); text-decoration: none; transition: background-color .15s ease, color .15s ease, transform .15s ease; }
-.btn.primary { background: var(--cobalt); color: #fff; }
-.btn.primary:hover { background: var(--navy); }
-.btn.plain { background: var(--surface); color: var(--ink); }
-.btn.plain:hover { background: #dfe2e8; }
-.btn:active { transform: translateY(1px); }
+/* ---------- nav ---------- */
+.nav { position: fixed; inset: 0 0 auto 0; z-index: 50; transition: background-color .3s ease, box-shadow .3s ease, backdrop-filter .3s ease; }
+.nav.scrolled { background: rgba(246, 247, 249, .78); backdrop-filter: saturate(160%) blur(14px); -webkit-backdrop-filter: saturate(160%) blur(14px); box-shadow: 0 1px 0 var(--line); }
+.nav .wrap { display: flex; align-items: center; justify-content: space-between; gap: 16px; height: 68px; }
+.brand { display: flex; align-items: center; gap: 10px; font-weight: 700; text-decoration: none; letter-spacing: -0.01em; }
+.brand i { width: 30px; height: 30px; border-radius: 9px; background: var(--cobalt); color: #fff; display: grid; place-items: center; font: 800 .8rem/1 var(--font); font-style: normal; letter-spacing: -0.02em; }
+.nav nav { display: flex; gap: 6px; }
+.nav nav a { padding: 8px 12px; border-radius: 999px; text-decoration: none; color: var(--soft); font-size: .95rem; font-weight: 500; transition: background-color .2s, color .2s; }
+.nav nav a:hover { background: var(--surface); color: var(--ink); }
 
-/* hero */
-.hero { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: clamp(32px, 6vw, 88px); align-items: end; padding-block: clamp(48px, 9vw, 112px) clamp(72px, 10vw, 128px); }
-.hero h1 { font-size: clamp(3.25rem, 8.4vw, 7.25rem); font-weight: 800; line-height: .9; letter-spacing: -0.045em; }
-.hero .role { margin-top: 20px; font-size: clamp(1.25rem, 1.1rem + .7vw, 1.6rem); font-weight: 500; color: var(--soft); }
-.hero .say { margin-top: 28px; font-size: clamp(1.5rem, 1.2rem + 1.2vw, 2.1rem); line-height: 1.2; letter-spacing: -0.02em; max-width: 24ch; font-weight: 700; }
-.hero .intro-2 { margin-top: 16px; max-width: 52ch; }
-.hero .links-row { margin-top: 18px; display: flex; gap: 20px; font-weight: 600; }
-.hero .acts { margin-top: 32px; display: flex; gap: 12px; flex-wrap: wrap; }
-.hero .open { margin-top: 22px; display: flex; align-items: center; gap: 10px; font-size: 1rem; color: var(--soft); }
-.hero .open i { width: 9px; height: 9px; border-radius: 50%; background: #1d9e5a; flex: none; }
-.portrait { margin: 0; }
-.portrait img { width: 100%; aspect-ratio: 4 / 5; object-fit: cover; object-position: 50% 28%; border-radius: 10px; background: var(--surface); }
-.portrait figcaption { margin-top: 12px; font-size: .95rem; color: var(--soft); }
+/* ---------- buttons ---------- */
+.btn { position: relative; display: inline-flex; align-items: center; gap: 10px; min-height: 50px; padding: 0 22px; border-radius: 999px; font: 600 1rem/1 var(--font); text-decoration: none; transition: background-color .2s ease, color .2s ease, box-shadow .2s ease; will-change: transform; }
+.btn svg { width: 16px; height: 16px; transition: transform .25s cubic-bezier(.2, .7, .2, 1); }
+.btn:hover svg { transform: translateX(3px); }
+.btn.primary { background: var(--ink); color: #fff; box-shadow: 0 8px 24px -10px rgba(20, 22, 27, .55); }
+.btn.primary:hover { background: var(--cobalt); box-shadow: 0 12px 30px -10px rgba(39, 71, 224, .65); }
+.btn.ghost { background: var(--white); color: var(--ink); box-shadow: inset 0 0 0 1px var(--line); }
+.btn.ghost:hover { box-shadow: inset 0 0 0 1px var(--ink); }
+.btn.sm { min-height: 40px; padding: 0 16px; font-size: .9rem; }
 
-/* one orchestrated load moment */
-@media (prefers-reduced-motion: no-preference) {
-  .hero h1, .hero .role, .hero .say, .hero .intro-2, .hero .acts, .hero .links-row, .hero .open, .portrait { animation: up .8s cubic-bezier(.2, .7, .2, 1) both; }
-  .hero .role { animation-delay: .08s; } .hero .say { animation-delay: .16s; } .hero .acts { animation-delay: .24s; } .hero .open { animation-delay: .3s; } .portrait { animation-delay: .1s; }
-  @keyframes up { from { opacity: 0; transform: translateY(18px); } }
-}
+/* ---------- hero ---------- */
+.hero { position: relative; padding: clamp(120px, 15vw, 168px) 0 clamp(56px, 7vw, 88px); overflow: hidden; }
+.glow { position: absolute; inset: -20% -10% auto auto; width: 70vw; height: 70vw; max-width: 900px; max-height: 900px; background: radial-gradient(closest-side, rgba(91, 123, 255, .28), rgba(91, 123, 255, 0)); pointer-events: none; z-index: 0; }
+.hero .wrap { position: relative; z-index: 1; display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, .9fr); gap: clamp(36px, 6vw, 80px); align-items: center; }
+.pill { display: inline-flex; align-items: center; gap: 10px; padding: 7px 14px 7px 10px; border-radius: 999px; background: var(--white); box-shadow: inset 0 0 0 1px var(--line), 0 6px 16px -10px rgba(20, 22, 27, .25); font-size: .92rem; font-weight: 500; color: var(--ink); }
+.pill b { position: relative; width: 10px; height: 10px; border-radius: 50%; background: var(--green); }
+.pill b::after { content: ""; position: absolute; inset: -5px; border-radius: 50%; border: 2px solid var(--green); opacity: 0; animation: ring 2.2s ease-out infinite; }
+@keyframes ring { 0% { transform: scale(.5); opacity: .7; } 100% { transform: scale(1.5); opacity: 0; } }
+.who { margin-top: 28px; font-size: 1.125rem; font-weight: 600; color: var(--soft); }
+.who strong { color: var(--ink); font-weight: 700; }
+.hero h1 { margin-top: 10px; font-size: clamp(2.9rem, 1.6rem + 5.4vw, 6.1rem); font-weight: 800; line-height: .96; letter-spacing: -0.045em; }
+.hero h1 .word { display: inline-block; will-change: transform, opacity, filter; }
+.hero h1 .accent { color: var(--cobalt); }
+.hero .lede { margin-top: 26px; max-width: 46ch; font-size: clamp(1.1rem, 1rem + .4vw, 1.3rem); color: var(--soft); line-height: 1.55; }
+.hero .lede strong { color: var(--ink); font-weight: 600; }
+.hero .acts { margin-top: 34px; display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.hero .socials { display: flex; gap: 18px; margin-left: 6px; font-weight: 600; font-size: .98rem; }
+.hero .socials a { text-decoration: none; color: var(--soft); border-bottom: 1.5px solid transparent; padding-bottom: 2px; transition: color .2s, border-color .2s; }
+.hero .socials a:hover { color: var(--ink); border-color: var(--ink); }
 
-/* sections */
-section { padding-block: clamp(64px, 9vw, 112px); }
-.split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: clamp(24px, 5vw, 72px); }
-h2 { font-size: clamp(1.75rem, 1.4rem + 1.4vw, 2.5rem); font-weight: 700; letter-spacing: -0.025em; line-height: 1.1; }
-.intro { margin-top: 14px; color: var(--soft); max-width: 32ch; }
+.portrait { position: relative; }
+.portrait .frame { position: relative; border-radius: 28px; overflow: hidden; aspect-ratio: 4 / 5; background: var(--surface); box-shadow: 0 40px 80px -40px rgba(13, 22, 51, .55), 0 0 0 1px rgba(13, 22, 51, .06); transform: rotate(1.5deg); }
+.portrait img { width: 100%; height: 112%; object-fit: cover; object-position: 50% 26%; will-change: transform; }
+.chip { position: absolute; display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 16px; background: rgba(255, 255, 255, .92); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); box-shadow: 0 16px 40px -18px rgba(13, 22, 51, .45), inset 0 0 0 1px rgba(13, 22, 51, .06); font-size: .9rem; line-height: 1.25; }
+.chip small { display: block; color: var(--soft); font-size: .8rem; }
+.chip strong { font-weight: 700; }
+.chip .dot { width: 32px; height: 32px; border-radius: 10px; display: grid; place-items: center; flex: none; color: #fff; font: 800 .8rem/1 var(--font); }
+.chip.c1 { left: -28px; bottom: 18%; } .chip.c1 .dot { background: var(--cobalt); }
+.chip.c2 { right: -22px; top: 12%; } .chip.c2 .dot { background: var(--navy); }
+.chip.c3 { right: 10%; bottom: -18px; } .chip.c3 .dot { background: var(--green); }
 
-/* selected work */
-.case + .case { margin-top: clamp(56px, 7vw, 88px); }
-.case h3 { font-size: clamp(1.5rem, 1.25rem + 1vw, 2rem); font-weight: 700; letter-spacing: -0.025em; line-height: 1.15; }
-.case .ctx { margin-top: 8px; color: var(--soft); }
-.case .ctx a { font-weight: 600; }
-.case dl { display: grid; gap: 22px; }
-.case dt { font-weight: 700; }
-.case dd { margin-top: 4px; max-width: 62ch; }
-.flow { grid-column: 1 / -1; margin-top: 8px; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; counter-reset: step; }
-.flow li { background: var(--surface); border-radius: 8px; padding: 14px 14px 16px; counter-increment: step; position: relative; }
-.flow li::before { content: counter(step); display: block; font-size: .9rem; font-weight: 600; color: var(--cobalt); }
-.flow b { display: block; margin-top: 6px; font-weight: 700; }
-.flow span { display: block; margin-top: 2px; font-size: .95rem; color: var(--soft); line-height: 1.4; }
-.flow-note { grid-column: 1 / -1; font-size: 1rem; color: var(--soft); max-width: 70ch; }
+/* ---------- facts strip ---------- */
+.facts { padding-bottom: clamp(40px, 6vw, 72px); }
+.facts ul { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.facts li { background: var(--white); border-radius: var(--r); padding: 22px 22px 20px; box-shadow: inset 0 0 0 1px var(--line); }
+.facts .n { font-size: clamp(2.2rem, 1.6rem + 2vw, 3.2rem); font-weight: 800; letter-spacing: -0.04em; line-height: 1; font-variant-numeric: tabular-nums; }
+.facts .n sup { font-size: .5em; color: var(--cobalt); margin-left: 2px; top: -.7em; }
+.facts .l { margin-top: 10px; color: var(--soft); font-size: .98rem; line-height: 1.4; }
 
-/* experience */
-.story { max-width: 64ch; }
-.story p { max-width: 62ch; }
-.story p + p { margin-top: 16px; }
-.roles { margin-top: 40px; display: grid; gap: 26px; }
-.roles li { display: grid; grid-template-columns: 9rem minmax(0, 1fr); gap: 4px 24px; }
-.roles .when { color: var(--soft); font-variant-numeric: tabular-nums; }
-.roles b { font-weight: 700; }
-.roles span { color: var(--soft); }
-.roles p { grid-column: 2; max-width: 58ch; }
-.built { margin-top: 48px; }
-.built h3, .tools h3 { font-size: 1.25rem; font-weight: 700; letter-spacing: -0.01em; }
-.built ul { margin-top: 14px; display: grid; gap: 12px; }
-.built li { max-width: 62ch; }
-.built li a { font-weight: 600; }
-.tools { margin-top: 40px; }
-.tools p { margin-top: 10px; max-width: 62ch; }
+/* ---------- marquee ---------- */
+.marquee { padding: 14px 0 clamp(8px, 2vw, 24px); }
+.marquee .label { text-align: center; color: var(--faint); font-size: .9rem; font-weight: 500; margin-bottom: 16px; }
+.track { overflow: hidden; -webkit-mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent); mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent); }
+.belt { display: flex; gap: 10px; width: max-content; animation: belt 38s linear infinite; }
+.track:hover .belt { animation-play-state: paused; }
+.belt span { padding: 10px 18px; border-radius: 999px; background: var(--white); box-shadow: inset 0 0 0 1px var(--line); font-weight: 600; font-size: .98rem; white-space: nowrap; }
+@keyframes belt { to { transform: translateX(-50%); } }
 
-/* projects: status and proof lines */
-.case .status { display: inline-block; margin-top: 12px; font-size: .95rem; font-weight: 600; padding: 4px 10px; border-radius: 999px; background: var(--surface); color: var(--ink); }
-.case .proof { margin-top: 12px; display: flex; flex-direction: column; gap: 6px; font-weight: 600; }
+/* ---------- section scaffolding ---------- */
+section.block { padding: clamp(72px, 10vw, 128px) 0; }
+.kicker { display: inline-flex; align-items: center; gap: 8px; font-size: .95rem; font-weight: 600; color: var(--cobalt); }
+.kicker::before { content: ""; width: 18px; height: 2px; border-radius: 2px; background: currentColor; }
+h2 { margin-top: 14px; font-size: clamp(2rem, 1.4rem + 2.6vw, 3.6rem); font-weight: 800; letter-spacing: -0.04em; line-height: 1.02; max-width: 18ch; }
+.sub { margin-top: 18px; max-width: 54ch; color: var(--soft); font-size: 1.125rem; }
 
-/* programmes */
-.progs { margin-top: clamp(32px, 4vw, 48px); display: grid; gap: 28px; }
-.progs li { display: grid; grid-template-columns: 9rem minmax(0, 1fr); gap: 4px 24px; }
-.progs .when { color: var(--soft); font-variant-numeric: tabular-nums; }
-.progs b { font-weight: 700; }
-.progs p { grid-column: 2; max-width: 62ch; }
-.progs .stage { color: var(--soft); }
-.fine { margin-top: 32px; font-size: 1rem; color: var(--soft); max-width: 70ch; }
+/* ---------- experience ---------- */
+.exp { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: clamp(36px, 6vw, 88px); margin-top: clamp(40px, 5vw, 64px); align-items: start; }
+.story p { font-size: 1.125rem; }
+.story p + p { margin-top: 18px; }
+.story strong { font-weight: 700; }
+.quote { margin-top: 28px; padding: 22px 24px; border-radius: var(--r); background: var(--cobalt-soft); color: var(--navy); font-size: 1.2rem; font-weight: 600; line-height: 1.4; letter-spacing: -0.01em; }
+.timeline { position: relative; padding-left: 34px; }
+.timeline .rail { position: absolute; left: 8px; top: 8px; bottom: 8px; width: 2px; background: var(--line); border-radius: 2px; overflow: hidden; }
+.timeline .rail i { position: absolute; inset: 0; background: linear-gradient(var(--cobalt), var(--cobalt-2)); transform-origin: top; transform: scaleY(0); }
+.timeline li { position: relative; padding-bottom: 30px; }
+.timeline li:last-child { padding-bottom: 0; }
+.timeline li::before { content: ""; position: absolute; left: -32px; top: 7px; width: 14px; height: 14px; border-radius: 50%; background: var(--white); box-shadow: inset 0 0 0 3px var(--cobalt); }
+.timeline .when { font-size: .9rem; font-weight: 600; color: var(--cobalt); }
+.timeline h3 { margin-top: 2px; font-size: 1.25rem; font-weight: 700; letter-spacing: -0.015em; }
+.timeline h3 span { color: var(--soft); font-weight: 500; }
+.timeline p { margin-top: 6px; color: var(--soft); }
 
-/* skills */
-.skills { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px 48px; }
-.skills h3 { font-size: 1.125rem; font-weight: 700; }
-.skills p { margin-top: 4px; }
+/* ---------- projects ---------- */
+.projects { display: grid; gap: 22px; margin-top: clamp(40px, 5vw, 64px); }
+.card { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); border-radius: 28px; background: var(--white); box-shadow: inset 0 0 0 1px var(--line), 0 30px 60px -45px rgba(13, 22, 51, .45); overflow: hidden; transform-style: preserve-3d; will-change: transform; }
+.card .body { padding: clamp(26px, 3.5vw, 44px); display: flex; flex-direction: column; gap: 18px; }
+.card .top { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.status { display: inline-flex; align-items: center; gap: 7px; padding: 5px 11px; border-radius: 999px; font-size: .82rem; font-weight: 700; background: var(--surface); color: var(--ink); }
+.status i { width: 7px; height: 7px; border-radius: 50%; background: var(--green); }
+.status.code i { background: var(--cobalt); }
+.status.files i { background: var(--amber); }
+.year { color: var(--faint); font-size: .9rem; font-weight: 500; }
+.card h3 { font-size: clamp(1.7rem, 1.3rem + 1.4vw, 2.4rem); font-weight: 800; letter-spacing: -0.035em; line-height: 1.05; }
+.card .what { color: var(--soft); font-size: 1.1rem; margin-top: -6px; }
+.card dl { display: grid; gap: 14px; }
+.card dt { font-size: .85rem; font-weight: 700; color: var(--ink); }
+.card dd { color: var(--soft); font-size: 1rem; line-height: 1.55; }
+.card .links { margin-top: auto; display: flex; flex-wrap: wrap; gap: 10px; padding-top: 6px; }
+.visual { position: relative; min-height: 380px; display: grid; place-items: center; padding: clamp(24px, 3vw, 40px); overflow: hidden; }
+.visual .cap { position: absolute; left: 18px; bottom: 14px; font-size: .78rem; font-weight: 600; color: rgba(255, 255, 255, .7); }
+.visual.dark .cap { color: rgba(255, 255, 255, .55); }
 
-/* contact */
-.contact { background: var(--navy); color: #eef1fb; }
-.contact h2 { color: #fff; font-size: clamp(2.25rem, 1.6rem + 2.8vw, 4rem); letter-spacing: -0.035em; }
-.contact .lead { margin-top: 18px; max-width: 46ch; color: #c9d0e6; font-size: 1.25rem; }
-.contact .acts { margin-top: 32px; display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
-.contact .btn.primary { background: #fff; color: var(--navy); }
-.contact .btn.primary:hover { background: #dfe5ff; }
-.contact .btn.plain { background: rgba(255, 255, 255, .1); color: #fff; }
-.contact .btn.plain:hover { background: rgba(255, 255, 255, .18); }
-.contact .mail { margin-top: 26px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; color: #c9d0e6; }
-.contact .mail a { color: #fff; }
-.contact .mail button { font: 500 .95rem/1 var(--font); color: #fff; background: rgba(255, 255, 255, .1); border: 0; border-radius: 6px; padding: 9px 12px; cursor: pointer; }
-.contact .mail button:hover { background: rgba(255, 255, 255, .18); }
+/* Klaroh visual: a client report with one metric withheld */
+.v-klaroh { background: radial-gradient(120% 90% at 85% 0%, #5b7bff 0%, #2747e0 45%, #1b33b0 100%); }
+.report { width: min(100%, 360px); background: #fff; border-radius: 18px; padding: 18px; box-shadow: 0 30px 60px -25px rgba(5, 12, 50, .65); }
+.report .hd { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.report .hd b { font-size: .95rem; }
+.report .hd small { font-size: .75rem; color: var(--soft); background: var(--surface); padding: 3px 8px; border-radius: 999px; font-weight: 600; }
+.report .grid { margin-top: 14px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.report .m { border-radius: 12px; background: var(--paper); padding: 11px 12px; }
+.report .m small { display: block; font-size: .72rem; color: var(--soft); font-weight: 600; }
+.report .m b { display: block; margin-top: 2px; font-size: 1.05rem; }
+.report .m.wh b { color: var(--faint); font-weight: 600; font-size: .85rem; }
+.report .bars { margin-top: 12px; height: 74px; display: flex; align-items: flex-end; gap: 6px; padding: 10px; border-radius: 12px; background: var(--paper); }
+.report .bars i { flex: 1; border-radius: 4px 4px 2px 2px; background: var(--cobalt); transform-origin: bottom; }
+.report .ft { margin-top: 10px; font-size: .75rem; color: var(--soft); display: flex; align-items: center; gap: 6px; }
+.report .ft i { width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
 
-footer { padding-block: 28px 40px; font-size: 1rem; color: var(--soft); }
+/* Validation tool visual: the real job states of the queue */
+.v-queue { background: #0d1210; }
+.queue { width: min(100%, 380px); border-radius: 16px; background: #141c19; box-shadow: inset 0 0 0 1px #22302a; padding: 14px; font-size: .9rem; }
+.queue .qh { display: flex; justify-content: space-between; color: #8fa89d; font-size: .78rem; font-weight: 600; padding: 2px 4px 10px; }
+.queue li { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 10px 10px; border-radius: 10px; color: #dbe8e1; }
+.queue li + li { margin-top: 4px; }
+.queue li.hot { background: #1a2621; }
+.state { font-size: .78rem; font-weight: 700; padding: 3px 9px; border-radius: 999px; transition: background-color .3s, color .3s; white-space: nowrap; }
+.state.pending { background: #22302a; color: #8fa89d; }
+.state.processing { background: #2c3a12; color: #d6f07a; }
+.state.valid { background: #11372a; color: #43e0a0; }
+.state.skipped { background: #3b2b10; color: #f0c069; }
+.queue .bar { margin-top: 12px; height: 6px; border-radius: 6px; background: #22302a; overflow: hidden; }
+.queue .bar i { display: block; height: 100%; width: 0; background: #43e0a0; border-radius: 6px; }
+
+/* Workflows visual: the seven steps */
+.v-flow { background: radial-gradient(120% 100% at 10% 0%, #23315f 0%, #0d1633 60%); }
+.steps { width: min(100%, 420px); display: grid; gap: 8px; }
+.steps li { display: grid; grid-template-columns: 30px 1fr; gap: 12px; align-items: center; padding: 10px 12px; border-radius: 12px; background: rgba(255, 255, 255, .05); color: #c9d2ee; transition: background-color .3s, color .3s; }
+.steps li b { width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; background: rgba(255, 255, 255, .08); color: #fff; font-size: .82rem; transition: background-color .3s; }
+.steps li span { font-size: .92rem; line-height: 1.3; }
+.steps li span strong { color: #fff; font-weight: 700; margin-right: 4px; }
+.steps li.on { background: rgba(91, 123, 255, .22); color: #fff; }
+.steps li.on b { background: var(--cobalt-2); }
+.steps li.stop { background: rgba(240, 192, 105, .16); }
+.steps li.stop b { background: var(--amber); }
+
+/* ---------- programmes ---------- */
+.progs { margin-top: clamp(40px, 5vw, 64px); display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.prog { border-radius: var(--r); background: var(--white); padding: 28px; box-shadow: inset 0 0 0 1px var(--line); display: flex; flex-direction: column; gap: 12px; transition: transform .3s cubic-bezier(.2, .7, .2, 1), box-shadow .3s; }
+.prog:hover { transform: translateY(-4px); box-shadow: inset 0 0 0 1px var(--line), 0 24px 50px -30px rgba(13, 22, 51, .45); }
+.prog .when { font-size: .88rem; font-weight: 600; color: var(--cobalt); }
+.prog h3 { font-size: 1.45rem; font-weight: 800; letter-spacing: -0.03em; line-height: 1.1; }
+.prog p { color: var(--soft); }
+.prog .stage { margin-top: auto; padding-top: 14px; display: flex; gap: 10px; align-items: flex-start; font-weight: 600; font-size: .98rem; color: var(--ink); border-top: 1px dashed var(--line); }
+.prog .stage svg { flex: none; width: 18px; height: 18px; margin-top: 3px; color: var(--green); }
+.note { margin-top: 20px; color: var(--faint); font-size: .95rem; }
+
+/* ---------- skills ---------- */
+.skills { margin-top: clamp(36px, 5vw, 56px); display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.skill { border-radius: var(--r); background: var(--white); padding: 24px; box-shadow: inset 0 0 0 1px var(--line); }
+.skill h3 { font-size: 1.1rem; font-weight: 700; letter-spacing: -0.01em; }
+.skill ul { margin-top: 14px; display: flex; flex-wrap: wrap; gap: 6px; }
+.skill li { padding: 6px 11px; border-radius: 999px; background: var(--paper); font-size: .9rem; font-weight: 500; }
+.skill.wide { grid-column: span 2; }
+.skill .wk { margin-top: 12px; font-size: .9rem; color: var(--soft); }
+
+/* ---------- contact ---------- */
+.contact { position: relative; margin: 0 var(--gutter) var(--gutter); border-radius: 36px; background: var(--navy); color: #eef1fb; overflow: hidden; }
+.contact .glow2 { position: absolute; inset: auto -10% -60% auto; width: 70%; aspect-ratio: 1; background: radial-gradient(closest-side, rgba(91, 123, 255, .45), rgba(91, 123, 255, 0)); pointer-events: none; }
+.contact .wrap { position: relative; padding: clamp(72px, 10vw, 128px) 0; }
+.contact .kicker { color: #9fb2ff; }
+.contact h2 { color: #fff; max-width: 14ch; font-size: clamp(2.4rem, 1.5rem + 4vw, 5rem); }
+.contact .sub { color: #b9c3e6; }
+.contact .acts { margin-top: 36px; display: flex; flex-wrap: wrap; gap: 12px; }
+.contact .btn.primary { background: #fff; color: var(--navy); box-shadow: 0 14px 34px -12px rgba(91, 123, 255, .8); }
+.contact .btn.primary:hover { background: var(--cobalt-2); color: #fff; }
+.contact .btn.ghost { background: rgba(255, 255, 255, .06); color: #fff; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .18); }
+.contact .btn.ghost:hover { box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .6); }
+.contact .mail { margin-top: 30px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; color: #b9c3e6; }
+.contact .mail a { color: #fff; font-weight: 600; }
+.contact .mail button { padding: 8px 12px; border-radius: 999px; background: rgba(255, 255, 255, .08); color: #fff; font-size: .9rem; font-weight: 600; }
+.contact .mail button:hover { background: rgba(255, 255, 255, .16); }
+
+footer { padding: 26px 0 36px; color: var(--soft); font-size: .95rem; }
 footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
 footer nav { display: flex; gap: 20px; }
-footer a { color: var(--soft); }
+footer a { text-decoration: none; }
+footer a:hover { color: var(--ink); }
 
-@media (max-width: 820px) {
-  .top nav { display: none; }
-  .hero { grid-template-columns: 1fr; align-items: start; padding-top: 32px; }
-  .portrait { order: -1; max-width: 220px; }
-  .split { grid-template-columns: 1fr; }
-  .think li { grid-template-columns: 1fr; }
-  .roles li { grid-template-columns: 1fr; }
-  .roles p { grid-column: 1; }
-  .flow { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .progs li { grid-template-columns: 1fr; }
-  .progs p { grid-column: 1; }
+/* ---------- responsive ---------- */
+@media (max-width: 980px) {
+  .card { grid-template-columns: 1fr; }
+  .visual { min-height: 320px; order: -1; }
+  .skills { grid-template-columns: 1fr 1fr; }
+  .skill.wide { grid-column: span 2; }
+}
+@media (max-width: 860px) {
+  .nav nav { display: none; }
+  .hero .wrap { grid-template-columns: 1fr; }
+  .portrait { max-width: 360px; margin: 10px auto 0; }
+  .exp { grid-template-columns: 1fr; }
+  .facts ul { grid-template-columns: 1fr 1fr; }
+  .progs { grid-template-columns: 1fr; }
+}
+@media (max-width: 560px) {
+  .chip.c1 { left: -8px; } .chip.c2 { right: -8px; }
   .skills { grid-template-columns: 1fr; }
+  .skill.wide { grid-column: auto; }
+  .hero .socials { margin-left: 0; width: 100%; }
+  .contact { margin: 0 12px 12px; border-radius: 28px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .belt { animation: none; flex-wrap: wrap; width: auto; justify-content: center; }
+  .pill b::after { animation: none; }
 }
 </style>
 </head>
 <body>
 
-<header class="wrap top">
-  <a class="me" href="#top">Jithu Jobin Sam</a>
-  <nav aria-label="Sections"><a href="#experience">Experience</a><a href="#projects">Projects</a><a href="#programmes">Enterprise work</a><a href="#contact">Contact</a></nav>
+<header class="nav" id="nav">
+  <div class="wrap">
+    <a class="brand" href="#top"><i>JJS</i>Jithu Jobin Sam</a>
+    <nav aria-label="Sections"><a href="#experience">Experience</a><a href="#projects">Projects</a><a href="#programmes">Enterprise work</a><a href="#skills">Skills</a><a href="#contact">Contact</a></nav>
+    <a class="btn primary sm" href="Jithu-Jobin-Sam-CV.pdf" download>Download CV</a>
+  </div>
 </header>
 
 <main id="top">
-  <div class="wrap hero">
-    <div>
-      <h1>Jithu Jobin&nbsp;Sam</h1>
-      <p class="role">GTM engineer, Delhi</p>
-      <p class="say">I build systems for outbound GTM.</p>
-      <p class="intro-2">I’ve spent four years running enterprise outbound at MapmyIndia. Along the way, I started building the automation, workflows and software to make that work more repeatable.</p>
-      <div class="acts">
-        <a class="btn primary" href="mailto:jithujsam@gmail.com?subject=GTM%20engineer%20role">Email me</a>
-        <a class="btn plain" href="Jithu-Jobin-Sam-CV.pdf" download>Download CV</a>
+  <section class="hero">
+    <div class="glow" aria-hidden="true"></div>
+    <div class="wrap">
+      <div>
+        <span class="pill" data-pop><b aria-hidden="true"></b>Open to full-time GTM engineer roles</span>
+        <p class="who" data-pop><strong>Jithu Jobin Sam</strong> · GTM engineer, Delhi</p>
+        <h1 aria-label="I build systems for outbound GTM.">
+          <span class="word">I</span> <span class="word">build</span> <span class="word">systems</span> <span class="word">for</span> <span class="word accent">outbound</span> <span class="word accent">GTM.</span>
+        </h1>
+        <p class="lede" data-pop>I’ve spent four years running <strong>enterprise outbound at MapmyIndia</strong>. Along the way, I started building the automation, workflows and software to make that work more repeatable.</p>
+        <div class="acts" data-pop>
+          <a class="btn primary" href="mailto:jithujsam@gmail.com?subject=GTM%20engineer%20role">Email me <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></a>
+          <a class="btn ghost" href="Jithu-Jobin-Sam-CV.pdf" download>Download CV</a>
+          <span class="socials"><a href="https://www.linkedin.com/in/jithujsam" target="_blank" rel="noopener">LinkedIn</a><a href="https://github.com/jithujsam-cloud/gtm-outbound-infrastructure" target="_blank" rel="noopener">GitHub</a></span>
+        </div>
       </div>
-      <p class="links-row"><a href="https://www.linkedin.com/in/jithujsam" target="_blank" rel="noopener">LinkedIn</a><a href="https://github.com/jithujsam-cloud/gtm-outbound-infrastructure" target="_blank" rel="noopener">GitHub</a></p>
-      <p class="open"><i aria-hidden="true"></i>Open to full-time GTM engineer roles</p>
+      <figure class="portrait" data-pop>
+        <div class="frame"><img id="portraitImg" src="assets/jithu.jpg" width="900" height="1200" alt="Jithu Jobin Sam, smiling, in glasses and a dark hoodie, at a café table at night"></div>
+        <div class="chip c1" data-float="0"><span class="dot">M</span><span><strong>MapmyIndia</strong><small>Enterprise outbound, 2022 to now</small></span></div>
+        <div class="chip c2" data-float="1"><span class="dot">C</span><span><strong>Clospect</strong><small>Founder, 2026</small></span></div>
+        <div class="chip c3" data-float="2"><span class="dot">n8n</span><span><strong>Builds in code</strong><small>n8n, Next.js, Supabase</small></span></div>
+      </figure>
     </div>
-    <figure class="portrait">
-      <img src="assets/jithu.jpg" width="900" height="1200" alt="Jithu Jobin Sam, smiling, in glasses and a dark hoodie, at a café table at night">
-    </figure>
+  </section>
+
+  <div class="wrap facts">
+    <ul>
+      <li data-reveal><div class="n"><span data-count="4">4</span><sup>yrs</sup></div><p class="l">in GTM, all of it hands-on</p></li>
+      <li data-reveal><div class="n"><span data-count="3">3</span><sup>+ yrs</sup></div><p class="l">as the only person generating outbound leads for enterprise sales</p></li>
+      <li data-reveal><div class="n"><span data-count="9">9</span></div><p class="l">industries sold into, from banks to real estate</p></li>
+      <li data-reveal><div class="n"><span data-count="3">3</span></div><p class="l">systems built and published, from n8n to a product in beta</p></li>
+    </ul>
   </div>
 
-  <section id="experience">
-    <div class="wrap split">
-      <div><h2>Experience</h2></div>
-      <div>
-        <div class="story">
+  <div class="marquee" aria-label="Tools I use">
+    <p class="label">Tools I work with</p>
+    <div class="track"><div class="belt">
+      <span>n8n</span><span>Apify</span><span>Clearout</span><span>Smartlead</span><span>Instantly</span><span>Apollo</span><span>Sales Navigator</span><span>Airtable</span><span>HubSpot</span><span>Gemini</span><span>Claude Code</span><span>Next.js</span><span>Supabase</span><span>PostgreSQL</span><span>Vercel</span>
+      <span aria-hidden="true">n8n</span><span aria-hidden="true">Apify</span><span aria-hidden="true">Clearout</span><span aria-hidden="true">Smartlead</span><span aria-hidden="true">Instantly</span><span aria-hidden="true">Apollo</span><span aria-hidden="true">Sales Navigator</span><span aria-hidden="true">Airtable</span><span aria-hidden="true">HubSpot</span><span aria-hidden="true">Gemini</span><span aria-hidden="true">Claude Code</span><span aria-hidden="true">Next.js</span><span aria-hidden="true">Supabase</span><span aria-hidden="true">PostgreSQL</span><span aria-hidden="true">Vercel</span>
+    </div></div>
+  </div>
+
+  <section class="block" id="experience">
+    <div class="wrap">
+      <span class="kicker" data-reveal>Experience</span>
+      <h2 data-reveal>From the inbound desk to owning enterprise outbound.</h2>
+      <div class="exp">
+        <div class="story" data-reveal>
           <p>I joined MapmyIndia in July 2022 as an inside sales trainee, answering inbound leads for its location platform. About six months in I moved to outbound, and within the year I was working on enterprise accounts.</p>
-          <p>For more than three years I was the only person generating outbound leads for enterprise sales. I worked with the Chief Business Officer on which industries and use cases to pursue, researched the accounts, wrote the positioning and the copy, ran the outreach by email, LinkedIn and phone, and tracked every opportunity in the CRM until it went to sales.</p>
+          <p>I worked with the Chief Business Officer on which industries and use cases to pursue, researched the accounts, wrote the positioning and the copy, ran the outreach by email, LinkedIn and phone, and tracked every opportunity in the CRM until it went to sales.</p>
           <p>When the team grew, I interviewed and trained the new outbound hires, and they now run the playbook I built. In 2025 I started teaching myself n8n, Apify, Gemini and Claude Code by automating my own workflow, and that became the projects below.</p>
+          <p class="quote">For more than three years I was the only person generating outbound leads for enterprise sales.</p>
         </div>
-        <ul class="roles">
-          <li><span class="when">2022 – now</span><div><b>MapmyIndia</b> <span>Lead Generation Executive</span></div><p>Enterprise outbound across banks, NBFCs, fintech, retail, logistics, gaming, automotive, public sector and real estate. I now also own outbound for the new indoor navigation offering.</p></li>
-          <li><span class="when">2026 – now</span><div><b>Clospect</b> <span>Founder</span></div><p>Outbound infrastructure, AI workflows and campaign execution for B2B SaaS and recruitment companies. I ran outbound end to end for a recruitment client, from ICP and sending setup to campaigns.</p></li>
-          <li><span class="when">2019 – 2022</span><div><b>New Delhi Institution of Management</b> <span>BBA</span></div></li>
-        </ul>
+        <div class="timeline" id="timeline"><span class="rail" aria-hidden="true"><i id="rail"></i></span><ol>
+                    <li data-reveal><span class="when">Jul 2022</span><h3>Inside Sales Trainee <span>· MapmyIndia</span></h3><p>Inbound leads for the location platform: qualifying requests and learning the product, its use cases and its buyers.</p></li>
+          <li data-reveal><span class="when">2023</span><h3>Enterprise outbound <span>· MapmyIndia</span></h3><p>Moved to outbound, then took sole ownership: banks, NBFCs, fintech, retail, logistics, gaming, automotive, public sector and real estate.</p></li>
+          <li data-reveal><span class="when">2025</span><h3>Trainer and builder <span>· MapmyIndia</span></h3><p>Interviewed and trained new outbound hires, and rebuilt the workflow as automated systems.</p></li>
+          <li data-reveal><span class="when">Jan 2026</span><h3>Founder <span>· Clospect</span></h3><p>Outbound infrastructure, AI workflows and campaigns for B2B SaaS and recruitment companies. I ran outbound end to end for a recruitment client.</p></li>
+          <li data-reveal><span class="when">2026</span><h3>Lead Generation Executive <span>· MapmyIndia</span></h3><p>Now also own outbound for the new indoor navigation offering.</p></li>
+        </ol></div>
       </div>
     </div>
   </section>
 
-  <section id="projects">
+  <section class="block" id="projects" style="padding-top: 0">
     <div class="wrap">
-      <h2>Selected projects</h2>
-      <p class="intro">Each one started as a problem I kept running into.</p>
+      <span class="kicker" data-reveal>Projects</span>
+      <h2 data-reveal>Built because the work kept repeating.</h2>
+      <p class="sub" data-reveal>Each one started as a problem I ran into while doing outbound. Each says what is working today.</p>
 
-      <article class="case split" style="margin-top: clamp(36px, 5vw, 56px)">
-        <div>
-          <h3>Klaroh</h3>
-          <p class="ctx">Client reporting for cold-email agencies, 2026</p>
-          <span class="status">Private beta</span>
-          <p class="proof"><a href="https://klaroh.online" target="_blank" rel="noopener">klaroh.online</a><a href="https://github.com/jithujsam-cloud/gtm-outbound-infrastructure#1-klaroh--agency-operations-and-client-visibility" target="_blank" rel="noopener">Project notes on GitHub</a></p>
-        </div>
-        <dl>
-          <div><dt>The problem</dt><dd>Agencies running cold email for several clients struggle to keep an eye on each client’s campaign performance and sending health, and end up reporting with screenshots and PDFs.</dd></div>
-          <div><dt>What I built</dt><dd>A multi-tenant dashboard that syncs campaign data from Instantly, shows every client’s campaigns, replies and mailbox health in one place, and gives each client a private, branded report that opens without a login. Workspaces are isolated with row-level security, provider keys are encrypted, and any metric whose source cannot be verified is left out rather than guessed.</dd></div>
-          <div><dt>What works today</dt><dd>Instantly is the only connected sending tool. Data is synced on a schedule and on demand, not live. Klaroh reads campaign data and never sends email. The application code lives in a separate private repository.</dd></div>
-        </dl>
-      </article>
+      <div class="projects">
+        <article class="card" data-reveal data-tilt>
+          <div class="body">
+            <div class="top"><span class="status"><i></i>Private beta</span><span class="year">2026</span></div>
+            <h3>Klaroh</h3>
+            <p class="what">Client reporting for cold-email agencies.</p>
+            <dl>
+              <div><dt>The problem</dt><dd>Agencies running cold email for several clients struggle to keep an eye on each client’s campaign performance and sending health, and end up reporting with screenshots and PDFs.</dd></div>
+              <div><dt>What I built</dt><dd>A multi-tenant dashboard that syncs campaign data from Instantly, shows every client’s campaigns, replies and mailbox health in one place, and gives each client a private report that opens without a login. Any metric whose source can’t be verified is left out, not guessed.</dd></div>
+              <div><dt>What works today</dt><dd>Instantly is the one connected sending tool, data syncs on a schedule and on demand, and Klaroh never sends email.</dd></div>
+            </dl>
+            <div class="links"><a class="btn primary sm" href="https://klaroh.online" target="_blank" rel="noopener">Visit klaroh.online <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></a><a class="btn ghost sm" href="https://github.com/jithujsam-cloud/gtm-outbound-infrastructure#1-klaroh--agency-operations-and-client-visibility" target="_blank" rel="noopener">Project notes</a></div>
+          </div>
+          <div class="visual v-klaroh" aria-hidden="true">
+            <div class="report" id="report">
+              <div class="hd"><b>Client report</b><small>Opens without a login</small></div>
+              <div class="grid">
+                <div class="m"><small>Campaigns</small><b>Synced</b></div>
+                <div class="m"><small>Replies</small><b>In one inbox</b></div>
+                <div class="m"><small>Mailbox health</small><b>Checked</b></div>
+                <div class="m wh"><small>Unverified metric</small><b>Withheld</b></div>
+              </div>
+              <div class="bars"><i style="height:30%"></i><i style="height:46%"></i><i style="height:40%"></i><i style="height:62%"></i><i style="height:58%"></i><i style="height:78%"></i><i style="height:90%"></i></div>
+              <p class="ft"><i></i>Synced from Instantly</p>
+            </div>
+            <span class="cap">Illustration of the report layout</span>
+          </div>
+        </article>
 
-      <article class="case split">
-        <div>
-          <h3>GTM Validation Tool</h3>
-          <p class="ctx">Lead list validation, 2026</p>
-          <span class="status">Working code</span>
-          <p class="proof"><a href="https://github.com/jithujsam-cloud/gtm-outbound-infrastructure/tree/main/gtm-validation-tool" target="_blank" rel="noopener">Code and README</a></p>
-        </div>
-        <dl>
-          <div><dt>The problem</dt><dd>Verifying every email in a raw lead list costs money, and long verification runs fail halfway through when a provider rate-limits or a request times out.</dd></div>
-          <div><dt>What I built</dt><dd>A Next.js and Supabase app that imports a CSV, scores each lead against the project’s ICP with structured AI output, and only then verifies emails through Clearout. Verification runs on a PostgreSQL job queue that claims work with leases, retries failures, handles rate limits and logs API cost, so a job can pause and resume without paying for the same check twice.</dd></div>
-          <div><dt>What works today</dt><dd>The import, scoring and verification flow is implemented. Automated test coverage is incomplete and build-time type checking is disabled; both are listed as open work in the README.</dd></div>
-        </dl>
-      </article>
+        <article class="card" data-reveal data-tilt>
+          <div class="body">
+            <div class="top"><span class="status code"><i></i>Working code</span><span class="year">2026</span></div>
+            <h3>GTM Validation Tool</h3>
+            <p class="what">Lead list validation that doesn’t pay twice.</p>
+            <dl>
+              <div><dt>The problem</dt><dd>Verifying every email in a raw lead list costs money, and long runs fail halfway through when a provider rate-limits or a request times out.</dd></div>
+              <div><dt>What I built</dt><dd>A Next.js and Supabase app that imports a CSV, scores each lead against the ICP with structured AI output, and only then verifies emails through Clearout, on a PostgreSQL job queue with leases, retries, rate-limit handling and cost logging.</dd></div>
+              <div><dt>What works today</dt><dd>Import, scoring and verification are implemented. Test coverage is incomplete and type checking is off at build time; both are open work in the README.</dd></div>
+            </dl>
+            <div class="links"><a class="btn primary sm" href="https://github.com/jithujsam-cloud/gtm-outbound-infrastructure/tree/main/gtm-validation-tool" target="_blank" rel="noopener">Code and README <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></a></div>
+          </div>
+          <div class="visual v-queue dark" aria-hidden="true">
+            <div class="queue">
+              <div class="qh"><span>Lead</span><span>Job status</span></div>
+              <ul id="queue">
+                <li><span>Lead 1</span><span class="state pending">pending</span></li>
+                <li><span>Lead 2</span><span class="state pending">pending</span></li>
+                <li><span>Lead 3</span><span class="state pending">pending</span></li>
+                <li><span>Lead 4</span><span class="state pending">pending</span></li>
+                <li><span>Lead 5</span><span class="state pending">pending</span></li>
+              </ul>
+              <div class="bar"><i id="qbar"></i></div>
+            </div>
+            <span class="cap">The queue’s real states, with sample rows</span>
+          </div>
+        </article>
 
-      <article class="case split">
-        <div>
-          <h3>Signal-to-pipeline workflows</h3>
-          <p class="ctx">n8n automation, 2025 to 2026</p>
-          <span class="status">Importable workflows</span>
-          <p class="proof"><a href="https://github.com/jithujsam-cloud/gtm-outbound-infrastructure/tree/main/systems" target="_blank" rel="noopener">Workflow files and READMEs</a></p>
-        </div>
-        <dl>
-          <div><dt>The problem</dt><dd>Lists exported from a database are weeks old by the time anyone emails them, and enriching every row burns budget on contacts that never fit.</dd></div>
-          <div><dt>What I built</dt><dd>Two n8n systems. The first starts from live hiring signals and runs the cheap checks before the paid one, storing every score with its written reason. The second sends from the qualified queue on a controlled cadence and records opens with a self-hosted pixel.</dd></div>
-          <div><dt>What works today</dt><dd>These are workflow files, not a hosted product. Running them needs your own n8n instance and API keys for Apify, Gemini, Clearout, Airtable, Claude and Gmail.</dd></div>
-        </dl>
-        <ol class="flow" aria-label="The steps a lead goes through">
-          <li><b>Signal</b><span>Apify pulls job postings by industry and role</span></li>
-          <li><b>Score</b><span>Gemini checks ICP fit and writes why</span></li>
-          <li><b>Grade</b><span>Email quality scored 0 to 100, with reasons</span></li>
-          <li><b>Verify</b><span>Clearout checks only the leads that passed</span></li>
-          <li><b>Queue</b><span>Airtable marks the lead safe to send</span></li>
-          <li><b>Send</b><span>Claude rewrites each email; Gmail sends with random gaps</span></li>
-          <li><b>Track</b><span>A self-hosted pixel records the open</span></li>
-        </ol>
-        <p class="flow-note">A lead that fails the ICP check stops at step 2, so it never costs a verification credit.</p>
-      </article>
+        <article class="card" data-reveal data-tilt>
+          <div class="body">
+            <div class="top"><span class="status files"><i></i>Importable workflows</span><span class="year">2025 to 2026</span></div>
+            <h3>Signal-to-pipeline workflows</h3>
+            <p class="what">Outbound that starts from a live hiring signal.</p>
+            <dl>
+              <div><dt>The problem</dt><dd>Lists exported from a database are weeks old by the time anyone emails them, and enriching every row burns budget on contacts that never fit.</dd></div>
+              <div><dt>What I built</dt><dd>Two n8n systems. One starts from hiring signals and runs the cheap checks before the paid one, storing every score with its written reason. The other sends on a controlled cadence and records opens with a self-hosted pixel.</dd></div>
+              <div><dt>What works today</dt><dd>Workflow files, not a hosted product. They need your own n8n instance and API keys.</dd></div>
+            </dl>
+            <div class="links"><a class="btn primary sm" href="https://github.com/jithujsam-cloud/gtm-outbound-infrastructure/tree/main/systems" target="_blank" rel="noopener">Workflow files <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></a></div>
+          </div>
+          <div class="visual v-flow dark" aria-hidden="true">
+            <ol class="steps" id="steps">
+              <li><b>1</b><span><strong>Signal</strong>Apify pulls job postings</span></li>
+              <li><b>2</b><span><strong>Score</strong>Gemini checks ICP fit and says why</span></li>
+              <li><b>3</b><span><strong>Grade</strong>Email quality scored with reasons</span></li>
+              <li><b>4</b><span><strong>Verify</strong>Clearout, only for leads that passed</span></li>
+              <li><b>5</b><span><strong>Queue</strong>Airtable marks it safe to send</span></li>
+              <li><b>6</b><span><strong>Send</strong>Claude rewrites, Gmail sends with gaps</span></li>
+              <li><b>7</b><span><strong>Track</strong>A self-hosted pixel records the open</span></li>
+            </ol>
+            <span class="cap">A lead that fails step 2 never costs a verification credit</span>
+          </div>
+        </article>
+      </div>
     </div>
   </section>
 
-  <section class="think" id="programmes">
+  <section class="block" id="programmes" style="padding-top: 0">
     <div class="wrap">
-      <h2>Enterprise programmes</h2>
-      <p class="intro">At MapmyIndia each programme paired one buyer group with one problem and a reason to act. A selection, with the stage each one reached.</p>
-      <ul class="progs">
-        <li><span class="when">Early 2023</span><div><b>Online gaming</b></div><p>Location accuracy and compliance for fantasy and real-money gaming operators in states that restrict play, positioned against Google Maps and timed before the IPL traffic peak. <span class="stage">Reached API tests, proofs of concept and proposals; some operators became paying customers.</span></p></li>
-        <li><span class="when">Late 2023</span><div><b>POS-device compliance</b></div><p>A regulation-led programme for banks and payment companies on capturing the location of every POS-device transaction. <span class="stage">Reached conversations with large private banks.</span></p></li>
-        <li><span class="when">2024 – 2025</span><div><b>Collections and loan recovery</b></div><p>Location intelligence for collection teams at banks, NBFCs and fintechs, and faster asset recovery for lenders and car platforms. <span class="stage">Reached meetings with collections heads at large lenders.</span></p></li>
-        <li><span class="when">2026</span><div><b>Indoor navigation</b></div><p>Wayfinding for large buildings: I built the account database, defined the ICP and buyer roles, and wrote account-specific decks for hospitals, airports and real estate. <span class="stage">Conversations are under way.</span></p></li>
-      </ul>
-      <p class="fine">Stages are stated as they happened. No customer data or confidential details are shared here.</p>
+      <span class="kicker" data-reveal>Enterprise work</span>
+      <h2 data-reveal>Programmes I ran at MapmyIndia.</h2>
+      <p class="sub" data-reveal>Each paired one buyer group with one problem and a reason to act. The stage each one reached is stated as it happened.</p>
+      <div class="progs">
+        <article class="prog" data-reveal><span class="when">Early 2023</span><h3>Online gaming</h3><p>Location accuracy and compliance for fantasy and real-money gaming operators in states that restrict play, positioned against Google Maps and timed before the IPL traffic peak.</p><p class="stage"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10.5l4 4 8-9"/></svg>API tests, proofs of concept and proposals; some operators became paying customers.</p></article>
+        <article class="prog" data-reveal><span class="when">Late 2023</span><h3>POS-device compliance</h3><p>A regulation-led programme for banks and payment companies on capturing the location of every POS-device transaction.</p><p class="stage"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10.5l4 4 8-9"/></svg>Conversations with large private banks.</p></article>
+        <article class="prog" data-reveal><span class="when">2024 to 2025</span><h3>Collections and loan recovery</h3><p>Location intelligence for collection teams at banks, NBFCs and fintechs, and faster asset recovery for lenders and car platforms.</p><p class="stage"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10.5l4 4 8-9"/></svg>Meetings with collections heads at large lenders.</p></article>
+        <article class="prog" data-reveal><span class="when">2026</span><h3>Indoor navigation</h3><p>Wayfinding for large buildings. I built the account database, defined the ICP and buyer roles, and wrote account-specific decks for hospitals, airports and real estate.</p><p class="stage"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10.5l4 4 8-9"/></svg>Conversations under way.</p></article>
+      </div>
+      <p class="note" data-reveal>No customer data or confidential details are shared here.</p>
     </div>
   </section>
 
-  <section id="skills">
-    <div class="wrap split">
-      <div><h2>Skills</h2></div>
+  <section class="block" id="skills" style="padding-top: 0">
+    <div class="wrap">
+      <span class="kicker" data-reveal>Skills</span>
+      <h2 data-reveal>Both halves of the job.</h2>
       <div class="skills">
-        <div><h3>Prospecting</h3><p>ICP definition, buying-committee mapping, signal-led targeting, Apollo, Sales Navigator, Lusha.</p></div>
-        <div><h3>Sending and deliverability</h3><p>Smartlead, Instantly, secondary domains, SPF, DKIM, DMARC, inbox warm-up.</p></div>
-        <div><h3>Automation and AI</h3><p>n8n (self-hosted), Apify, Clearout, Gemini, Claude, Claude Code, webhooks and APIs.</p></div>
-        <div><h3>Building</h3><p>Next.js, TypeScript, Supabase and PostgreSQL, Vercel.</p></div>
-        <div><h3>CRM and data</h3><p>CRM opportunity tracking, Airtable, Google Sheets. Working knowledge of HubSpot and Clay.</p></div>
+        <div class="skill" data-reveal><h3>Prospecting</h3><ul><li>ICP definition</li><li>Buying-committee mapping</li><li>Signal-led targeting</li><li>Apollo</li><li>Sales Navigator</li><li>Lusha</li></ul></div>
+        <div class="skill" data-reveal><h3>Sending and deliverability</h3><ul><li>Smartlead</li><li>Instantly</li><li>Secondary domains</li><li>SPF, DKIM, DMARC</li><li>Inbox warm-up</li></ul></div>
+        <div class="skill" data-reveal><h3>Automation and AI</h3><ul><li>n8n (self-hosted)</li><li>Apify</li><li>Clearout</li><li>Gemini</li><li>Claude Code</li><li>Webhooks and APIs</li></ul></div>
+        <div class="skill wide" data-reveal><h3>Building</h3><ul><li>Next.js</li><li>TypeScript</li><li>Supabase</li><li>PostgreSQL</li><li>Row-level security</li><li>Job queues</li><li>Vercel</li></ul></div>
+        <div class="skill" data-reveal><h3>CRM and data</h3><ul><li>CRM opportunity tracking</li><li>Airtable</li><li>Google Sheets</li></ul><p class="wk">Working knowledge of HubSpot and Clay.</p></div>
       </div>
     </div>
   </section>
 </main>
 
 <section class="contact" id="contact">
+  <div class="glow2" aria-hidden="true"></div>
   <div class="wrap">
-    <h2>Hiring a GTM engineer?</h2>
-    <p class="lead">I’m looking for a full-time role where go-to-market and engineering sit in the same seat. I’d be glad to talk it through. Email is the quickest way to reach me.</p>
-    <div class="acts">
-      <a class="btn primary" href="mailto:jithujsam@gmail.com?subject=GTM%20engineer%20role">Email me</a>
-      <a class="btn plain" href="Jithu-Jobin-Sam-CV.pdf" download>Download CV</a>
-      <a class="btn plain" href="https://www.linkedin.com/in/jithujsam" target="_blank" rel="noopener">LinkedIn</a>
-      <a class="btn plain" href="https://github.com/jithujsam-cloud/gtm-outbound-infrastructure" target="_blank" rel="noopener">GitHub</a>
+    <span class="kicker" data-reveal>Contact</span>
+    <h2 data-reveal>Hiring a GTM engineer? Let’s talk.</h2>
+    <p class="sub" data-reveal>I’m looking for a full-time role where go-to-market and engineering sit in the same seat. Email is the quickest way to reach me.</p>
+    <div class="acts" data-reveal>
+      <a class="btn primary" data-magnet href="mailto:jithujsam@gmail.com?subject=GTM%20engineer%20role">Email me <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></a>
+      <a class="btn ghost" data-magnet href="Jithu-Jobin-Sam-CV.pdf" download>Download CV</a>
+      <a class="btn ghost" data-magnet href="https://www.linkedin.com/in/jithujsam" target="_blank" rel="noopener">LinkedIn</a>
+      <a class="btn ghost" data-magnet href="https://github.com/jithujsam-cloud/gtm-outbound-infrastructure" target="_blank" rel="noopener">GitHub</a>
     </div>
-    <p class="mail"><a href="mailto:jithujsam@gmail.com">jithujsam@gmail.com</a><button type="button" id="copy">Copy address</button></p>
+    <p class="mail" data-reveal><a href="mailto:jithujsam@gmail.com">jithujsam@gmail.com</a><button type="button" id="copy">Copy address</button></p>
   </div>
 </section>
 
 <footer>
   <div class="wrap">
-    <span>© 2026 Jithu Jobin Sam</span>
+    <span>© 2026 Jithu Jobin Sam · Delhi, India</span>
     <nav aria-label="Elsewhere"><a href="https://www.linkedin.com/in/jithujsam" target="_blank" rel="noopener">LinkedIn</a><a href="https://github.com/jithujsam-cloud/gtm-outbound-infrastructure" target="_blank" rel="noopener">GitHub</a><a href="https://clospect.com" target="_blank" rel="noopener">Clospect</a></nav>
   </div>
 </footer>
+
+<script src="https://cdn.jsdelivr.net/npm/motion@11.11.13/dist/motion.js"></script>
 <script>
 (function () {
-  var b = document.getElementById("copy");
-  b.addEventListener("click", function () {
-    var done = function () { b.textContent = "Copied"; setTimeout(function () { b.textContent = "Copy address"; }, 1600); };
-    try { navigator.clipboard.writeText("jithujsam@gmail.com").then(done, function () { b.textContent = "Select the address to copy"; }); }
-    catch (e) { b.textContent = "Select the address to copy"; }
+  var reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var $ = function (s, r) { return (r || document).querySelector(s); };
+  var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
+
+  /* nav background after scrolling */
+  var nav = $("#nav");
+  var onScroll = function () { nav.classList.toggle("scrolled", scrollY > 12); };
+  addEventListener("scroll", onScroll, { passive: true }); onScroll();
+
+  /* copy email */
+  var copy = $("#copy");
+  copy.addEventListener("click", function () {
+    var done = function () { copy.textContent = "Copied"; setTimeout(function () { copy.textContent = "Copy address"; }, 1600); };
+    try { navigator.clipboard.writeText("jithujsam@gmail.com").then(done, function () { copy.textContent = "Select the address to copy"; }); }
+    catch (e) { copy.textContent = "Select the address to copy"; }
   });
+
+  /* the project visuals loop through real states, with or without the library */
+  function queueLoop() {
+    var rows = $$("#queue li"), bar = $("#qbar"), states = ["valid", "valid", "skipped", "valid", "valid"], i = 0;
+    function set(el, s) { el.className = "state " + s; el.textContent = s; }
+    function step() {
+      if (i === rows.length) { setTimeout(function () { rows.forEach(function (r) { r.classList.remove("hot"); set(r.querySelector(".state"), "pending"); }); bar.style.width = "0%"; i = 0; setTimeout(step, 700); }, 2200); return; }
+      var r = rows[i], st = r.querySelector(".state");
+      r.classList.add("hot"); set(st, "processing");
+      setTimeout(function () { set(st, states[i]); r.classList.remove("hot"); i++; bar.style.width = (i / rows.length * 100) + "%"; setTimeout(step, 260); }, 650);
+    }
+    step();
+  }
+  function stepsLoop() {
+    var li = $$("#steps li"), i = 0, failRun = false;
+    function tick() {
+      li.forEach(function (x, k) { x.classList.toggle("on", k === i); x.classList.remove("stop"); });
+      if (failRun && i === 1) { li[1].classList.remove("on"); li[1].classList.add("stop"); setTimeout(function () { failRun = false; i = 0; tick(); }, 1800); return; }
+      i++;
+      if (i === li.length) { setTimeout(function () { failRun = true; i = 0; tick(); }, 1100); return; }
+      setTimeout(tick, 650);
+    }
+    tick();
+  }
+  function startLoops() { if (reduce) return; queueLoop(); stepsLoop(); }
+
+  var M = window.Motion;
+  if (!M || reduce) { document.documentElement.classList.remove("anim"); startLoops(); return; }
+  window.__motionReady = true;
+  var animate = M.animate, inView = M.inView, scroll = M.scroll, stagger = M.stagger;
+  var ease = [0.22, 1, 0.36, 1];
+
+  /* hero: the one orchestrated entrance */
+  animate($$(".hero .word"), { opacity: [0, 1], y: [36, 0], filter: ["blur(10px)", "blur(0px)"] }, { delay: stagger(0.07, { start: 0.15 }), duration: 0.9, ease: ease });
+  animate($$(".hero [data-pop]"), { opacity: [0, 1], y: [18, 0] }, { delay: stagger(0.1, { start: 0.05 }), duration: 0.8, ease: ease });
+  animate(".portrait .frame", { scale: [0.94, 1], rotate: [4, 1.5] }, { duration: 1.1, ease: ease, delay: 0.2 });
+  $$(".chip").forEach(function (c, k) {
+    animate(c, { opacity: [0, 1], y: [16, 0], scale: [0.92, 1] }, { delay: 0.6 + k * 0.12, type: "spring", stiffness: 220, damping: 18 });
+    animate(c, { y: [0, -8, 0] }, { duration: 4 + k, repeat: Infinity, ease: "easeInOut", delay: 1.4 + k * 0.3 });
+  });
+
+  /* portrait parallax and timeline rail, tied to scroll */
+  scroll(animate("#portraitImg", { y: [0, -50] }), { target: $(".hero"), offset: ["start start", "end start"] });
+  scroll(animate("#rail", { scaleY: [0, 1] }), { target: $("#timeline"), offset: ["start 75%", "end 55%"] });
+
+  /* reveals as sections enter, with siblings staggered */
+  inView("[data-reveal]", function (info) {
+    var el = info.target, sibs = $$("[data-reveal]", el.parentElement).filter(function (s) { return s.parentElement === el.parentElement; });
+    var idx = Math.max(0, sibs.indexOf(el));
+    animate(el, { opacity: [0, 1], y: [28, 0] }, { duration: 0.8, delay: Math.min(idx, 6) * 0.07, ease: ease });
+  }, { margin: "0px 0px -10% 0px" });
+
+  /* count-up facts */
+  inView(".facts", function () {
+    $$("[data-count]").forEach(function (n) {
+      var to = parseInt(n.getAttribute("data-count"), 10);
+      animate(0, to, { duration: 1.2, ease: ease, onUpdate: function (v) { n.textContent = Math.round(v); } });
+    });
+  });
+
+  /* Klaroh bars grow when seen; loops start when seen */
+  inView("#report", function () { animate($$("#report .bars i"), { scaleY: [0, 1] }, { delay: stagger(0.06, { start: 0.2 }), duration: 0.7, ease: ease }); });
+  var started = false;
+  inView(".projects", function () { if (!started) { started = true; startLoops(); } });
+
+  /* tilt the project cards a little under the pointer */
+  if (matchMedia("(hover: hover)").matches) {
+    $$("[data-tilt]").forEach(function (card) {
+      card.addEventListener("pointermove", function (e) {
+        var r = card.getBoundingClientRect(), x = (e.clientX - r.left) / r.width - 0.5, y = (e.clientY - r.top) / r.height - 0.5;
+        animate(card, { transform: "perspective(1400px) rotateX(" + (-y * 3).toFixed(2) + "deg) rotateY(" + (x * 3).toFixed(2) + "deg)" }, { duration: 0.3 });
+      });
+      card.addEventListener("pointerleave", function () { animate(card, { transform: "perspective(1400px) rotateX(0deg) rotateY(0deg)" }, { type: "spring", stiffness: 180, damping: 16 }); });
+    });
+    /* magnetic contact buttons */
+    $$("[data-magnet]").forEach(function (b) {
+      b.addEventListener("pointermove", function (e) {
+        var r = b.getBoundingClientRect(), x = e.clientX - r.left - r.width / 2, y = e.clientY - r.top - r.height / 2;
+        animate(b, { x: x * 0.25, y: y * 0.35 }, { duration: 0.25 });
+      });
+      b.addEventListener("pointerleave", function () { animate(b, { x: 0, y: 0 }, { type: "spring", stiffness: 260, damping: 14 }); });
+    });
+  }
 })();
 </script>
 </body>

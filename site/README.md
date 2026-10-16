@@ -4,7 +4,7 @@ Jithu Jobin Sam's personal website: an introduction, his experience, three proje
 
 | File | Purpose |
 |---|---|
-| `index.html` | The whole page. Font: Schibsted Grotesk from Google Fonts. |
+| `index.html` | The whole page. Font: Schibsted Grotesk from Google Fonts. Animation: Motion 11 (motion.dev, the Framer Motion engine) from jsDelivr; the page stays fully readable if it fails to load or the visitor prefers reduced motion. |
 | `Jithu-Jobin-Sam-CV.pdf` | One-page CV, linked from the page |
 | `cv-source.html` | Source for the CV. Edit it, then re-export to PDF (print to A4, background graphics on). Not deployed. |
 | `404.html` | Not-found page, served automatically by Vercel |

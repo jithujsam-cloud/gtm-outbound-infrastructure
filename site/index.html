@@ -4,163 +4,222 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Jithu Jobin Sam</title>
-<meta name="description" content="Jithu Jobin Sam, GTM engineer and builder. Enterprise outbound, signal-led campaigns and the systems behind them. Founder of Clospect.">
-<meta name="theme-color" content="#ffffff">
+<meta name="description" content="Jithu Jobin Sam is a GTM engineer in Delhi. Enterprise outbound for banks and NBFCs, and the tools that run it. Founder of Clospect.">
+<meta name="theme-color" content="#0a0d14">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Jithu Jobin Sam · GTM engineer & builder">
-<meta property="og:description" content="Enterprise outbound, signal-led campaigns and the systems behind them. Founder of Clospect.">
+<meta property="og:title" content="Jithu Jobin Sam · GTM engineer">
+<meta property="og:description" content="Enterprise outbound for banks and NBFCs, and the tools that run it. Founder of Clospect.">
 <meta property="og:image" content="/og.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700&family=Barlow:wght@400;500&display=swap" rel="stylesheet">
 <style>
-/* Layout: a quiet single column. White page, near-black text, one small logo,
-   thumbnail-and-text rows, dated lists, then a dark "after hours" ending.
-   The personality lives in the copy and the cartoon faces, not in the chrome. */
+/* Direction: the name as a monument. Barlow Condensed (a road-sign face, for a maps company) over Barlow,
+   night ground, one cornflower accent. Pictures are real Delhi, credited in the footer. */
 :root {
-  --bg: #ffffff;
-  --ink: #111111;
-  --ink-2: #4a4a4a;
-  --ink-3: #8a8a8a;
-  --line: #ececec;
-  --panel: #f6f6f6;
-  --accent: #0a8f7a;
-  --font: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-  --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  --col: 680px;
-  color-scheme: light;
-}
-:root[data-theme="dark"] {
-  --bg: #0e0e0f; --ink: #f2f2f2; --ink-2: #b4b4b4; --ink-3: #777; --line: #242426; --panel: #19191b; --accent: #3dd6bd;
+  --bg: #0a0d14; --surface: #131824; --ink: #e9edf3; --muted: #99a2b2; --accent: #5a9bfc; --accent-ink: #0a0d14;
+  --display: "Barlow Condensed", "Arial Narrow", Impact, sans-serif;
+  --text: "Barlow", system-ui, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+  --step-small: clamp(0.8125rem, 0.79rem + 0.1vw, 0.875rem);
+  --step-body: clamp(1.0625rem, 1rem + 0.25vw, 1.1875rem);
+  --step-lead: clamp(1.25rem, 1.1rem + 0.7vw, 1.625rem);
+  --step-head: clamp(2.5rem, 1.2rem + 5vw, 5.5rem);
+  --m: clamp(20px, 2.2vw, 32px);
+  --gap: 16px;
   color-scheme: dark;
 }
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --bg: #0e0e0f; --ink: #f2f2f2; --ink-2: #b4b4b4; --ink-3: #777; --line: #242426; --panel: #19191b; --accent: #3dd6bd;
-    color-scheme: dark;
-  }
-}
-
 *, *::before, *::after { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
-body { margin: 0; background: var(--bg); color: var(--ink); font: 400 15px/1.55 var(--font); -webkit-font-smoothing: antialiased; }
-a { color: inherit; text-decoration: none; }
-:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 4px; }
-::selection { background: color-mix(in srgb, var(--accent) 30%, transparent); }
-h1, h2, h3, p, ul, ol { margin: 0; padding: 0; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 400 var(--step-body)/1.5 var(--text); -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+img { display: block; max-width: 100%; }
+a { color: inherit; }
+button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; text-align: left; }
+h1, h2, h3, p, ul, ol, figure { margin: 0; padding: 0; }
 ul, ol { list-style: none; }
-.col { width: min(var(--col), 100% - 40px); margin-inline: auto; }
-
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+::selection { background: var(--accent); color: var(--accent-ink); }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.display { font-family: var(--display); font-weight: 700; letter-spacing: -0.02em; line-height: 0.9; }
 .face { display: block; background-color: currentColor; -webkit-mask: var(--src) center bottom / contain no-repeat; mask: var(--src) center bottom / contain no-repeat; }
 
-/* top bar */
-.top { display: flex; justify-content: space-between; align-items: center; padding-top: 52px; }
-.logo { width: 34px; height: 36px; color: var(--accent); }
-.theme { width: 36px; height: 36px; display: grid; place-items: center; border: 0; background: transparent; color: var(--ink); cursor: pointer; border-radius: 8px; }
-.theme:hover { background: var(--panel); }
-.theme svg { width: 18px; height: 18px; }
-.theme .moon { display: none; }
-:root[data-theme="dark"] .theme .sun { display: none; }
-:root[data-theme="dark"] .theme .moon { display: block; }
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .theme .sun { display: none; }
-  :root:not([data-theme="light"]) .theme .moon { display: block; }
+/* ---------- motion helpers (content is visible without script) ---------- */
+.js .rv { opacity: 0; transform: translateY(26px); transition: opacity .7s cubic-bezier(.2,.7,.2,1) calc(var(--d, 0) * 80ms), transform .7s cubic-bezier(.2,.7,.2,1) calc(var(--d, 0) * 80ms); }
+.js .rv.in { opacity: 1; transform: none; }
+.js .wipe { clip-path: inset(0 0 100% 0); transition: clip-path 1s cubic-bezier(.2,.7,.2,1) calc(var(--d, 0) * 80ms); }
+.js .wipe.in { clip-path: inset(0); }
+
+/* ---------- hero ---------- */
+.hero { height: 100svh; min-height: 620px; display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: 58% 1fr; overflow: hidden; }
+.hero .ph { position: relative; overflow: hidden; background: var(--surface); }
+.hero .ph img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 62%; transform: scale(1.06); will-change: transform; transition: transform 2.4s cubic-bezier(.2,.7,.2,1); }
+.loaded .hero .ph img { transform: scale(1); }
+.bar { position: absolute; inset: 0 0 auto 0; display: flex; justify-content: flex-end; gap: 28px; padding: 18px var(--m); background: rgba(10, 13, 20, .5); font-size: 15px; }
+.bar a { text-decoration: none; padding: 4px 0; transition: color .15s; }
+.bar a:hover { color: var(--accent); }
+.band { padding: 22px var(--m) 26px; display: flex; flex-direction: column; min-height: 0; }
+.row { display: flex; justify-content: space-between; align-items: center; gap: 24px; font-size: var(--step-body); }
+.row p { max-width: 46ch; }
+.btn { display: inline-block; background: var(--accent); color: var(--accent-ink); text-decoration: none; font-weight: 500; font-size: var(--step-body); padding: 12px 22px; border-radius: 0; transition: transform .15s ease, background .15s; white-space: nowrap; }
+.btn:hover { transform: translateY(-2px); background: var(--ink); }
+.btn:active { transform: translateY(1px); }
+h1 { margin-top: auto; transform-origin: 0 100%; will-change: transform; }
+h1 .nm { display: inline-block; white-space: nowrap; font-size: 15.4vw; text-transform: uppercase; }
+h1 .ln { display: inline; }
+h1 .o { display: inline-block; width: .62em; height: .72em; vertical-align: -0.03em; margin: 0 .02em; color: var(--accent); transition: color .3s; }
+@media (max-width: 760px) {
+  .hero { grid-template-rows: 46% 1fr; min-height: 560px; }
+  .bar { gap: 16px; font-size: 15px; padding: 14px var(--m); flex-wrap: wrap; }
+  .row { flex-direction: column; align-items: flex-start; gap: 14px; }
+  h1 .ln { display: block; }
+  h1 .nm { font-size: 30vw; }
 }
 
-/* intro */
-.intro { padding-block: 96px 88px; }
-h1 { font-size: 22px; line-height: 1.25; font-weight: 700; letter-spacing: -.015em; }
-.intro p { margin-top: 24px; color: var(--ink-2); max-width: 58ch; }
-.intro p + p { margin-top: 18px; }
-.links { margin-top: 24px; display: flex; gap: 14px; font: 400 11px/1 var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); }
-.links a:hover { color: var(--ink); }
-.links i { font-style: normal; }
-.status { margin-top: 28px; display: inline-flex; align-items: center; gap: 8px; font-size: 12px; color: var(--ink-3); }
-.status::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent); }
-
-/* sections */
-section { padding-bottom: 88px; }
-h2 { font-size: 15px; font-weight: 700; letter-spacing: -.005em; margin-bottom: 28px; }
-
-/* product rows */
-.prod { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
-.prod + .prod { margin-top: 36px; }
-.thumb { aspect-ratio: 4 / 3; border-radius: 4px; overflow: hidden; display: block; }
-.thumb svg { width: 100%; height: 100%; display: block; }
-.prod h3 { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
-.prod p { color: var(--ink-2); font-size: 14px; line-height: 1.5; }
-.visit { display: inline-block; margin-top: 8px; font-size: 14px; }
-.visit:hover { text-decoration: underline; text-underline-offset: 3px; }
-.soon { display: inline-block; margin-top: 8px; font-size: 13px; color: var(--ink-3); }
-.hint { color: var(--ink-3); font-size: 13px; margin-top: 4px; }
-
-/* dated list */
-.rows { border-top: 1px solid var(--line); }
-.row { border-bottom: 1px solid var(--line); }
-.row summary { display: grid; grid-template-columns: 78px 1fr auto; gap: 12px; align-items: baseline; padding: 14px 0; cursor: pointer; list-style: none; font-size: 13px; font-weight: 600; }
-.row summary::-webkit-details-marker { display: none; }
-.row summary time { font: 400 11px/1 var(--mono); color: var(--ink-3); letter-spacing: .02em; }
-.row summary::after { content: "+"; font: 400 14px/1 var(--mono); color: var(--ink-3); }
-.row[open] summary::after { content: "–"; }
-.row summary:hover span { text-decoration: underline; text-underline-offset: 3px; }
-.row .more { padding: 0 0 18px 90px; color: var(--ink-2); font-size: 14px; display: grid; gap: 8px; }
-.row .more b { font-weight: 500; color: var(--ink); }
-.accounts { margin-top: 24px; font: 400 11px/1.9 var(--mono); color: var(--ink-3); letter-spacing: .02em; }
-.accounts span::after { content: " / "; }
-.accounts span:last-child::after { content: ""; }
-
-/* rules */
-.rules { counter-reset: r; display: grid; gap: 18px; }
-.rules li { counter-increment: r; display: grid; grid-template-columns: 78px 1fr; gap: 12px; }
-.rules li::before { content: "0" counter(r); font: 400 11px/1.9 var(--mono); color: var(--ink-3); }
-.rules b { font-size: 14px; font-weight: 600; display: block; }
-.rules span { color: var(--ink-2); font-size: 14px; }
-
-/* CV bar */
-.cv { display: flex; align-items: center; gap: 14px; padding: 14px 16px; background: var(--panel); border-radius: 6px; }
-.cv .face { width: 28px; height: 32px; color: var(--ink); }
-.cv b { display: block; font-size: 13px; font-weight: 600; }
-.cv small { color: var(--ink-3); font-size: 12px; }
-.cv .go { margin-left: auto; font: 400 14px/1 var(--mono); color: var(--ink-3); }
-.cv:hover .go { color: var(--ink); }
-
-footer { padding: 48px 0 64px; border-top: 0; }
-footer .col { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; font-size: 11px; color: var(--ink-3); font-family: var(--mono); letter-spacing: .02em; }
-footer nav { display: flex; gap: 16px; }
-footer a:hover { color: var(--ink); }
-
-/* after hours */
-.after { position: relative; color: #f2eee4; background: linear-gradient(180deg, #0a1a2b 0%, #0b1220 38%, #090b10 100%); overflow: hidden; padding: 0 0 72px; }
-.after .moon { width: min(260px, 70vw); aspect-ratio: 2 / 1; margin: 0 auto; border-radius: 260px 260px 0 0; background: radial-gradient(circle at 50% 100%, #f1d58a 0%, #c79a3e 28%, #3a4a68 52%, transparent 70%); opacity: .9; }
-.after .stars { position: absolute; inset: 0; pointer-events: none; background-image:
-  radial-gradient(1px 1px at 12% 18%, #fff, transparent), radial-gradient(1px 1px at 82% 12%, #fff, transparent),
-  radial-gradient(1px 1px at 30% 40%, #fff9, transparent), radial-gradient(1.5px 1.5px at 66% 30%, #fff, transparent),
-  radial-gradient(1px 1px at 91% 44%, #fff8, transparent), radial-gradient(1px 1px at 6% 52%, #fff8, transparent); }
-.after h2 { text-align: center; margin: 28px 0 10px; font-size: 18px; }
-.after .sub { text-align: center; color: #b9b3a4; max-width: 46ch; margin: 0 auto 36px; font-size: 14px; }
-.photo { margin: 0 auto 40px; border-radius: 6px; overflow: hidden; aspect-ratio: 3 / 2; }
-.photo img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 30%; display: block; }
-.strip { display: grid; grid-auto-flow: column; grid-auto-columns: 150px; gap: 10px; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 10px; scrollbar-width: thin; }
-.strip figure { margin: 0; scroll-snap-align: start; background: #ffffff0d; border-radius: 6px; padding: 12px 12px 14px; display: grid; gap: 8px; }
-.strip .face { height: 96px; width: 100%; color: #f2eee4; }
-.strip time { font: 400 10px/1 var(--mono); color: #8f8a7d; letter-spacing: .04em; }
-.strip figcaption { font-size: 12.5px; line-height: 1.4; color: #e5e0d3; }
-.after .cta { text-align: center; margin-top: 36px; font-size: 14px; color: #b9b3a4; }
-.after .cta a { color: #f2eee4; text-decoration: underline; text-underline-offset: 3px; }
-
-@media (max-width: 560px) {
-  .top { padding-top: 32px; }
-  .intro { padding-block: 64px 64px; }
-  section { padding-bottom: 64px; }
-  .prod { grid-template-columns: 1fr; gap: 12px; }
-  .row summary { grid-template-columns: 62px 1fr auto; }
-  .row .more { padding-left: 0; }
-  .rules li { grid-template-columns: 30px 1fr; }
+/* ---------- about ---------- */
+.about { padding: clamp(80px, 11vw, 150px) var(--m); display: grid; grid-template-columns: repeat(12, 1fr); gap: var(--gap); }
+.facts { grid-column: 1 / span 2; display: grid; gap: 10px; align-content: start; font-size: 15px; padding-top: 6px; }
+.facts a { text-decoration: underline; text-underline-offset: 3px; }
+.facts a:hover { color: var(--accent); }
+.bio { grid-column: 3 / -1; max-width: 1040px; }
+.bio .lead { font-size: clamp(24px, 2.5vw, 36px); line-height: 1.2; }
+.bio .body { margin-top: 40px; max-width: 58ch; display: grid; gap: 1.1em; clear: both; }
+.bio img { float: left; width: 3.6em; height: 3.6em; object-fit: cover; object-position: 50% 18%; margin: .1em .5em 0 0; }
+@media (max-width: 760px) {
+  .facts { grid-column: 1 / -1; grid-row: 2; grid-template-columns: 1fr 1fr 1fr; font-size: 13px; margin-top: 28px; }
+  .bio { grid-column: 1 / -1; }
+  .bio .lead { font-size: 22px; line-height: 1.25; }
+  .bio img { width: 4.9em; height: 4.9em; }
 }
-@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+/* ---------- programmes ---------- */
+.work { padding: clamp(80px, 11vw, 150px) var(--m); display: grid; grid-template-columns: repeat(12, 1fr); gap: var(--gap); align-items: start; }
+.work h2 { grid-column: 1 / -1; font-family: var(--text); font-weight: 500; font-size: 28px; line-height: 1.2; margin-bottom: 48px; }
+.names { grid-column: 1 / span 8; }
+.names li + li { margin-top: 0; }
+.names button { width: 100%; display: flex; justify-content: space-between; align-items: baseline; gap: 20px; padding: 10px 0; color: var(--muted); transition: color .2s, transform .2s; }
+.names button .t { font-family: var(--display); font-weight: 700; letter-spacing: -0.02em; line-height: 1; font-size: clamp(52px, 7vw, 108px); text-transform: uppercase; }
+.names button .m { font-size: 15px; font-variant-numeric: tabular-nums; text-align: right; flex: none; }
+.names button[aria-current="true"], .names button:hover { color: var(--ink); }
+.names button:active { transform: translateX(4px); }
+.preview { grid-column: 9 / -1; position: sticky; top: 15vh; }
+.frame { position: relative; aspect-ratio: 4 / 5; background: var(--surface); overflow: hidden; }
+.frame img, .frame video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity .25s ease; }
+.frame .on { opacity: 1; }
+.preview .cap { margin-top: 16px; font-size: var(--step-body); min-height: 9em; }
+.preview .cap b { font-weight: 500; }
+.work .inline { display: none; }
+@media (max-width: 760px) {
+  .names, .preview { display: none; }
+  .work .inline { display: block; grid-column: 1 / -1; }
+  .work .inline article + article { margin-top: 44px; }
+  .work .inline img { width: 100%; height: auto; aspect-ratio: 16 / 10; object-fit: cover; margin-bottom: 14px; }
+  .work .inline h3 { font-family: var(--display); font-weight: 700; font-size: 9.5vw; letter-spacing: -0.02em; line-height: 1; text-transform: uppercase; }
+  .work .inline .m { font-size: 13px; color: var(--muted); margin: 4px 0 8px; }
+  .work .inline p.d { font-size: var(--step-body); }
+}
+
+/* ---------- products ---------- */
+.prod { min-height: 88svh; display: grid; grid-template-columns: 1fr 1fr; background: var(--surface); }
+.prod .l { padding: 40px; display: flex; flex-direction: column; justify-content: center; gap: 20px; background: var(--bg); }
+.plate { aspect-ratio: 1; background: var(--surface); display: grid; place-items: end center; overflow: hidden; color: var(--ink); }
+.plate .face { width: 78%; height: 88%; transition: transform .3s ease; }
+.plate:hover .face { transform: translateY(-6px) rotate(-1.5deg); }
+.live { font-size: var(--step-body); max-width: 46ch; }
+.prod .r { padding: 40px; display: flex; flex-direction: column; justify-content: space-between; gap: 40px; background: var(--bg); }
+.tabs { display: flex; flex-wrap: wrap; gap: 8px 28px; font-size: var(--step-body); }
+.tabs button { color: var(--muted); padding: 4px 0; transition: color .15s; }
+.tabs button[aria-selected="true"], .tabs button:hover { color: var(--ink); }
+.tabs button[aria-selected="true"] { text-decoration: underline; text-decoration-thickness: 3px; text-underline-offset: 8px; text-decoration-color: var(--accent); }
+.pane h2 { font-family: var(--display); font-weight: 700; letter-spacing: -0.02em; line-height: 1; font-size: clamp(36px, 4.4vw, 64px); text-transform: uppercase; }
+.pane p { margin-top: 28px; max-width: 34ch; }
+.pane p.k { margin-top: 14px; color: var(--muted); font-size: 15px; }
+.cells { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
+.cells a { display: flex; align-items: center; height: 72px; padding: 0 20px; text-decoration: none; font-weight: 500; transition: transform .15s, background .15s; }
+.cells a:first-child { background: var(--ink); color: var(--bg); }
+.cells a:last-child { background: var(--surface); }
+.cells a:hover { background: var(--accent); color: var(--accent-ink); }
+.cells a:active { transform: translateY(2px); }
+@media (max-width: 760px) {
+  .prod { grid-template-columns: 1fr; min-height: 0; }
+  .prod .l, .prod .r { padding: 16px; }
+  .prod .r { gap: 28px; padding-bottom: 32px; }
+  .cells { grid-template-columns: 1fr; }
+  .cells a { height: 60px; }
+}
+
+/* ---------- rules poster ---------- */
+.rules { padding: 80px var(--m); }
+.rules li { display: flex; justify-content: space-between; align-items: baseline; gap: 24px; color: var(--ink); transition: color .15s; }
+.rules li:hover { color: var(--accent); }
+.rules .w { font-family: var(--display); font-weight: 700; letter-spacing: -0.02em; line-height: .92; font-size: clamp(64px, 11.5vw, 190px); text-transform: uppercase; }
+.rules .d { font-size: var(--step-body); font-variant-numeric: tabular-nums; text-align: right; max-width: 24ch; }
+@media (max-width: 760px) {
+  .rules { padding: 56px var(--m); }
+  .rules li { flex-direction: column; gap: 0; align-items: flex-start; }
+  .rules .w { font-size: 17vw; }
+  .rules .d { font-size: var(--step-body); text-align: left; margin: 6px 0 22px; max-width: none; }
+}
+
+/* ---------- faces gallery ---------- */
+.gal { padding: clamp(60px, 10vw, 140px) var(--m); }
+.pair { display: grid; grid-template-columns: repeat(12, 1fr); gap: var(--gap); margin-bottom: 12vh; align-items: start; }
+.pair:last-child { margin-bottom: 0; }
+.pair figure { position: relative; }
+.pair .pl { background: var(--surface); display: grid; place-items: end center; overflow: hidden; }
+.pair .pl .face { width: 74%; height: 90%; color: var(--ink); }
+.pair figcaption { margin-top: 10px; font-size: 15px; color: var(--muted); }
+.pair figcaption b { font-weight: 500; color: var(--ink); margin-right: 8px; font-variant-numeric: tabular-nums; }
+.p1 .a { grid-column: 1 / span 5; } .p1 .a .pl { aspect-ratio: 3 / 4; }
+.p1 .b { grid-column: 7 / span 6; margin-top: 18vh; } .p1 .b .pl { aspect-ratio: 5 / 4; }
+.p2 .c { grid-column: 5 / span 8; } .p2 .c .pl { aspect-ratio: 3 / 2; }
+.p2 .d { grid-column: 1 / span 4; margin-top: 16vh; grid-row: 1; } .p2 .d .pl { aspect-ratio: 4 / 5; }
+.p3 .e { grid-column: 8 / span 5; } .p3 .e .pl { aspect-ratio: 3 / 4; }
+.p3 .f { grid-column: 1 / span 6; margin-top: 18vh; grid-row: 1; } .p3 .f .pl { aspect-ratio: 5 / 4; }
+.p4 .g { grid-column: 1 / span 8; } .p4 .g .pl { aspect-ratio: 3 / 2; }
+.p4 .h { grid-column: 9 / span 4; margin-top: 16vh; } .p4 .h .pl { aspect-ratio: 4 / 5; }
+.p5 .i { grid-column: 3 / span 8; } .p5 .i .pl { aspect-ratio: 3 / 2; }
+@media (max-width: 760px) {
+  .pair { display: block; margin-bottom: 0; }
+  .pair figure { margin-bottom: 64px; }
+  .pair .a, .pair .d, .pair .e, .pair .h { width: 70%; }
+  .pair .b, .pair .c, .pair .f, .pair .g { width: 84%; margin-left: auto; }
+  .pair .i { width: 100%; }
+  .pair .pl, .pair .a .pl, .pair .b .pl, .pair .c .pl, .pair .d .pl, .pair .e .pl, .pair .f .pl, .pair .g .pl, .pair .h .pl, .pair .i .pl { aspect-ratio: 3 / 4; }
+}
+
+/* ---------- contact ---------- */
+.contact { background: var(--bg); }
+.contact .cr { padding: 34px var(--m) 22px; min-height: 150px; display: flex; align-items: flex-end; font-family: var(--display); font-weight: 700; letter-spacing: -0.02em; line-height: 1; font-size: clamp(52px, 7vw, 108px); text-transform: uppercase; text-decoration: none; overflow-wrap: anywhere; }
+.contact .cr:nth-child(odd) { background: var(--surface); }
+.contact a.cr { transition: color .15s, padding-left .25s; }
+.contact a.cr:hover { color: var(--accent); padding-left: calc(var(--m) + 14px); }
+.contact .hello { display: flex; align-items: center; gap: 24px; }
+.contact .go { width: .9em; height: .9em; border-radius: 50%; background: var(--accent); color: var(--accent-ink); display: grid; place-items: center; font-size: inherit; transition: transform .2s; }
+.contact .go svg { width: 46%; height: 46%; }
+.contact a.hello:hover .go { transform: translateX(8px); }
+@media (max-width: 760px) {
+  .contact .cr { min-height: 84px; font-size: 9.6vw; padding: 22px var(--m) 14px; }
+  .contact .hello { background: var(--accent) !important; color: var(--accent-ink); justify-content: space-between; min-height: 84px; }
+  .contact .hello .go { width: 56px; height: 56px; background: var(--accent-ink); color: var(--accent); }
+  .contact a.hello:hover { color: var(--accent-ink); padding-left: var(--m); }
+}
+
+/* ---------- footer ---------- */
+footer { background: var(--ink); color: var(--bg); padding: 40px var(--m) 28px; overflow: hidden; }
+footer .big { display: block; white-space: nowrap; font-size: 15.4vw; text-transform: uppercase; transform-origin: 0 100%; margin-bottom: 28px; }
+footer .cred { font-size: var(--step-body); max-width: 70ch; }
+footer .cred a { text-decoration: underline; text-underline-offset: 3px; }
+footer .fine { margin-top: 18px; font-size: 15px; max-width: 70ch; }
+@media (max-width: 760px) { footer .big { font-size: 21vw; white-space: normal; line-height: .85; } }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .js .rv, .js .wipe { opacity: 1; transform: none; clip-path: none; transition: none; }
+  .hero .ph img { transform: none; transition: none; }
+  h1, footer .big { transform: none !important; }
+}
 </style>
 <style>
 /* Cartoon faces, embedded so masks work from any origin */
@@ -186,157 +245,263 @@ footer a:hover { color: var(--ink); }
 </style>
 </head>
 <body>
-<div class="col">
-  <div class="top">
-    <a href="#top" aria-label="Jithu Jobin Sam, home"><span class="face logo" style="--src:var(--f-calm)"></span></a>
-    <button class="theme" id="theme" type="button" aria-label="Toggle light and dark theme">
-      <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
-      <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5z"/></svg>
-    </button>
+<a class="sr" href="#about">Skip to content</a>
+
+<header class="hero" id="top">
+  <div class="ph">
+    <img src="assets/world/connaught-place-sunset.jpg" width="1920" height="1286" alt="Delhi's Connaught Place skyline at sunset, towers in an orange haze">
+    <nav class="bar" aria-label="Sections">
+      <a href="#work">Programmes</a><a href="#products">Products</a><a href="#rules">Rules</a><a href="#contact">Contact</a>
+    </nav>
   </div>
-</div>
-
-<main id="top">
-  <header class="col intro">
-    <h1>Jithu Jobin Sam.<br>GTM engineer &amp; builder.</h1>
-    <p>Lead Generation Executive at MapmyIndia, building outbound that books meetings with banks, NBFCs and airports. Founder of Clospect, where the same engine runs for other B2B companies.</p>
-    <p>Four years in GTM. Started on inbound, became the sole owner of enterprise outbound, and trained the team that now runs my playbook. Has opinions about DMARC.</p>
-    <div class="links"><a href="mailto:jithujsam@gmail.com">Email</a><i>/</i><a href="https://www.linkedin.com/in/jithujsam" target="_blank" rel="noopener">LinkedIn</a><i>/</i><a href="https://github.com/jithujsam-cloud/gtm-outbound-infrastructure" target="_blank" rel="noopener">GitHub</a></div>
-    <span class="status">Open to GTM engineer roles and Clospect clients</span>
-  </header>
-
-  <section class="col" id="products">
-    <h2>My products</h2>
-
-    <article class="prod">
-      <a class="thumb" href="https://klaroh.online" target="_blank" rel="noopener" aria-label="Klaroh">
-        <svg viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Klaroh dashboard illustration"><rect width="400" height="300" fill="#2f5bea"/><rect x="40" y="46" width="320" height="220" rx="8" fill="#fff"/><rect x="40" y="46" width="70" height="220" rx="8" fill="#eef2ff"/><rect x="54" y="64" width="42" height="6" rx="3" fill="#2f5bea"/><rect x="54" y="82" width="34" height="5" rx="2.5" fill="#c7d2f5"/><rect x="54" y="96" width="38" height="5" rx="2.5" fill="#c7d2f5"/><rect x="54" y="110" width="30" height="5" rx="2.5" fill="#c7d2f5"/><rect x="126" y="64" width="90" height="8" rx="4" fill="#111"/><rect x="126" y="92" width="64" height="44" rx="6" fill="#f3f5fb"/><rect x="198" y="92" width="64" height="44" rx="6" fill="#f3f5fb"/><rect x="270" y="92" width="74" height="44" rx="6" fill="#f3f5fb"/><rect x="136" y="104" width="24" height="5" rx="2.5" fill="#9aa6c8"/><rect x="136" y="116" width="36" height="10" rx="3" fill="#2f5bea"/><rect x="208" y="104" width="24" height="5" rx="2.5" fill="#9aa6c8"/><rect x="208" y="116" width="30" height="10" rx="3" fill="#2f5bea"/><rect x="280" y="104" width="24" height="5" rx="2.5" fill="#9aa6c8"/><rect x="280" y="116" width="40" height="10" rx="3" fill="#2f5bea"/><polyline points="130,230 160,214 190,222 222,190 254,200 286,170 340,160" fill="none" stroke="#2f5bea" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><rect x="126" y="150" width="218" height="1" fill="#e5e8f2"/></svg>
-      </a>
-      <div>
-        <h3>Klaroh</h3>
-        <p>Client reporting for cold-email agencies. Every client's campaigns, replies and sending health in one place, and a private branded report each client opens without a login.</p>
-        <a class="visit" href="https://klaroh.online" target="_blank" rel="noopener">Visit ↗</a>
-        <p class="hint">Private beta. Reads campaign data, never sends email.</p>
-      </div>
-    </article>
-
-    <article class="prod">
-      <a class="thumb" href="https://github.com/jithujsam-cloud/gtm-outbound-infrastructure/tree/main/gtm-validation-tool" target="_blank" rel="noopener" aria-label="GTM Validation Tool">
-        <svg viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Lead validation table illustration"><rect width="400" height="300" fill="#0d5f4c"/><rect x="36" y="44" width="328" height="212" rx="8" fill="#0c1411"/><circle cx="54" cy="60" r="4" fill="#ff5f57"/><circle cx="68" cy="60" r="4" fill="#febc2e"/><circle cx="82" cy="60" r="4" fill="#28c840"/><g font-family="monospace" font-size="11"><text x="54" y="96" fill="#6f8a80">email</text><text x="190" y="96" fill="#6f8a80">icp</text><text x="260" y="96" fill="#6f8a80">status</text></g><rect x="54" y="104" width="292" height="1" fill="#24332d"/><g font-family="monospace" font-size="11" fill="#d7e6df"><text x="54" y="126">priya@ledgerline.io</text><text x="190" y="126" fill="#3dd6bd">fit 92</text><text x="260" y="126" fill="#3dd6bd">valid</text><text x="54" y="154">rahul@northwind.in</text><text x="190" y="154" fill="#3dd6bd">fit 81</text><text x="260" y="154" fill="#3dd6bd">valid</text><text x="54" y="182">info@acme.co</text><text x="190" y="182" fill="#e0a458">fit 40</text><text x="260" y="182" fill="#e0a458">skipped</text><text x="54" y="210">sam@brightpay.com</text><text x="190" y="210" fill="#3dd6bd">fit 77</text><text x="260" y="210" fill="#6f8a80">queued…</text></g></svg>
-      </a>
-      <div>
-        <h3>GTM Validation Tool</h3>
-        <p>Import a lead list, score ICP fit with AI, then verify emails in a queue that pauses and resumes without paying for the same check twice.</p>
-        <a class="visit" href="https://github.com/jithujsam-cloud/gtm-outbound-infrastructure/tree/main/gtm-validation-tool" target="_blank" rel="noopener">View code ↗</a>
-        <p class="hint">Next.js, Supabase, Gemini, Clearout.</p>
-      </div>
-    </article>
-
-    <article class="prod">
-      <a class="thumb" href="https://github.com/jithujsam-cloud/gtm-outbound-infrastructure/tree/main/systems" target="_blank" rel="noopener" aria-label="n8n outbound workflows">
-        <svg viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Workflow nodes illustration"><rect width="400" height="300" fill="#2b1d4e"/><g stroke="#b79cff" stroke-width="2" fill="none" stroke-linecap="round"><path d="M92 90 C140 90 140 150 188 150"/><path d="M92 210 C140 210 140 150 188 150"/><path d="M232 150 C270 150 270 100 308 100"/><path d="M232 150 C270 150 270 200 308 200"/></g><g><rect x="48" y="66" width="48" height="48" rx="10" fill="#f6f1ff"/><rect x="48" y="186" width="48" height="48" rx="10" fill="#f6f1ff"/><rect x="184" y="126" width="52" height="48" rx="10" fill="#8f6bff"/><rect x="304" y="76" width="48" height="48" rx="10" fill="#f6f1ff"/><rect x="304" y="176" width="48" height="48" rx="10" fill="#f6f1ff"/></g><g fill="#2b1d4e"><circle cx="72" cy="90" r="7"/><rect x="65" y="203" width="14" height="14" rx="3"/><path d="M328 90l8 20h-16z"/><circle cx="328" cy="200" r="7"/></g><circle cx="210" cy="150" r="9" fill="#fff"/></svg>
-      </a>
-      <div>
-        <h3>Outbound workflows</h3>
-        <p>Two importable n8n systems: Signal-to-Pipeline finds hiring signals and qualifies leads in stages, and Outbound Engine rewrites and sends on a controlled cadence.</p>
-        <a class="visit" href="https://github.com/jithujsam-cloud/gtm-outbound-infrastructure/tree/main/systems" target="_blank" rel="noopener">View workflows ↗</a>
-        <p class="hint">A lower-cost alternative to Clay-style enrichment.</p>
-      </div>
-    </article>
-
-    <article class="prod">
-      <div class="thumb" role="img" aria-label="Hiring-signal platform illustration">
-        <svg viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><rect width="400" height="300" fill="#f1e3c4"/><g fill="#e0b25c"><rect x="52" y="190" width="40" height="70" rx="4"/><rect x="108" y="160" width="40" height="100" rx="4"/><rect x="164" y="130" width="40" height="130" rx="4"/><rect x="220" y="96" width="40" height="164" rx="4"/><rect x="276" y="62" width="40" height="198" rx="4"/></g><g fill="#6b4a12" font-family="monospace" font-size="12"><text x="52" y="46">open roles / week</text></g><circle cx="296" cy="50" r="9" fill="#d94f3a"/><circle cx="296" cy="50" r="15" fill="none" stroke="#d94f3a" stroke-opacity=".4" stroke-width="2"/></svg>
-      </div>
-      <div>
-        <h3>Hiring-signal platform</h3>
-        <p>Watches LinkedIn job activity to spot companies that are expanding, works out what they are hiring for and why, and drafts the opener for the moment intent appears.</p>
-        <span class="soon">Built for Clospect clients.</span>
-      </div>
-    </article>
-  </section>
-
-  <section class="col" id="programmes">
-    <h2>Programmes</h2>
-    <div class="rows">
-      <details class="row"><summary><time>2023.01</time><span>Online gaming: location accuracy before the IPL</span></summary>
-        <div class="more"><p>Fantasy and real-money gaming operators, positioned against Google Maps for restricted states and timed before the IPL traffic peak.</p><p><b>Result:</b> API tests, proofs of concept, proposals and paying customers.</p></div></details>
-      <details class="row"><summary><time>2023.10</time><span>POS-device compliance for banks</span></summary>
-        <div class="more"><p>A regulation-led programme on capturing the location of every POS-device transaction.</p><p><b>Result:</b> conversations with IDFC FIRST Bank, HDFC Bank and Axis Bank.</p></div></details>
-      <details class="row"><summary><time>2024.05</time><span>Collections for banks and NBFCs</span></summary>
-        <div class="more"><p>Location intelligence for collection teams, pitched on efficiency.</p><p><b>Result:</b> meetings with collections heads at large lenders.</p></div></details>
-      <details class="row"><summary><time>2024.08</time><span>Used-car-loan recovery</span></summary>
-        <div class="more"><p>Lower NPAs and faster asset recovery for lenders, NBFCs and car platforms including Cars24. Ran alongside collections into 2025.</p><p><b>Result:</b> meetings with large lenders.</p></div></details>
-      <details class="row"><summary><time>2025.02</time><span>Field-force productivity</span></summary>
-        <div class="more"><p>Visibility and accountability for field teams at microfinance firms, NBFCs and fintechs.</p><p><b>Result:</b> calls with product and debt-management leaders.</p></div></details>
-      <details class="row"><summary><time>2026.07</time><span>Indoor navigation for large buildings</span></summary>
-        <div class="more"><p>Account database, ICP and buyer roles, plus account-specific decks for hospital apps, airports and real estate.</p><p><b>Result:</b> conversations with DLF, Pacific and Apollo.</p></div></details>
+  <div class="band">
+    <div class="row">
+      <p>GTM engineer in Delhi. Enterprise outbound for banks and NBFCs, and the tools that run it.</p>
+      <a class="btn" href="mailto:jithujsam@gmail.com?subject=Hello%20Jithu">Say hello</a>
     </div>
-    <p class="accounts" aria-label="Selected accounts"><span>HDFC Bank</span><span>ICICI Bank</span><span>Axis Bank</span><span>IDFC FIRST</span><span>Tata Capital</span><span>L&amp;T Finance</span><span>Muthoot Fincorp</span><span>HDB Financial</span><span>Mahindra Finance</span><span>Shriram Finance</span><span>TVS Credit</span><span>Paytm</span><span>Credgenics</span><span>PaySprint</span><span>Tata Consumer</span><span>DLF</span><span>Apollo</span></p>
+    <h1 class="display" id="name" aria-label="Jithu Jobin Sam">
+      <span class="nm" aria-hidden="true"><span class="ln">Jithu&nbsp;</span><span class="ln">J<span class="face o" id="heroFace" style="--src:var(--f-calm)"></span>bin Sam</span></span>
+    </h1>
+  </div>
+</header>
+
+<main>
+  <section class="about" id="about" aria-label="About">
+    <div class="facts rv">
+      <span>New Delhi, India</span>
+      <span>In GTM since 2022</span>
+      <a href="mailto:jithujsam@gmail.com">jithujsam@gmail.com</a>
+    </div>
+    <div class="bio">
+      <p class="lead rv" style="--d:1"><img src="assets/jithu.jpg" width="900" height="1200" alt="Jithu at a café table at night, smiling, in glasses and a dark hoodie">Jithu Jobin Sam joined MapmyIndia in 2022 to answer inbound leads, and for more than three years was the only person generating outbound leads for enterprise sales.</p>
+      <div class="body">
+        <p class="rv" style="--d:2">Banks, NBFCs, fintechs, retailers, logistics firms and airports have all had a message from him. He trained the team that now runs his playbook, then built the tools to automate it.</p>
+        <p class="rv" style="--d:3">In January 2026 he founded Clospect to run the same engine for other B2B companies, and built Klaroh, a reporting platform for the cold-email agencies that run it. He learns each new tool by building something real with it.</p>
+      </div>
+    </div>
   </section>
 
-  <section class="col" id="method">
-    <h2>How I work</h2>
-    <ol class="rules">
-      <li><div><b>Choose the account before the message.</b><span>Research, map the buyers and qualify fit first.</span></div></li>
-      <li><div><b>Time it to a reason to act.</b><span>Funding, regulation, a traffic peak or a launch.</span></div></li>
-      <li><div><b>Own the whole loop.</b><span>Research to handoff, so nothing falls between steps.</span></div></li>
-      <li><div><b>Build a tool when the work repeats.</b><span>Three times is a workflow. A workflow others need is a product.</span></div></li>
-      <li><div><b>Learn by shipping.</b><span>That is how n8n, Claude Code and Klaroh joined the toolkit.</span></div></li>
+  <section class="work" id="work" aria-labelledby="workH">
+    <h2 id="workH" class="rv">Programmes</h2>
+    <ul class="names" id="names">
+      <li class="rv" style="--d:0"><button type="button" data-i="0" aria-current="true"><span class="t">Online gaming</span><span class="m">Location accuracy · 2023</span></button></li>
+      <li class="rv" style="--d:1"><button type="button" data-i="1"><span class="t">POS compliance</span><span class="m">Banks and payments · 2023</span></button></li>
+      <li class="rv" style="--d:2"><button type="button" data-i="2"><span class="t">Collections</span><span class="m">Banks and NBFCs · 2024</span></button></li>
+      <li class="rv" style="--d:3"><button type="button" data-i="3"><span class="t">Used-car recovery</span><span class="m">Lenders · 2024</span></button></li>
+      <li class="rv" style="--d:4"><button type="button" data-i="4"><span class="t">Field force</span><span class="m">Microfinance · 2025</span></button></li>
+      <li class="rv" style="--d:5"><button type="button" data-i="5"><span class="t">Indoor navigation</span><span class="m">Airports and hospitals · 2026</span></button></li>
+    </ul>
+    <div class="preview" aria-live="polite">
+      <div class="frame" id="frame">
+        <img class="on" src="assets/world/plan-to-illustrate-the-operations-of-the.jpg" width="1920" height="1308" alt="An 1857 survey plan of Delhi, its walled city beside the river">
+        <img src="assets/world/night-view-of-janpath-2012.jpg" width="1920" height="1310" alt="Janpath market in Delhi at night, shopfronts strung with lights" loading="lazy">
+        <video src="assets/world/central-park-connaught-place-new-delhi-in.webm" poster="assets/world/central-park-connaught-place-new-delhi-in-poster.jpg" width="854" height="480" muted loop playsinline preload="none" aria-label="Footage of people in Central Park, Connaught Place, Delhi"></video>
+        <img src="assets/world/delhi-aerial.jpg" width="1920" height="1440" alt="An aerial view of Delhi, green fields among housing blocks" loading="lazy">
+        <img src="assets/world/delhi-airport-metro-standing-on-new-delhi.jpg" width="1920" height="1440" alt="The Airport Express metro waiting at a Delhi platform" loading="lazy">
+        <img src="assets/world/terminal-3-interior-indira-gandhi-international-airport.jpg" width="1920" height="1277" alt="Passengers walking through Terminal 3 at Delhi airport" loading="lazy">
+      </div>
+      <p class="cap" id="cap"></p>
+    </div>
+    <div class="inline" id="inline"></div>
+  </section>
+
+  <section class="prod" id="products" aria-label="Products">
+    <div class="l">
+      <div class="plate"><span class="face" id="plateFace" style="--src:var(--f-calm)" role="img" aria-label="Cartoon of Jithu, with an expression that follows his outbound engine"></span></div>
+      <p class="live" id="live">Checking the time in Delhi…</p>
+    </div>
+    <div class="r">
+      <div class="tabs" role="tablist" aria-label="Products">
+        <button type="button" role="tab" id="t0" aria-selected="true" aria-controls="pane">Klaroh</button>
+        <button type="button" role="tab" id="t1" aria-selected="false" aria-controls="pane">Validation tool</button>
+        <button type="button" role="tab" id="t2" aria-selected="false" aria-controls="pane">Workflows</button>
+      </div>
+      <div class="pane" id="pane" role="tabpanel" aria-labelledby="t0">
+        <h2 id="pTitle">Klaroh</h2>
+        <p id="pBody">Client reporting for cold-email agencies. See every client’s campaigns, replies and sending health in one place, and send each client a private report that opens without a login.</p>
+        <p class="k" id="pKept">Private beta. It reads campaign data and never sends email.</p>
+      </div>
+      <div class="cells"><a id="c1" href="https://klaroh.online" target="_blank" rel="noopener">Visit klaroh.online</a><a id="c2" href="https://github.com/jithujsam-cloud/gtm-outbound-infrastructure" target="_blank" rel="noopener">The portfolio</a></div>
+    </div>
+  </section>
+
+  <section class="rules" id="rules" aria-label="How I work">
+    <ol>
+      <li class="rv"><span class="w">Account first</span><span class="d">Research and qualify before you write.</span></li>
+      <li class="rv"><span class="w">Good timing</span><span class="d">Funding, regulation, a launch, a traffic peak.</span></li>
+      <li class="rv"><span class="w">Own the loop</span><span class="d">Research to handoff, one person.</span></li>
+      <li class="rv"><span class="w">Build it once</span><span class="d">Three repeats make a workflow.</span></li>
+      <li class="rv"><span class="w">Ship to learn</span><span class="d">That is how Klaroh got built.</span></li>
     </ol>
   </section>
 
-  <section class="col" id="cv">
-    <a class="cv" href="https://www.linkedin.com/in/jithujsam" target="_blank" rel="noopener">
-      <span class="face" style="--src:var(--f-smile)"></span>
-      <span><b>Full CV</b><small>Career wiki, 2019 to 2026, on LinkedIn</small></span>
-      <span class="go">↗</span>
-    </a>
+  <section class="gal" aria-label="A deliverability audit in nine faces">
+    <div class="pair p1">
+      <figure class="a wipe"><div class="pl"><span class="face" style="--src:var(--f-neutral)"></span></div><figcaption><b>09:02</b>Opening the client’s DNS settings.</figcaption></figure>
+      <figure class="b wipe" style="--d:2"><div class="pl"><span class="face" style="--src:var(--f-angry)"></span></div><figcaption><b>09:04</b>No DMARC record. Again.</figcaption></figure>
+    </div>
+    <div class="pair p2">
+      <figure class="c wipe"><div class="pl"><span class="face" style="--src:var(--f-concerned)"></span></div><figcaption><b>09:30</b>Test email lands in Promotions.</figcaption></figure>
+      <figure class="d wipe" style="--d:2"><div class="pl"><span class="face" style="--src:var(--f-unimpressed)"></span></div><figcaption><b>10:15</b>“Can we just buy a list?”</figcaption></figure>
+    </div>
+    <div class="pair p3">
+      <figure class="e wipe"><div class="pl"><span class="face" style="--src:var(--f-skeptic)"></span></div><figcaption><b>11:40</b>“CEO” of a one-person company.</figcaption></figure>
+      <figure class="f wipe" style="--d:2"><div class="pl"><span class="face" style="--src:var(--f-tired)"></span></div><figcaption><b>Day 9 of 14</b>Inbox warm-up. Still warming.</figcaption></figure>
+    </div>
+    <div class="pair p4">
+      <figure class="g wipe"><div class="pl"><span class="face" style="--src:var(--f-surprised)"></span></div><figcaption><b>Day 14</b>The workflow ran on the first try.</figcaption></figure>
+      <figure class="h wipe" style="--d:2"><div class="pl"><span class="face" style="--src:var(--f-blush)"></span></div><figcaption><b>Day 15</b>Mail-Tester: 10/10.</figcaption></figure>
+    </div>
+    <div class="pair p5">
+      <figure class="i wipe"><div class="pl"><span class="face" style="--src:var(--f-laugh)"></span></div><figcaption><b>Week 3</b>Bounces under 1%. Replies coming in.</figcaption></figure>
+    </div>
+  </section>
+
+  <section class="contact" id="contact" aria-label="Contact">
+    <p class="cr">Jithu Jobin Sam</p>
+    <p class="cr">New Delhi, India</p>
+    <a class="cr" href="mailto:jithujsam@gmail.com">jithujsam@gmail.com</a>
+    <a class="cr" href="https://www.linkedin.com/in/jithujsam" target="_blank" rel="noopener">linkedin.com/in/jithujsam</a>
+    <a class="cr" href="https://clospect.com" target="_blank" rel="noopener">clospect.com</a>
+    <a class="cr hello" href="mailto:jithujsam@gmail.com?subject=Hello%20Jithu">Hello <span class="go"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="square" aria-hidden="true"><path d="M4 12h15M13 5l7 7-7 7"/></svg></span></a>
   </section>
 </main>
 
 <footer>
-  <div class="col">
-    <span>© 2026 Jithu Jobin Sam · New Delhi</span>
-    <nav aria-label="Elsewhere"><a href="https://www.linkedin.com/in/jithujsam" target="_blank" rel="noopener">LinkedIn</a><a href="https://clospect.com" target="_blank" rel="noopener">Clospect</a><a href="https://klaroh.online" target="_blank" rel="noopener">Klaroh</a></nav>
-  </div>
+  <span class="big display" id="foot" aria-hidden="true"><span class="ln">Jithu&nbsp;</span><span class="ln">Jobin Sam</span></span>
+  <p class="cred">Pictures and footage: <a href="https://commons.wikimedia.org/w/index.php?curid=3504476">“Connaught Place sunset”</a> by Ville Miettinen from Helsinki, Finland, <a href="https://creativecommons.org/licenses/by/2.0/">CC BY 2.0</a>, via Wikimedia Commons; <a href="https://commons.wikimedia.org/w/index.php?curid=4339613">“Delhi aerial”</a> by Sahmeditor, <a href="https://creativecommons.org/licenses/by-sa/3.0/">CC BY-SA 3.0</a>, via Wikimedia Commons; <a href="https://commons.wikimedia.org/wiki/File:Plan_to_illustrate_the_operations_of_the_British_Army_before_Dehli_in_the_year_1857.jpg">“Plan to illustrate the operations of the British Army before Dehli in the year 1857”</a> by Malleson, G. B. (George Bruce), 1825-1898, <a href="https://www.flickr.com/commons/usage/">no known copyright restrictions</a>, via Wikimedia Commons; <a href="https://commons.wikimedia.org/w/index.php?curid=51564683">“Terminal 3 Interior - Indira Gandhi International Airport - New Delhi 2016-08-08 9233”</a> by Biswarup Ganguly, <a href="https://creativecommons.org/licenses/by/3.0/">CC BY 3.0</a>, via Wikimedia Commons; <a href="https://commons.wikimedia.org/wiki/File:Night_view_of_Janpath,_2012.JPG">“Night view of Janpath, 2012”</a> by Ekabhishek, <a href="https://creativecommons.org/licenses/by-sa/3.0">CC BY-SA 3.0</a>, via Wikimedia Commons; <a href="https://commons.wikimedia.org/w/index.php?curid=117144047">“Delhi Airport Metro standing on New Delhi metro station”</a> by Ravi Dwivedi, <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>, via Wikimedia Commons; <a href="https://commons.wikimedia.org/wiki/File:Central_Park_Connaught_Place_New_Delhi_in_new_normal_days_VID_20210306_173653.webm">“Central Park Connaught Place New Delhi in new normal days VID 20210306 173653”</a> by Sumita Roy Dutta, <a href="https://creativecommons.org/licenses/by-sa/4.0">CC BY-SA 4.0</a>, via Wikimedia Commons. The portrait of Jithu and the cartoon faces are his own.</p>
+  <p class="fine">© 2026 Jithu Jobin Sam. Klaroh, the validation tool and the workflows are described in the <a href="https://github.com/jithujsam-cloud/gtm-outbound-infrastructure">portfolio repository</a>.</p>
 </footer>
-
-<aside class="after" aria-labelledby="afterTitle">
-  <div class="stars"></div>
-  <div class="moon" aria-hidden="true"></div>
-  <div class="col">
-    <h2 id="afterTitle">After hours</h2>
-    <p class="sub">Inbox warm-up takes fourteen days. This is how a deliverability audit feels, in faces.</p>
-    <div class="photo"><img src="assets/jithu.jpg" alt="Jithu sitting at a café table at night" width="900" height="1200"></div>
-    <div class="strip" tabindex="0" aria-label="A deliverability audit in nine faces">
-      <figure><span class="face" style="--src:var(--f-neutral)"></span><time>09:02</time><figcaption>Opening the client's DNS settings.</figcaption></figure>
-      <figure><span class="face" style="--src:var(--f-angry)"></span><time>09:04</time><figcaption>No DMARC record. Again.</figcaption></figure>
-      <figure><span class="face" style="--src:var(--f-concerned)"></span><time>09:30</time><figcaption>Test email lands in Promotions.</figcaption></figure>
-      <figure><span class="face" style="--src:var(--f-unimpressed)"></span><time>10:15</time><figcaption>"Can we just buy a list?"</figcaption></figure>
-      <figure><span class="face" style="--src:var(--f-skeptic)"></span><time>11:40</time><figcaption>"CEO" of a one-person company.</figcaption></figure>
-      <figure><span class="face" style="--src:var(--f-tired)"></span><time>Day 9 of 14</time><figcaption>Inbox warm-up. Still warming.</figcaption></figure>
-      <figure><span class="face" style="--src:var(--f-surprised)"></span><time>Day 14</time><figcaption>The workflow ran on the first try.</figcaption></figure>
-      <figure><span class="face" style="--src:var(--f-blush)"></span><time>Day 15</time><figcaption>Mail-Tester: 10/10.</figcaption></figure>
-      <figure><span class="face" style="--src:var(--f-laugh)"></span><time>Week 3</time><figcaption>Bounces under 1%. Replies coming in.</figcaption></figure>
-    </div>
-    <p class="cta">Hiring, or need outbound built? <a href="mailto:jithujsam@gmail.com">jithujsam@gmail.com</a></p>
-  </div>
-</aside>
 
 <script>
 (function () {
-  var root = document.documentElement, meta = document.querySelector('meta[name="theme-color"]');
-  function apply(t) { root.setAttribute("data-theme", t); meta.setAttribute("content", t === "dark" ? "#0e0e0f" : "#ffffff"); }
-  var saved = null;
-  try { saved = localStorage.getItem("theme"); } catch (e) {}
-  if (saved === "dark" || saved === "light") apply(saved);
-  document.getElementById("theme").addEventListener("click", function () {
-    var dark = root.getAttribute("data-theme") ? root.getAttribute("data-theme") === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
-    var next = dark ? "light" : "dark";
-    apply(next);
-    try { localStorage.setItem("theme", next); } catch (e) {}
+  var root = document.documentElement; root.classList.add("js");
+  var reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* fit the monument to the measure */
+  function fit(el, wrapper) {
+    var w = wrapper.clientWidth; if (!w) return;
+    el.style.fontSize = "100px";
+    var nat = el.getBoundingClientRect().width; if (!nat) return;
+    el.style.fontSize = Math.floor(100 * w / nat * 0.995) + "px";
+  }
+  var nm = document.querySelector("#name .nm"), band = document.querySelector(".band");
+  var foot = document.getElementById("foot"), footer = document.querySelector("footer");
+  function fitAll() {
+    var inner = function (el) { var cs = getComputedStyle(el.parentElement); return el.parentElement.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight); };
+    nm.style.fontSize = "100px"; var n = nm.getBoundingClientRect().width;
+    if (n) nm.style.fontSize = Math.floor(100 * inner(nm) / n * 0.995) + "px";
+    if (innerWidth > 760) {
+      foot.style.fontSize = "100px"; var f = foot.getBoundingClientRect().width;
+      if (f) foot.style.fontSize = Math.floor(100 * inner(foot) / f * 0.995) + "px";
+    } else { foot.style.fontSize = ""; }
+  }
+  (document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve()).then(function () { fitAll(); root.classList.add("loaded"); });
+  addEventListener("resize", fitAll);
+
+  /* entrances */
+  var items = document.querySelectorAll(".rv, .wipe");
+  if ("IntersectionObserver" in window && !reduce) {
+    /* a clipped element never reports as visible, so the wiped figures are watched through their parent */
+    var io = new IntersectionObserver(function (es) {
+      es.forEach(function (e) {
+        if (!e.isIntersecting) return;
+        var t = e.target;
+        if (t.classList.contains("pair")) { t.querySelectorAll(".wipe").forEach(function (w) { w.classList.add("in"); }); }
+        else { t.classList.add("in"); }
+        io.unobserve(t);
+      });
+    }, { rootMargin: "0px 0px -8% 0px", threshold: 0.08 });
+    items.forEach(function (el) { io.observe(el.classList.contains("wipe") ? el.parentElement : el); });
+  } else { items.forEach(function (el) { el.classList.add("in"); }); }
+
+  /* scroll-linked wordmark, hero image drift */
+  var h1 = document.getElementById("name"), img = document.querySelector(".hero .ph img"), tick = false;
+  function onScroll() {
+    if (tick || reduce) return; tick = true;
+    requestAnimationFrame(function () {
+      var y = scrollY, vh = innerHeight;
+      var p = Math.min(1, y / (vh * 0.7));
+      h1.style.transform = "scale(" + (1 - 0.06 * p).toFixed(4) + ")";
+      if (img && y < vh) img.style.translate = "0 " + (y * 0.12).toFixed(1) + "px";
+      var r = footer.getBoundingClientRect(), q = Math.max(0, Math.min(1, 1 - r.top / vh));
+      foot.style.transform = "scale(" + (0.94 + 0.06 * q).toFixed(4) + ")";
+      tick = false;
+    });
+  }
+  addEventListener("scroll", onScroll, { passive: true }); onScroll();
+
+  /* programmes */
+  var P = [
+    ["Online gaming", "Early 2023", "Fantasy and real-money gaming operators, positioned against Google Maps for restricted states and timed before the IPL traffic peak.", "API tests, proofs of concept, proposals and paying customers."],
+    ["POS compliance", "Late 2023", "A regulation-led programme into banks and payment companies on capturing the location of every POS-device transaction.", "Conversations with IDFC FIRST Bank, HDFC Bank and Axis Bank."],
+    ["Collections", "2024", "Location intelligence for the collection teams of banks, NBFCs and fintechs, pitched on efficiency.", "Meetings with collections heads at large lenders."],
+    ["Used-car recovery", "2024 to 2025", "Lower NPAs and faster asset recovery for lenders, NBFCs and car platforms, including Cars24.", "Meetings with large lenders."],
+    ["Field force", "2025", "Visibility and accountability for the field teams of microfinance firms, NBFCs and fintechs.", "Calls with product and debt-management leaders."],
+    ["Indoor navigation", "2026", "Wayfinding for large buildings. The account database, the ICP, the buyer roles and account-specific decks for hospital apps, airports and real estate.", "Conversations with DLF, Pacific and Apollo."]
+  ];
+  var btns = Array.prototype.slice.call(document.querySelectorAll("#names button")), imgs = Array.prototype.slice.call(document.querySelectorAll("#frame > *")), cap = document.getElementById("cap");
+  function show(i) {
+    btns.forEach(function (b, k) { b.setAttribute("aria-current", String(k === i)); });
+    imgs.forEach(function (m, k) {
+      m.classList.toggle("on", k === i);
+      if (m.tagName === "VIDEO") { if (k === i && !reduce) { var pr = m.play(); if (pr && pr.catch) pr.catch(function () {}); } else { m.pause(); } }
+    });
+    cap.innerHTML = "";
+    var a = document.createElement("span"); a.textContent = P[i][2] + " ";
+    var b = document.createElement("b"); b.textContent = "Result: "; var c = document.createElement("span"); c.textContent = P[i][3];
+    cap.appendChild(a); cap.appendChild(b); cap.appendChild(c);
+  }
+  btns.forEach(function (b, k) { ["mouseenter", "focus", "click"].forEach(function (ev) { b.addEventListener(ev, function () { show(k); }); }); });
+  show(0);
+  var inl = document.getElementById("inline");
+  P.forEach(function (p, k) {
+    var art = document.createElement("article"), im = document.createElement("img"), srcEl = imgs[k];
+    im.src = srcEl.tagName === "VIDEO" ? srcEl.getAttribute("poster") : srcEl.getAttribute("src");
+    im.alt = srcEl.tagName === "VIDEO" ? srcEl.getAttribute("aria-label") : srcEl.alt; im.width = 1920; im.height = 1200; im.loading = "lazy";
+    var h = document.createElement("h3"); h.textContent = p[0];
+    var m = document.createElement("p"); m.className = "m"; m.textContent = p[1];
+    var d = document.createElement("p"); d.className = "d"; d.textContent = p[2] + " Result: " + p[3];
+    art.appendChild(im); art.appendChild(h); art.appendChild(m); art.appendChild(d); inl.appendChild(art);
   });
+
+  /* products */
+  var T = [
+    ["Klaroh", "Client reporting for cold-email agencies. See every client’s campaigns, replies and sending health in one place, and send each client a private report that opens without a login.", "Private beta. It reads campaign data and never sends email.", ["Visit klaroh.online", "https://klaroh.online"], ["The portfolio", "https://github.com/jithujsam-cloud/gtm-outbound-infrastructure"]],
+    ["Validation tool", "Import a lead list, score ICP fit with AI, then verify emails in a queue that pauses and resumes without paying for the same check twice.", "Next.js, Supabase, Gemini and Clearout.", ["View the code", "https://github.com/jithujsam-cloud/gtm-outbound-infrastructure/tree/main/gtm-validation-tool"], ["Read the README", "https://github.com/jithujsam-cloud/gtm-outbound-infrastructure/blob/main/gtm-validation-tool/README.md"]],
+    ["Workflows", "Two n8n systems. Signal-to-Pipeline finds hiring signals and qualifies leads in stages. Outbound Engine rewrites each email and sends on a controlled cadence.", "A lower-cost alternative to Clay-style enrichment.", ["View the workflows", "https://github.com/jithujsam-cloud/gtm-outbound-infrastructure/tree/main/systems"], ["Clospect", "https://clospect.com"]]
+  ];
+  var tabs = Array.prototype.slice.call(document.querySelectorAll(".tabs button"));
+  function tab(i) {
+    tabs.forEach(function (t, k) { t.setAttribute("aria-selected", String(k === i)); });
+    document.getElementById("pane").setAttribute("aria-labelledby", "t" + i);
+    document.getElementById("pTitle").textContent = T[i][0];
+    document.getElementById("pBody").textContent = T[i][1];
+    document.getElementById("pKept").textContent = T[i][2];
+    var c1 = document.getElementById("c1"), c2 = document.getElementById("c2");
+    c1.textContent = T[i][3][0]; c1.href = T[i][3][1]; c2.textContent = T[i][4][0]; c2.href = T[i][4][1];
+  }
+  tabs.forEach(function (t, k) { t.addEventListener("click", function () { tab(k); }); });
+
+  /* the live thing: is the engine sending, in Delhi, right now */
+  var heroFace = document.getElementById("heroFace"), plateFace = document.getElementById("plateFace"), live = document.getElementById("live");
+  var DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+  function status() {
+    var parts = {};
+    new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Kolkata", weekday: "long", hour: "2-digit", minute: "2-digit", hour12: false }).formatToParts(new Date()).forEach(function (p) { parts[p.type] = p.value; });
+    var day = parts.weekday, hh = parseInt(parts.hour, 10) % 24, mm = parts.minute, di = DAYS.indexOf(day);
+    var weekday = di >= 1 && di <= 5, open = weekday && hh >= 9 && hh < 18, mood, msg;
+    var now = day + ", " + String(hh).padStart(2, "0") + ":" + mm + " in Delhi. ";
+    if (open) { mood = "smile"; msg = now + "The outbound engine is sending: four emails a run, with random gaps, each one rewritten."; }
+    else {
+      var nextDay = (weekday && hh < 9) ? "today" : (di === 5 && hh >= 18) || di === 6 || di === 0 ? "Monday" : "tomorrow";
+      mood = (hh >= 18 || hh < 6) ? "tired" : "calm";
+      msg = now + "The engine is asleep. It starts again " + nextDay + " at 9:00.";
+    }
+    live.textContent = msg;
+    [heroFace, plateFace].forEach(function (f) { f.style.setProperty("--src", "var(--f-" + mood + ")"); });
+  }
+  status(); setInterval(status, 30000);
 })();
 </script>
 </body>

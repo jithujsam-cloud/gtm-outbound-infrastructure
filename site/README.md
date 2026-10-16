@@ -4,12 +4,13 @@ Static personal site for Jithu Jobin Sam (GTM Engineer). No build step and no de
 
 | File | Purpose |
 |---|---|
-| `index.html` | The whole page (inline CSS/JS; faces embedded as data URIs; Inter from Google Fonts) |
+| `index.html` | The whole page (inline CSS/JS; faces embedded as data URIs; Barlow and Barlow Condensed from Google Fonts) |
 | `404.html` | Not-found page (Vercel serves it automatically) |
 | `vercel.json` | Clean URLs, security headers, asset caching |
 | `favicon.svg`, `apple-touch-icon.png`, `og.png` | Tab icon, home-screen icon, link-preview image |
 | `assets/jithu.jpg` | Photo |
 | `assets/faces/` | Source cartoon expressions (transparent line art) used to build the embedded faces |
+| `assets/world/` | Openly licensed pictures and one clip of Delhi (credited in the page footer; `credits.json` records each source and licence) |
 
 ## Deploy on Vercel
 

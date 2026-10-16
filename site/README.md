@@ -1,31 +1,21 @@
-# Personal site
+# Personal website
 
-Static personal site for Jithu Jobin Sam (GTM engineer). One HTML file with inline CSS and JS, no build step and no dependencies.
+Jithu Jobin Sam's personal website: an introduction, his experience, three projects with their real status, a selection of enterprise programmes, skills, and a clear way to get in touch. Static HTML, no build step, no dependencies.
 
 | File | Purpose |
 |---|---|
-| `index.html` | The whole page. Fonts (Young Serif, Source Serif 4) load from Google Fonts. |
+| `index.html` | The whole page. Font: Schibsted Grotesk from Google Fonts. |
+| `Jithu-Jobin-Sam-CV.pdf` | One-page CV, linked from the page |
+| `cv-source.html` | Source for the CV. Edit it, then re-export to PDF (print to A4, background graphics on). Not deployed. |
 | `404.html` | Not-found page, served automatically by Vercel |
-| `vercel.json` | Clean URLs, security headers, asset caching |
 | `favicon.svg`, `og.png` | Tab icon and link-preview image |
-| `assets/jithu.jpg` | Portrait used in the letter and the contact band |
-| `assets/world/` | Openly licensed pictures and one clip of Delhi, credited in the page footer. `credits.json` records each source and licence. |
-
-The page has a live sentence that reads the current time in Delhi and says whether the outbound engine's weekday 9 to 6 sending window is open. The "Run a sample lead" demo uses an invented company and contact.
+| `assets/jithu.jpg` | Portrait |
+| `vercel.json` | Clean URLs, security headers, caching |
 
 ## Deploy on Vercel
 
-1. In Vercel, **Add New → Project** and import `jithujsam-cloud/gtm-outbound-infrastructure`.
+1. **Add New → Project**, import `jithujsam-cloud/gtm-outbound-infrastructure`.
 2. Set **Root Directory** to `site`.
 3. Framework Preset: **Other**. Leave Build Command and Output Directory empty.
-4. Deploy.
+4. Deploy, then attach your domain and change `og:image` in `index.html` to the absolute URL (for example `https://yourdomain.com/og.png`).
 
-This is a separate Vercel project from the GTM Validation Tool (the repo-root `vercel.json` points at `gtm-validation-tool`).
-
-After you attach a custom domain, change the `og:image` meta tag in `index.html` to the full URL (for example `https://yourdomain.com/og.png`). Some link previewers, including LinkedIn, need an absolute URL.
-
-## Preview locally
-
-```
-npx serve site
-```

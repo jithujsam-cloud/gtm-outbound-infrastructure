@@ -19,19 +19,12 @@ export function getMaxJobSize(): number {
 }
 
 // Columns needed from leads for prompt resolution (from VARIABLE_MAP in variables.ts)
-const LEAD_FIELDS_FOR_PROMPT = [
-  "id", "full_name", "company_name", "email", "industry",
-  "position", "state", "domain", "employee_size", "country",
-  "company_description", "company_linkedin", "linkedin_url", "website",
-];
+const LEAD_FIELDS_FOR_PROMPT =
+  "id, full_name, company_name, email, industry, position, state, domain, employee_size, country, company_description, company_linkedin, linkedin_url, website";
 
 // Columns needed from validation_jobs for processing decisions
-const JOB_FIELDS = [
-  "id", "user_id", "project_id", "status", "llm_provider",
-  "model", "temperature", "max_tokens", "prompt",
-  "failed_leads", "completed_leads", "type", "provider_reset_at",
-  "requests_per_minute", "timeout_seconds",
-];
+const JOB_FIELDS =
+  "id, user_id, project_id, status, llm_provider, model, temperature, max_tokens, prompt, failed_leads, completed_leads, type, provider_reset_at, requests_per_minute, timeout_seconds, started_at";
 
 export async function processJobBatch(
   jobId: string,
@@ -49,7 +42,7 @@ export async function processJobBatch(
 
   const { data: job } = await supabase
     .from("validation_jobs")
-    .select(JOB_FIELDS.join(","))
+    .select(JOB_FIELDS)
     .eq("id", jobId)
     .single();
 
@@ -87,7 +80,7 @@ export async function processJobBatch(
   const leadIds = claimed.map((c: any) => c.lead_id);
   const { data: leads } = await supabase
     .from("leads")
-    .select(LEAD_FIELDS_FOR_PROMPT.join(","))
+    .select(LEAD_FIELDS_FOR_PROMPT)
     .in("id", leadIds);
 
   if (!leads || leads.length === 0) {
@@ -345,7 +338,7 @@ async function claimBatch(
   return data ?? [];
 }
 
-const EMAIL_FIELDS = ["id", "email"];
+const EMAIL_FIELDS = "id, email";
 
 export async function processEmailBatch(
   jobId: string,
@@ -365,7 +358,7 @@ export async function processEmailBatch(
 
   const { data: job } = await supabase
     .from("validation_jobs")
-    .select(JOB_FIELDS.join(","))
+    .select(JOB_FIELDS)
     .eq("id", jobId)
     .single();
 
@@ -458,7 +451,7 @@ export async function processEmailBatch(
     const item = claimed[0];
     const { data: leadRows } = await supabase
       .from("leads")
-      .select(EMAIL_FIELDS.join(","))
+      .select(EMAIL_FIELDS)
       .eq("id", item.lead_id)
       .maybeSingle();
 

@@ -19,10 +19,10 @@ The agency side is deliberately minimal: a client dashboard to review campaign s
 **🔒 The security model:**
 - All database reads go through the service-role admin client server-side. There is no browser-accessible Supabase client.
 - The public portal (`/c/[slug]`) reads through Postgres SECURITY DEFINER functions scoped to a single client slug — `get_public_client_by_slug()` and `get_public_campaign_data()` return exactly one row per call.
-- There is no Supabase Auth, no RLS, no anon key in the browser. No login page. No session management.
+- There is no Supabase Auth, no RLS, no anon key in the browser, and no session management. The agency side is protected by a single HTTP Basic Auth password (see below); clients never log in.
 - The `status` column on clients acts as a kill switch. Set it to `paused` and the portal returns a "Dashboard Inactive" page.
 
-> **Honest limitation:** the agency **write** endpoints (`/api/create-client`, `/api/update-client-status`, `/api/update-infra-signals`) are unauthenticated by design — this is a single-operator tool for one agency user. Anyone who finds those URLs can create a client or flip a client's status. The protected surface (client-facing reads) is scoped by slug; the agency surface trusts that the tool is only deployed for its owner. If this tool ever grew multiple operators, auth would be the first addition.
+> **Agency access:** the agency dashboard (`/agency/*`) and every API route, including the write endpoints (`/api/create-client`, `/api/update-client-status`, `/api/update-infra-signals`), sit behind HTTP Basic Auth enforced in `src/proxy.ts`. The password comes from `AGENCY_PASSWORD`; if it is unset the agency side returns 503 rather than opening up. This is a single shared password for a single-operator tool, not multi-user auth: if the tool grew multiple operators, real accounts would be the next addition.
 
 **📊 What the client sees:**
 - 4 stat cards: Leads Generated, Emails Sent, Open Rate, Reply Rate
@@ -36,7 +36,7 @@ The agency side is deliberately minimal: a client dashboard to review campaign s
 
 ## 💡 Why it is built this way
 
-**No auth.** This system has exactly one agency user (you). There's no multi-tenant SaaS, no client accounts, no permissions model. Adding a login page would be theatre — nothing to authenticate against. The admin client hits the database directly with the service-role key, which is only usable from the Next.js server. The public portal doesn't need auth because it's read-only and scoped by slug.
+**One shared password, no accounts.** This system has exactly one agency user (you). There's no multi-tenant SaaS, no client accounts, no permissions model, so a login system would be overkill. A single Basic Auth password on the agency side is enough to keep strangers out of the dashboard and write endpoints. The admin client hits the database directly with the service-role key, which is only usable from the Next.js server. The public portal doesn't need auth because it's read-only and scoped by slug.
 
 **No remarks/updates feed.** The original Klaroh product had a full remarks system — categories, timelines, file attachments, email notifications. I cut it from this system. The remarks feed was the product at Klaroh; here the product is "client sees dashboard without needing a login." That's a smaller, sharper story.
 
@@ -70,10 +70,10 @@ All are SECURITY DEFINER — scope results to a single `client_id`.
 
 1. Create a Supabase project at supabase.com
 2. Run `supabase/01_schema.sql` in the SQL Editor
-3. Copy `.env.example` to `.env.local` and fill in `NEXT_PUBLIC_SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY`
+3. Copy `.env.example` to `.env.local` and fill in `NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` and `AGENCY_PASSWORD`
 4. `npm install && npm run dev`
 
-Open `http://localhost:3000/agency/dashboard` directly. The first visit auto-seeds demo data (2 clients, 1 campaign each) — no manual SQL needed.
+Open `http://localhost:3000/agency/dashboard` and enter `AGENCY_PASSWORD` at the browser prompt (any username). The first visit auto-seeds demo data (2 clients, 1 campaign each) — no manual SQL needed.
 
 ## 📁 Files
 
@@ -92,6 +92,7 @@ src/
 │   │   ├── client-view.tsx                # Public portal UI
 │   │   └── not-found.tsx                  # 404 for bad slugs
 │   └── api/update-client-status/route.ts  # Status toggle endpoint
+├── proxy.ts                               # Basic Auth for /agency/* and /api/*
 ├── components/
 │   ├── AgencySidebar.tsx                  # Agency navigation
 │   └── ClientDashboard.tsx                # Shared stats + chart component

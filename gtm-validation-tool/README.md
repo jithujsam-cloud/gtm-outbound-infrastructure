@@ -1,6 +1,6 @@
 # GTM Validation Tool
 
-A production-style lead validation pipeline with a spreadsheet UI: upload raw CSVs, score ICP fit across five verticals (Gemini or OpenAI), verify emails via Clearout SMTP checks, and export send-ready lists. This is the engineering core of the portfolio — the same logic as the n8n workflow at `systems/signal-to-pipeline/lead-sourcing-icp-validation.json`, rebuilt as a durable job system a non-technical operations team can operate without touching n8n.
+A lead validation pipeline with a spreadsheet UI: upload raw CSVs, score ICP fit across five verticals (Gemini or OpenAI), verify emails via Clearout SMTP checks, and export send-ready lists. This is the engineering core of the portfolio — the same logic as the n8n workflow at `systems/signal-to-pipeline/lead-sourcing-icp-validation.json`, rebuilt as a durable job system a non-technical operations team can operate without touching n8n.
 
 ---
 
@@ -103,7 +103,7 @@ Every external API call is written to `api_operation_logs` — provider, operati
 
 ## Database Schema
 
-Seven tables across 16 migrations:
+Seven tables across 17 migrations:
 
 | Table | Purpose |
 |---|---|
@@ -115,7 +115,7 @@ Seven tables across 16 migrations:
 | `validation_jobs` | One row per validation run, with status, counters, provider/model snapshot, rate-limit state |
 | `validation_job_items` | One row per lead in a job; `status`, `attempt`, `lease_expires_at`, `next_attempt_at` |
 
-Key migrations: `00002/00003` (auth + per-user RLS), `00009/00011/00013` (lease-based claiming + atomic result RPCs + indexes), `00014` (LLM usage/cost tracking), `00015/00016` (Clearout rate limiting and slot reservation).
+Key migrations: `00002/00003` (auth + per-user RLS), `00009/00011/00013` (lease-based claiming + atomic result RPCs + indexes), `00014` (LLM usage/cost tracking), `00015/00016` (Clearout rate limiting and slot reservation), `00017` (RPC permission hardening).
 
 ---
 
@@ -143,8 +143,9 @@ Key migrations: `00002/00003` (auth + per-user RLS), `00009/00011/00013` (lease-
 
 **Limitations — stated honestly:**
 
-- No automated test suite exists.
-- `next.config.ts` sets `typescript.ignoreBuildErrors: true` — Supabase-generated types currently produce `never` errors that are pre-existing and not fixed.
+- Unit tests cover the pure logic (retry classification, backoff, auto-pause, Clearout parsing and rate-limit detection, rate settings validation, LLM cost calculation). The job processor and API routes have no integration tests against a real database yet.
+- `src/types/database.ts` is maintained by hand to match the migrations rather than generated with `supabase gen types`, so a new migration needs a matching type change.
+- Some database security changes have been written but not yet verified against a live staging database.
 - The two legacy `/validate/*` routes still exist as fallbacks.
 - The migrations are files in this repo. You must apply them to your Supabase project (SQL editor or migration runner) before the RPCs used by the job system exist.
 
@@ -168,10 +169,12 @@ Key migrations: `00002/00003` (auth + per-user RLS), `00009/00011/00013` (lease-
 cd gtm-validation-tool
 cp .env.local.example .env.local
 # Fill in NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY
-# Apply supabase/migrations/*.sql to your Supabase project (00001 → 00016)
+# Apply supabase/migrations/*.sql to your Supabase project (00001 → 00017)
 
 npm install
-npm run dev  # → http://localhost:3000
+npm run dev        # → http://localhost:3000
+npm test           # unit tests (Vitest)
+npm run typecheck  # tsc --noEmit; also enforced by next build and CI
 ```
 
 If env vars are skipped, the app still loads — paste credentials in `/integrations` and log in on `/auth/login`.

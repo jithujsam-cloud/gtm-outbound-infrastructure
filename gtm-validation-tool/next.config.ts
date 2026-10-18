@@ -29,9 +29,6 @@ const nextConfig: NextConfig = {
     NEXT_PUBLIC_GIT_HASH: gitInfo.hash,
     NEXT_PUBLIC_GIT_RAW: gitInfo.time,
   },
-  typescript: {
-    ignoreBuildErrors: true,
-  },
 };
 
 export default nextConfig;

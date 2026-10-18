@@ -5,6 +5,7 @@ import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ProjectCard, ProjectCardSkeleton } from "@/components/projects/project-card";
 import { CreateProjectDialog } from "@/components/projects/create-project-dialog";
+import type { Project } from "@/types";
 
 export default function ProjectsPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -68,7 +69,7 @@ export default function ProjectsPage() {
   );
 }
 
-async function fetchProjects() {
+async function fetchProjects(): Promise<(Project & { lead_count: number })[]> {
   const res = await fetch("/api/projects");
   if (!res.ok) return [];
   return res.json();

@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import type { Json } from "@/types/database";
 
 export interface ApiLogEntry {
   user_id: string;
@@ -25,8 +26,8 @@ export interface ApiLogEntry {
   cached_input_cost?: number | null;
   output_cost?: number | null;
   total_cost?: number | null;
-  request_metadata?: Record<string, unknown> | null;
-  response_metadata?: Record<string, unknown> | null;
+  request_metadata?: Json | null;
+  response_metadata?: Json | null;
   raw_response?: unknown;
   raw_error?: unknown;
 }
@@ -38,6 +39,8 @@ export async function createApiLog(entry: ApiLogEntry): Promise<string> {
     .insert({
       ...entry,
       attempt: entry.attempt ?? 1,
+      raw_response: toJson(entry.raw_response),
+      raw_error: toJson(entry.raw_error),
     })
     .select("id")
     .single();
@@ -65,7 +68,7 @@ export async function updateApiLog(
     cached_input_cost?: number | null;
     output_cost?: number | null;
     total_cost?: number | null;
-    response_metadata?: Record<string, unknown> | null;
+    response_metadata?: Json | null;
     raw_response?: unknown;
     raw_error?: unknown;
   }
@@ -73,8 +76,17 @@ export async function updateApiLog(
   const supabase = await createClient();
   const { error } = await supabase
     .from("api_operation_logs")
-    .update(update)
+    .update({
+      ...update,
+      raw_response: toJson(update.raw_response),
+      raw_error: toJson(update.raw_error),
+    })
     .eq("id", logId);
 
   if (error) throw new Error(`Failed to update API log: ${error.message}`);
+}
+
+// Provider payloads arrive as parsed JSON (unknown); store them as jsonb.
+function toJson(value: unknown): Json | null | undefined {
+  return value as Json | null | undefined;
 }

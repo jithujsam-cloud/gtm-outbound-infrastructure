@@ -34,6 +34,7 @@ export interface Database {
           created_at?: string
           updated_at?: string
         }
+        Relationships: []
       }
       leads: {
         Row: {
@@ -135,6 +136,7 @@ export interface Database {
           created_at?: string
           updated_at?: string
         }
+        Relationships: []
       }
       integration_settings: {
         Row: {
@@ -182,6 +184,7 @@ export interface Database {
           created_at?: string
           updated_at?: string
         }
+        Relationships: []
       }
       validation_prompts: {
         Row: {
@@ -214,6 +217,7 @@ export interface Database {
           created_at?: string
           updated_at?: string
         }
+        Relationships: []
       }
       api_operation_logs: {
         Row: {
@@ -242,10 +246,10 @@ export interface Database {
           cached_input_cost: number | null
           output_cost: number | null
           total_cost: number | null
-          request_metadata: Record<string, unknown> | null
-          response_metadata: Record<string, unknown> | null
-          raw_response: Record<string, unknown> | null
-          raw_error: Record<string, unknown> | null
+          request_metadata: Json | null
+          response_metadata: Json | null
+          raw_response: Json | null
+          raw_error: Json | null
           created_at: string
         }
         Insert: {
@@ -274,10 +278,10 @@ export interface Database {
           cached_input_cost?: number | null
           output_cost?: number | null
           total_cost?: number | null
-          request_metadata?: Record<string, unknown> | null
-          response_metadata?: Record<string, unknown> | null
-          raw_response?: Record<string, unknown> | null
-          raw_error?: Record<string, unknown> | null
+          request_metadata?: Json | null
+          response_metadata?: Json | null
+          raw_response?: Json | null
+          raw_error?: Json | null
           created_at?: string
         }
         Update: {
@@ -306,12 +310,13 @@ export interface Database {
           cached_input_cost?: number | null
           output_cost?: number | null
           total_cost?: number | null
-          request_metadata?: Record<string, unknown> | null
-          response_metadata?: Record<string, unknown> | null
-          raw_response?: Record<string, unknown> | null
-          raw_error?: Record<string, unknown> | null
+          request_metadata?: Json | null
+          response_metadata?: Json | null
+          raw_response?: Json | null
+          raw_error?: Json | null
           created_at?: string
         }
+        Relationships: []
       }
       validation_jobs: {
         Row: {
@@ -322,6 +327,8 @@ export interface Database {
           mode: string
           prompt: string | null
           model: string | null
+          temperature: number | null
+          max_tokens: number | null
           llm_provider: string | null
           status: string
           total_leads: number
@@ -345,6 +352,8 @@ export interface Database {
           mode: string
           prompt?: string | null
           model?: string | null
+          temperature?: number | null
+          max_tokens?: number | null
           llm_provider?: string | null
           status?: string
           total_leads?: number
@@ -368,6 +377,8 @@ export interface Database {
           mode?: string
           prompt?: string | null
           model?: string | null
+          temperature?: number | null
+          max_tokens?: number | null
           llm_provider?: string | null
           status?: string
           total_leads?: number
@@ -383,6 +394,7 @@ export interface Database {
           completed_at?: string | null
           updated_at?: string
         }
+        Relationships: []
       }
       validation_job_items: {
         Row: {
@@ -427,10 +439,65 @@ export interface Database {
           created_at?: string
           next_attempt_at?: string | null
         }
+        Relationships: []
       }
     }
     Views: {}
-    Functions: {}
+    Functions: {
+      claim_job_items: {
+        Args: { p_job_id: string; p_batch_size: number; p_lease_seconds: number }
+        Returns: { id: string; lead_id: string; attempt: number; max_attempts: number }[]
+      }
+      apply_icp_results: {
+        Args: { p_updates: Json }
+        Returns: number
+      }
+      apply_email_results: {
+        Args: { p_updates: Json }
+        Returns: number
+      }
+      release_rate_limited_items: {
+        Args: { p_job_id: string; p_reset_at: string }
+        Returns: number
+      }
+      reserve_clearout_request_slot: {
+        Args: { p_user_id: string; p_requests_per_minute: number }
+        Returns: string
+      }
+      get_project_stats: {
+        Args: { p_project_id: string; p_user_id: string }
+        Returns: {
+          total: number
+          email_valid: number
+          email_invalid: number
+          icp_match: number
+          icp_no_match: number
+          safe_to_send: number
+        }[]
+      }
+      get_dashboard_vertical_breakdown: {
+        Args: Record<PropertyKey, never>
+        Returns: { matched_vertical: string; count: number }[]
+      }
+      get_validation_run_stats: {
+        Args: { p_job_id: string }
+        Returns: {
+          leads_requested: number
+          leads_processed: number
+          successful: number
+          failed: number
+          matched: number
+          no_match: number
+          api_requests: number
+          input_tokens: number | null
+          cached_input_tokens: number | null
+          output_tokens: number | null
+          total_tokens: number | null
+          total_cost: number | null
+          total_duration_ms: number
+        }[]
+      }
+    }
     Enums: {}
     CompositeTypes: {}
   }

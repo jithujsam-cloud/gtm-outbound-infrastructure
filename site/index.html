@@ -4,11 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Jithu Jobin Sam · GTM engineer</title>
-<meta name="description" content="Jithu Jobin Sam builds systems for outbound GTM. Four years running enterprise outbound at MapmyIndia, and the automation and software he built to make it repeatable.">
+<meta name="description" content="Jithu Jobin Sam, GTM engineer in Delhi. Sole outbound pipeline source for a 10+ person enterprise sales team at MapmyIndia, with 90+ opportunities behind ₹18 Cr+ in closed revenue.">
 <meta name="theme-color" content="#f6f7f9">
 <meta property="og:type" content="profile">
 <meta property="og:title" content="Jithu Jobin Sam · GTM engineer">
-<meta property="og:description" content="Four years running enterprise outbound at MapmyIndia, and the automation and software built to make it repeatable.">
+<meta property="og:description" content="GTM engineer. 90+ enterprise opportunities behind ₹18 Cr+ in closed revenue, and the systems that make outbound repeatable.">
 <meta property="og:image" content="/og.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
@@ -85,10 +85,6 @@ h1, h2, h3 { text-wrap: balance; }
 .hero { position: relative; padding: clamp(120px, 15vw, 168px) 0 clamp(56px, 7vw, 88px); overflow: hidden; }
 .glow { position: absolute; inset: -20% -10% auto auto; width: 70vw; height: 70vw; max-width: 900px; max-height: 900px; background: radial-gradient(closest-side, rgba(91, 123, 255, .28), rgba(91, 123, 255, 0)); pointer-events: none; z-index: 0; }
 .hero .wrap { position: relative; z-index: 1; display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, .9fr); gap: clamp(36px, 6vw, 80px); align-items: center; }
-.pill { display: inline-flex; align-items: center; gap: 10px; padding: 7px 14px 7px 10px; border-radius: 999px; background: var(--white); box-shadow: inset 0 0 0 1px var(--line), 0 6px 16px -10px rgba(20, 22, 27, .25); font-size: .92rem; font-weight: 500; color: var(--ink); }
-.pill b { position: relative; width: 10px; height: 10px; border-radius: 50%; background: var(--green); }
-.pill b::after { content: ""; position: absolute; inset: -5px; border-radius: 50%; border: 2px solid var(--green); opacity: 0; animation: ring 2.2s ease-out infinite; }
-@keyframes ring { 0% { transform: scale(.5); opacity: .7; } 100% { transform: scale(1.5); opacity: 0; } }
 .who { margin-top: 28px; font-size: 1.125rem; font-weight: 600; color: var(--soft); }
 .who strong { color: var(--ink); font-weight: 700; }
 .hero h1 { margin-top: 10px; font-size: clamp(2.9rem, 1.6rem + 5.4vw, 6.1rem); font-weight: 800; line-height: .96; letter-spacing: -0.045em; }
@@ -104,21 +100,25 @@ h1, h2, h3 { text-wrap: balance; }
 .portrait { position: relative; }
 .portrait .frame { position: relative; border-radius: 28px; overflow: hidden; aspect-ratio: 4 / 5; background: var(--surface); box-shadow: 0 40px 80px -40px rgba(13, 22, 51, .55), 0 0 0 1px rgba(13, 22, 51, .06); transform: rotate(1.5deg); }
 .portrait img { width: 100%; height: 112%; object-fit: cover; object-position: 50% 26%; will-change: transform; }
-.chip { position: absolute; display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 16px; background: rgba(255, 255, 255, .92); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); box-shadow: 0 16px 40px -18px rgba(13, 22, 51, .45), inset 0 0 0 1px rgba(13, 22, 51, .06); font-size: .9rem; line-height: 1.25; }
-.chip small { display: block; color: var(--soft); font-size: .8rem; }
-.chip strong { font-weight: 700; }
-.chip .dot { width: 32px; height: 32px; border-radius: 10px; display: grid; place-items: center; flex: none; color: #fff; font: 800 .8rem/1 var(--font); }
-.chip.c1 { left: -28px; bottom: 18%; } .chip.c1 .dot { background: var(--cobalt); }
-.chip.c2 { right: -22px; top: 12%; } .chip.c2 .dot { background: var(--navy); }
-.chip.c3 { right: 10%; bottom: -18px; } .chip.c3 .dot { background: var(--green); }
 
-/* ---------- facts strip ---------- */
-.facts { padding-bottom: clamp(40px, 6vw, 72px); }
-.facts ul { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
-.facts li { background: var(--white); border-radius: var(--r); padding: 22px 22px 20px; box-shadow: inset 0 0 0 1px var(--line); }
-.facts .n { font-size: clamp(2.2rem, 1.6rem + 2vw, 3.2rem); font-weight: 800; letter-spacing: -0.04em; line-height: 1; font-variant-numeric: tabular-nums; }
-.facts .n sup { font-size: .5em; color: var(--cobalt); margin-left: 2px; top: -.7em; }
-.facts .l { margin-top: 10px; color: var(--soft); font-size: .98rem; line-height: 1.4; }
+
+/* ---------- brand strip ---------- */
+.brands { padding-bottom: clamp(40px, 6vw, 72px); }
+.brands .label { text-align: center; color: var(--faint); font-size: .9rem; font-weight: 500; margin-bottom: 18px; }
+.brands ul { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; }
+.brands li { display: grid; place-items: center; height: 84px; padding: 16px 18px; border-radius: var(--r); background: var(--white); box-shadow: inset 0 0 0 1px var(--line); }
+.brands img { max-width: 100%; max-height: 34px; width: auto; object-fit: contain; filter: grayscale(1) contrast(1.15); opacity: .82; transition: filter .25s, opacity .25s; }
+.brands img.tall { max-height: 52px; }
+.brands img.small { max-height: 24px; }
+.brands img.light { filter: grayscale(1) brightness(.55) contrast(1.3); }
+.brands li:hover img { filter: none; opacity: 1; }
+
+/* ---------- key things ---------- */
+.keys h3 { font-size: 1.25rem; font-weight: 700; letter-spacing: -0.015em; }
+.keys ul { margin-top: 16px; display: grid; gap: 12px; }
+.keys li { display: grid; grid-template-columns: 22px 1fr; gap: 12px; align-items: start; padding: 16px 18px; border-radius: var(--r); background: var(--white); box-shadow: inset 0 0 0 1px var(--line); color: var(--soft); }
+.keys li strong { color: var(--ink); font-weight: 700; }
+.keys li svg { width: 20px; height: 20px; margin-top: 3px; color: var(--green); }
 
 /* ---------- marquee ---------- */
 .marquee { padding: 14px 0 clamp(8px, 2vw, 24px); }
@@ -141,17 +141,6 @@ h2 { margin-top: 14px; font-size: clamp(2rem, 1.4rem + 2.6vw, 3.6rem); font-weig
 .story p { font-size: 1.125rem; }
 .story p + p { margin-top: 18px; }
 .story strong { font-weight: 700; }
-.quote { margin-top: 28px; padding: 22px 24px; border-radius: var(--r); background: var(--cobalt-soft); color: var(--navy); font-size: 1.2rem; font-weight: 600; line-height: 1.4; letter-spacing: -0.01em; }
-.timeline { position: relative; padding-left: 34px; }
-.timeline .rail { position: absolute; left: 8px; top: 8px; bottom: 8px; width: 2px; background: var(--line); border-radius: 2px; overflow: hidden; }
-.timeline .rail i { position: absolute; inset: 0; background: linear-gradient(var(--cobalt), var(--cobalt-2)); transform-origin: top; transform: scaleY(0); }
-.timeline li { position: relative; padding-bottom: 30px; }
-.timeline li:last-child { padding-bottom: 0; }
-.timeline li::before { content: ""; position: absolute; left: -32px; top: 7px; width: 14px; height: 14px; border-radius: 50%; background: var(--white); box-shadow: inset 0 0 0 3px var(--cobalt); }
-.timeline .when { font-size: .9rem; font-weight: 600; color: var(--cobalt); }
-.timeline h3 { margin-top: 2px; font-size: 1.25rem; font-weight: 700; letter-spacing: -0.015em; }
-.timeline h3 span { color: var(--soft); font-weight: 500; }
-.timeline p { margin-top: 6px; color: var(--soft); }
 
 /* ---------- projects ---------- */
 .projects { display: grid; gap: 22px; margin-top: clamp(40px, 5vw, 64px); }
@@ -269,13 +258,6 @@ footer a:hover { color: var(--ink); }
 .portrait::before { content: ""; position: absolute; inset: 22px -22px -22px 22px; border-radius: 28px; z-index: -1;
   background-image: linear-gradient(var(--grid-blue) 1px, transparent 1px), linear-gradient(90deg, var(--grid-blue) 1px, transparent 1px);
   background-size: 16px 16px; background-color: var(--cobalt-soft); transform: rotate(1.5deg); }
-.facts li { position: relative; overflow: hidden; }
-.facts li::after { content: ""; position: absolute; right: 0; top: 0; width: 62%; height: 62%; pointer-events: none;
-  background-image: linear-gradient(var(--grid-blue) 1px, transparent 1px), linear-gradient(90deg, var(--grid-blue) 1px, transparent 1px);
-  background-size: 14px 14px; background-position: right top;
-  -webkit-mask-image: radial-gradient(100% 100% at 100% 0%, #000, transparent 75%); mask-image: radial-gradient(100% 100% at 100% 0%, #000, transparent 75%); }
-.quote { position: relative; overflow: hidden;
-  background-image: linear-gradient(var(--grid-blue) 1px, transparent 1px), linear-gradient(90deg, var(--grid-blue) 1px, transparent 1px); background-size: 18px 18px; }
 .visual::before { content: ""; position: absolute; inset: 0; pointer-events: none;
   background-image: linear-gradient(var(--grid-light) 1px, transparent 1px), linear-gradient(90deg, var(--grid-light) 1px, transparent 1px);
   background-size: 28px 28px;
@@ -306,11 +288,12 @@ footer a:hover { color: var(--ink); }
   .hero .wrap { grid-template-columns: 1fr; }
   .portrait { max-width: 360px; margin: 10px auto 0; }
   .exp { grid-template-columns: 1fr; }
-  .facts ul { grid-template-columns: 1fr 1fr; }
+  .brands ul { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .progs { grid-template-columns: 1fr; }
 }
 @media (max-width: 560px) {
-  .chip.c1 { left: -8px; } .chip.c2 { right: -8px; }
+  .brands ul { grid-template-columns: 1fr 1fr; }
+  .brands li { height: 72px; }
   .skills { grid-template-columns: 1fr; }
   .skill.wide { grid-column: auto; }
   .hero .socials { margin-left: 0; width: 100%; }
@@ -319,7 +302,7 @@ footer a:hover { color: var(--ink); }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   .belt { animation: none; flex-wrap: wrap; width: auto; justify-content: center; }
-  .pill b::after { animation: none; }
+  .belt span[aria-hidden="true"] { display: none; }
 }
 </style>
 </head>
@@ -328,7 +311,7 @@ footer a:hover { color: var(--ink); }
 <header class="nav" id="nav">
   <div class="wrap">
     <a class="brand" href="#top"><i>JJS</i>Jithu Jobin Sam</a>
-    <nav aria-label="Sections"><a href="#experience">Experience</a><a href="#projects">Projects</a><a href="#programmes">Enterprise work</a><a href="#skills">Skills</a><a href="#contact">Contact</a></nav>
+    <nav aria-label="Sections"><a href="#experience">Experience</a><a href="#projects">Projects</a><a href="#programmes">Campaigns</a><a href="#skills">Skills</a><a href="#contact">Contact</a></nav>
     <a class="btn primary sm" href="Jithu-Jobin-Sam-CV.pdf" download>Download CV</a>
   </div>
 </header>
@@ -338,12 +321,11 @@ footer a:hover { color: var(--ink); }
     <div class="glow" aria-hidden="true"></div>
     <div class="wrap">
       <div>
-        <span class="pill" data-pop><b aria-hidden="true"></b>Open to full-time GTM engineer roles</span>
         <p class="who" data-pop><strong>Jithu Jobin Sam</strong> · GTM engineer, Delhi</p>
-        <h1 aria-label="I build systems for outbound GTM.">
-          <span class="word">I</span> <span class="word">build</span> <span class="word">systems</span> <span class="word">for</span> <span class="word accent">outbound</span> <span class="word accent">GTM.</span>
+        <h1 aria-label="Hi, I’m Jithu.">
+          <span class="word">Hi,</span> <span class="word">I’m</span> <span class="word accent">Jithu.</span>
         </h1>
-        <p class="lede" data-pop>I’ve spent four years running <strong>enterprise outbound at MapmyIndia</strong>. Along the way, I started building the automation, workflows and software to make that work more repeatable.</p>
+        <p class="lede" data-pop>I’m a GTM engineer in Delhi. At MapmyIndia I was the sole outbound pipeline source for a 10+ person enterprise sales team, sourcing <strong>90+ opportunities</strong> that contributed to <strong>₹18&nbsp;Cr+ in closed revenue</strong>. I build the systems behind outbound, from ICP scoring and buying signals to enrichment and sequences, and I can build the same engine for your team.</p>
         <div class="acts" data-pop>
           <a class="btn primary" href="mailto:jithujsam@gmail.com?subject=GTM%20engineer%20role">Email me <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></a>
           <a class="btn ghost" href="Jithu-Jobin-Sam-CV.pdf" download>Download CV</a>
@@ -352,21 +334,25 @@ footer a:hover { color: var(--ink); }
       </div>
       <figure class="portrait" data-pop>
         <div class="frame"><img id="portraitImg" src="assets/jithu.jpg" width="900" height="1200" alt="Jithu Jobin Sam, smiling, in glasses and a dark hoodie, at a café table at night"></div>
-        <div class="chip c1" data-float="0"><span class="dot">M</span><span><strong>MapmyIndia</strong><small>Enterprise outbound, 2022 to now</small></span></div>
-        <div class="chip c2" data-float="1"><span class="dot">C</span><span><strong>Clospect</strong><small>Founder, 2026</small></span></div>
-        <div class="chip c3" data-float="2"><span class="dot">n8n</span><span><strong>Builds in code</strong><small>n8n, Next.js, Supabase</small></span></div>
       </figure>
     </div>
   </section>
 
-  <div class="wrap facts">
+  <section class="wrap brands" aria-label="Enterprise accounts">
+    <p class="label">Enterprise accounts I generated SQLs and meetings with</p>
     <ul>
-      <li data-reveal><div class="n"><span data-count="4">4</span><sup>yrs</sup></div><p class="l">in GTM, all of it hands-on</p></li>
-      <li data-reveal><div class="n"><span data-count="3">3</span><sup>+ yrs</sup></div><p class="l">as the only person generating outbound leads for enterprise sales</p></li>
-      <li data-reveal><div class="n"><span data-count="9">9</span></div><p class="l">industries sold into, from banks to real estate</p></li>
-      <li data-reveal><div class="n"><span data-count="3">3</span></div><p class="l">systems built and published, from n8n to a product in beta</p></li>
+      <li data-reveal><img src="assets/logos/hdfc-bank.svg" alt="HDFC Bank" loading="lazy" decoding="async"></li>
+      <li data-reveal><img src="assets/logos/icici-bank.svg" alt="ICICI Bank" loading="lazy" decoding="async"></li>
+      <li data-reveal><img src="assets/logos/axis-bank.svg" alt="Axis Bank" loading="lazy" decoding="async"></li>
+      <li data-reveal><img class="light" src="assets/logos/tata-capital.png" alt="Tata Capital" loading="lazy" decoding="async"></li>
+      <li data-reveal><img src="assets/logos/lt-finance.svg" alt="L&amp;T Finance" loading="lazy" decoding="async"></li>
+      <li data-reveal><img src="assets/logos/tata-consumer-products.png" alt="Tata Consumer Products" loading="lazy" decoding="async"></li>
+      <li data-reveal><img class="small" src="assets/logos/paytm.svg" alt="Paytm" loading="lazy" decoding="async"></li>
+      <li data-reveal><img src="assets/logos/cars24.png" alt="Cars24" loading="lazy" decoding="async"></li>
+      <li data-reveal><img class="tall" src="assets/logos/dlf.svg" alt="DLF" loading="lazy" decoding="async"></li>
+      <li data-reveal><img class="tall light" src="assets/logos/apollo.svg" alt="Apollo" loading="lazy" decoding="async"></li>
     </ul>
-  </div>
+  </section>
 
   <div class="marquee" aria-label="Tools I use">
     <p class="label">Tools I work with</p>
@@ -382,18 +368,20 @@ footer a:hover { color: var(--ink); }
       <h2 data-reveal>From the inbound desk to owning enterprise outbound.</h2>
       <div class="exp">
         <div class="story" data-reveal>
-          <p>I joined MapmyIndia in July 2022 as an inside sales trainee, answering inbound leads for its location platform. About six months in I moved to outbound, and within the year I was working on enterprise accounts.</p>
-          <p>I worked with the Chief Business Officer on which industries and use cases to pursue, researched the accounts, wrote the positioning and the copy, ran the outreach by email, LinkedIn and phone, and tracked every opportunity in the CRM until it went to sales.</p>
-          <p>When the team grew, I interviewed and trained the new outbound hires, and they now run the playbook I built. In 2025 I started teaching myself n8n, Apify, Gemini and Claude Code by automating my own workflow, and that became the projects below.</p>
-          <p class="quote">For more than three years I was the only person generating outbound leads for enterprise sales.</p>
+          <p>I joined MapmyIndia in July 2022 as an inside sales trainee, answering inbound leads for its location platform. About six months in I moved to outbound, and within the year I owned enterprise outbound for the sales team.</p>
+          <p>I worked with senior leadership on which segments and use cases to pursue, researched the accounts, wrote the positioning and copy, and ran outreach by email, LinkedIn and phone. In 2025 I started automating my own workflow with n8n, Apify, Gemini and Claude Code, and that became the projects below.</p>
         </div>
-        <div class="timeline" id="timeline"><span class="rail" aria-hidden="true"><i id="rail"></i></span><ol>
-                    <li data-reveal><span class="when">Jul 2022</span><h3>Inside Sales Trainee <span>· MapmyIndia</span></h3><p>Inbound leads for the location platform: qualifying requests and learning the product, its use cases and its buyers.</p></li>
-          <li data-reveal><span class="when">2023</span><h3>Enterprise outbound <span>· MapmyIndia</span></h3><p>Moved to outbound, then took sole ownership: banks, NBFCs, fintech, retail, logistics, gaming, automotive, public sector and real estate.</p></li>
-          <li data-reveal><span class="when">2025</span><h3>Trainer and builder <span>· MapmyIndia</span></h3><p>Interviewed and trained new outbound hires, and rebuilt the workflow as automated systems.</p></li>
-          <li data-reveal><span class="when">Jan 2026</span><h3>Founder <span>· Clospect</span></h3><p>Outbound infrastructure, AI workflows and campaigns for B2B SaaS and recruitment companies. I ran outbound end to end for a recruitment client.</p></li>
-          <li data-reveal><span class="when">2026</span><h3>Lead Generation Executive <span>· MapmyIndia</span></h3><p>Now also own outbound for the new indoor navigation offering.</p></li>
-        </ol></div>
+        <div class="keys">
+          <h3 data-reveal>Key things I did</h3>
+          <ul>
+          <li data-reveal><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10.5l4 4 8-9"/></svg><span>Sole pipeline source for a 10+ person enterprise sales team: <strong>90+ opportunities</strong> behind <strong>₹18&nbsp;Cr+ in closed revenue</strong></span></li>
+          <li data-reveal><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10.5l4 4 8-9"/></svg><span><strong>10 to 15 SQLs a month</strong> from top accounts across BFSI, FMCG, fintech, automotive, real estate and healthcare</span></li>
+          <li data-reveal><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10.5l4 4 8-9"/></svg><span>Multi-threaded <strong>100+ target accounts a month</strong> across business, product and operations leaders</span></li>
+          <li data-reveal><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10.5l4 4 8-9"/></svg><span>Turned a one-person outbound function into a playbook, and <strong>trained 2 SDRs</strong> who run it today</span></li>
+          <li data-reveal><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10.5l4 4 8-9"/></svg><span>Automated research, enrichment, personalization and sending with n8n, Apify and LLMs</span></li>
+          <li data-reveal><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10.5l4 4 8-9"/></svg><span>Founded <strong>Clospect</strong>, a GTM engineering practice for B2B SaaS and recruitment companies</span></li>
+          </ul>
+        </div>
       </div>
     </div>
   </section>
@@ -441,7 +429,7 @@ footer a:hover { color: var(--ink); }
             <dl>
               <div><dt>The problem</dt><dd>Verifying every email in a raw lead list costs money, and long runs fail halfway through when a provider rate-limits or a request times out.</dd></div>
               <div><dt>What I built</dt><dd>A Next.js and Supabase app that imports a CSV, scores each lead against the ICP with structured AI output, and only then verifies emails through Clearout, on a PostgreSQL job queue with leases, retries, rate-limit handling and cost logging.</dd></div>
-              <div><dt>What works today</dt><dd>Import, scoring and verification are implemented. Test coverage is incomplete and type checking is off at build time; both are open work in the README.</dd></div>
+              <div><dt>What works today</dt><dd>Import, ICP scoring and email verification work end to end, and long jobs pause and resume safely.</dd></div>
             </dl>
             <div class="links"><a class="btn primary sm" href="https://github.com/jithujsam-cloud/gtm-outbound-infrastructure/tree/main/gtm-validation-tool" target="_blank" rel="noopener">Code and README <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></a></div>
           </div>
@@ -492,16 +480,16 @@ footer a:hover { color: var(--ink); }
 
   <section class="block" id="programmes" style="padding-top: 0">
     <div class="wrap">
-      <span class="kicker" data-reveal>Enterprise work</span>
-      <h2 data-reveal>Programmes I ran at MapmyIndia.</h2>
-      <p class="sub" data-reveal>Each paired one buyer group with one problem and a reason to act. The stage each one reached is stated as it happened.</p>
+      <span class="kicker" data-reveal>Campaigns</span>
+      <h2 data-reveal>High-performance campaigns I ran.</h2>
+      <p class="sub" data-reveal>Each paired one buyer group with one problem and a reason to act.</p>
       <div class="progs">
-        <article class="prog" data-reveal><span class="when">Early 2023</span><h3>Online gaming</h3><p>Location accuracy and compliance for fantasy and real-money gaming operators in states that restrict play, positioned against Google Maps and timed before the IPL traffic peak.</p><p class="stage"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10.5l4 4 8-9"/></svg>API tests, proofs of concept and proposals; some operators became paying customers.</p></article>
-        <article class="prog" data-reveal><span class="when">Late 2023</span><h3>POS-device compliance</h3><p>A regulation-led programme for banks and payment companies on capturing the location of every POS-device transaction.</p><p class="stage"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10.5l4 4 8-9"/></svg>Conversations with large private banks.</p></article>
-        <article class="prog" data-reveal><span class="when">2024 to 2025</span><h3>Collections and loan recovery</h3><p>Location intelligence for collection teams at banks, NBFCs and fintechs, and faster asset recovery for lenders and car platforms.</p><p class="stage"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10.5l4 4 8-9"/></svg>Meetings with collections heads at large lenders.</p></article>
-        <article class="prog" data-reveal><span class="when">2026</span><h3>Indoor navigation</h3><p>Wayfinding for large buildings. I built the account database, defined the ICP and buyer roles, and wrote account-specific decks for hospitals, airports and real estate.</p><p class="stage"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10.5l4 4 8-9"/></svg>Conversations under way.</p></article>
+        <article class="prog" data-reveal><h3>Online gaming compliance</h3><p><strong>Strategy:</strong> Location accuracy and compliance for real-money gaming operators, positioned against Google Maps and timed before the IPL traffic peak.</p><p class="stage"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10.5l4 4 8-9"/></svg>Operators moved through API tests and proofs of concept to paying customers.</p></article>
+        <article class="prog" data-reveal><h3>Lender campaigns</h3><p><strong>Strategy:</strong> Location intelligence for collections and loan recovery, multi-threaded across collections, product and debt-management leaders.</p><p class="stage"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10.5l4 4 8-9"/></svg>About 800 contacts at 85 companies, and meetings with HDFC Bank, ICICI Bank, Axis Bank, Tata Capital and L&amp;T Finance.</p></article>
+        <article class="prog" data-reveal><h3>POS-device compliance</h3><p><strong>Strategy:</strong> Regulation-led: a new rule on capturing location for every POS transaction gave banks a reason to act now.</p><p class="stage"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10.5l4 4 8-9"/></svg>Conversations with large private banks.</p></article>
+        <article class="prog" data-reveal><h3>Signal-based outbound for Clospect</h3><p><strong>Strategy:</strong> Hiring signals, then ICP scoring, then verified contacts, then sequences, for a recruitment client.</p><p class="stage"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10.5l4 4 8-9"/></svg>10 qualified leads and 5 closed deals in month one, repeated in month two.</p></article>
       </div>
-      <p class="note" data-reveal>No customer data or confidential details are shared here.</p>
+      <p class="note" data-reveal>Company names are shown with no confidential deal details.</p>
     </div>
   </section>
 
@@ -598,14 +586,9 @@ footer a:hover { color: var(--ink); }
   animate($$(".hero .word"), { opacity: [0, 1], y: [36, 0], filter: ["blur(10px)", "blur(0px)"] }, { delay: stagger(0.07, { start: 0.15 }), duration: 0.9, ease: ease });
   animate($$(".hero [data-pop]"), { opacity: [0, 1], y: [18, 0] }, { delay: stagger(0.1, { start: 0.05 }), duration: 0.8, ease: ease });
   animate(".portrait .frame", { scale: [0.94, 1], rotate: [4, 1.5] }, { duration: 1.1, ease: ease, delay: 0.2 });
-  $$(".chip").forEach(function (c, k) {
-    animate(c, { opacity: [0, 1], y: [16, 0], scale: [0.92, 1] }, { delay: 0.6 + k * 0.12, type: "spring", stiffness: 220, damping: 18 });
-    animate(c, { y: [0, -8, 0] }, { duration: 4 + k, repeat: Infinity, ease: "easeInOut", delay: 1.4 + k * 0.3 });
-  });
 
-  /* portrait parallax and timeline rail, tied to scroll */
+  /* portrait parallax, tied to scroll */
   scroll(animate("#portraitImg", { y: [0, -50] }), { target: $(".hero"), offset: ["start start", "end start"] });
-  scroll(animate("#rail", { scaleY: [0, 1] }), { target: $("#timeline"), offset: ["start 75%", "end 55%"] });
 
   /* reveals as sections enter, with siblings staggered */
   inView("[data-reveal]", function (info) {
@@ -613,14 +596,6 @@ footer a:hover { color: var(--ink); }
     var idx = Math.max(0, sibs.indexOf(el));
     animate(el, { opacity: [0, 1], y: [28, 0] }, { duration: 0.8, delay: Math.min(idx, 6) * 0.07, ease: ease });
   }, { margin: "0px 0px -10% 0px" });
-
-  /* count-up facts */
-  inView(".facts", function () {
-    $$("[data-count]").forEach(function (n) {
-      var to = parseInt(n.getAttribute("data-count"), 10);
-      animate(0, to, { duration: 1.2, ease: ease, onUpdate: function (v) { n.textContent = Math.round(v); } });
-    });
-  });
 
   /* Klaroh bars grow when seen; loops start when seen */
   inView("#report", function () { animate($$("#report .bars i"), { scaleY: [0, 1] }, { delay: stagger(0.06, { start: 0.2 }), duration: 0.7, ease: ease }); });

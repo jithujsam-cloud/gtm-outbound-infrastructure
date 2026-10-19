@@ -10,6 +10,7 @@ Jithu Jobin Sam's personal website: an introduction, his experience, three proje
 | `404.html` | Not-found page, served automatically by Vercel |
 | `favicon.svg`, `og.png` | Tab icon and link-preview image |
 | `assets/jithu.jpg` | Portrait |
+| `assets/logos/` | Company logos for the brand strip, taken from each company's website or Simple Icons |
 | `vercel.json` | Clean URLs, security headers, caching |
 
 ## Deploy on Vercel

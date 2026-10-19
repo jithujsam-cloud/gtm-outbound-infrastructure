@@ -12,6 +12,10 @@ Jithu Jobin Sam's personal website: an introduction, his experience, three proje
 | `assets/jithu.jpg` | Portrait |
 | `vercel.json` | Clean URLs, security headers, caching |
 
+## Hidden slots
+
+`index.html` has two slots that stay hidden until filled: a 2-minute demo video (`#demo`, in Projects) and a testimonial (`#testimonial`, under Enterprise work). Fill in the content, then delete the `hidden` attribute.
+
 ## Deploy on Vercel
 
 1. **Add New → Project**, import `jithujsam-cloud/gtm-outbound-infrastructure`.

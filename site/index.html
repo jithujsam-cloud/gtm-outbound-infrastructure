@@ -114,11 +114,17 @@ h1, h2, h3 { text-wrap: balance; }
 .brands li:hover img { filter: none; opacity: 1; }
 
 /* ---------- key things ---------- */
-.keys h3 { font-size: 1.25rem; font-weight: 700; letter-spacing: -0.015em; }
-.keys ul { margin-top: 16px; display: grid; gap: 12px; }
-.keys li { display: grid; grid-template-columns: 22px 1fr; gap: 12px; align-items: start; padding: 16px 18px; border-radius: var(--r); background: var(--white); box-shadow: inset 0 0 0 1px var(--line); color: var(--soft); }
+.keys { display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); gap: clamp(36px, 6vw, 88px); margin-top: clamp(40px, 5vw, 64px); align-items: start; }
+.keys-head { position: sticky; top: 112px; }
+.keys-head h3 { font-size: clamp(1.6rem, 1.2rem + 1.4vw, 2.4rem); font-weight: 800; letter-spacing: -0.035em; line-height: 1.05; }
+.keys-count { margin-top: 14px; font-size: 1rem; font-weight: 600; color: var(--faint); font-variant-numeric: tabular-nums; }
+.keys-count b { color: var(--cobalt); font-size: 1.6rem; font-weight: 800; }
+.keys ol { display: grid; gap: 20px; }
+.keys li { display: grid; grid-template-columns: 52px 1fr; gap: 16px; align-content: center; align-items: center; min-height: clamp(150px, 26vh, 230px); padding: 30px 30px 30px 26px; border-radius: var(--r); background: var(--white); box-shadow: inset 0 0 0 1px var(--line); transition: box-shadow .3s, transform .3s; }
+.keys li.on { box-shadow: inset 0 0 0 1.5px var(--cobalt), 0 24px 50px -32px rgba(39, 71, 224, .45); }
+.keys li .num { font-size: 1.05rem; font-weight: 800; color: var(--cobalt); font-variant-numeric: tabular-nums; padding-top: 3px; }
+.keys li p { font-size: clamp(1.15rem, 1rem + .5vw, 1.4rem); line-height: 1.45; letter-spacing: -0.01em; color: var(--soft); }
 .keys li strong { color: var(--ink); font-weight: 700; }
-.keys li svg { width: 20px; height: 20px; margin-top: 3px; color: var(--green); }
 
 /* ---------- marquee ---------- */
 .marquee { padding: 14px 0 clamp(8px, 2vw, 24px); }
@@ -137,7 +143,7 @@ h2 { margin-top: 14px; font-size: clamp(2rem, 1.4rem + 2.6vw, 3.6rem); font-weig
 .sub { margin-top: 18px; max-width: 54ch; color: var(--soft); font-size: 1.125rem; }
 
 /* ---------- experience ---------- */
-.exp { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: clamp(36px, 6vw, 88px); margin-top: clamp(40px, 5vw, 64px); align-items: start; }
+.story { margin-top: clamp(48px, 6vw, 80px); max-width: 68ch; }
 .story p { font-size: 1.125rem; }
 .story p + p { margin-top: 18px; }
 .story strong { font-weight: 700; }
@@ -287,7 +293,9 @@ footer a:hover { color: var(--ink); }
   .nav nav { display: none; }
   .hero .wrap { grid-template-columns: 1fr; }
   .portrait { max-width: 360px; margin: 10px auto 0; }
-  .exp { grid-template-columns: 1fr; }
+  .keys { grid-template-columns: 1fr; gap: 20px; }
+  .keys-head { position: static; }
+  .keys li { min-height: 0; padding: 22px 20px 22px 18px; grid-template-columns: 40px 1fr; }
   .brands ul { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .progs { grid-template-columns: 1fr; }
 }
@@ -366,23 +374,24 @@ footer a:hover { color: var(--ink); }
     <div class="wrap">
       <span class="kicker" data-reveal>Experience</span>
       <h2 data-reveal>From the inbound desk to owning enterprise outbound.</h2>
-      <div class="exp">
+      <div class="keys">
+        <div class="keys-head">
+          <h3>Key things I did</h3>
+          <p class="keys-count" aria-hidden="true"><b id="keyNow">01</b> / 06</p>
+        </div>
+        <ol>
+            <li data-key><span class="num">01</span><p>Sole pipeline source for a 10+ person enterprise sales team: <strong>90+ opportunities</strong> behind <strong>₹18&nbsp;Cr+ in closed revenue</strong></p></li>
+            <li data-key><span class="num">02</span><p><strong>10 to 15 SQLs a month</strong> from top accounts across BFSI, FMCG, fintech, automotive, real estate and healthcare</p></li>
+            <li data-key><span class="num">03</span><p>Multi-threaded <strong>100+ target accounts a month</strong> across business, product and operations leaders</p></li>
+            <li data-key><span class="num">04</span><p>Turned a one-person outbound function into a playbook, and <strong>trained 2 SDRs</strong> who run it today</p></li>
+            <li data-key><span class="num">05</span><p>Automated research, enrichment, personalization and sending with n8n, Apify and LLMs</p></li>
+            <li data-key><span class="num">06</span><p>Founded <strong>Clospect</strong>, a GTM engineering practice for B2B SaaS and recruitment companies</p></li>
+        </ol>
+      </div>
         <div class="story" data-reveal>
           <p>I joined MapmyIndia in July 2022 as an inside sales trainee, answering inbound leads for its location platform. About six months in I moved to outbound, and within the year I owned enterprise outbound for the sales team.</p>
           <p>I worked with senior leadership on which segments and use cases to pursue, researched the accounts, wrote the positioning and copy, and ran outreach by email, LinkedIn and phone. In 2025 I started automating my own workflow with n8n, Apify, Gemini and Claude Code, and that became the projects below.</p>
         </div>
-        <div class="keys">
-          <h3 data-reveal>Key things I did</h3>
-          <ul>
-          <li data-reveal><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10.5l4 4 8-9"/></svg><span>Sole pipeline source for a 10+ person enterprise sales team: <strong>90+ opportunities</strong> behind <strong>₹18&nbsp;Cr+ in closed revenue</strong></span></li>
-          <li data-reveal><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10.5l4 4 8-9"/></svg><span><strong>10 to 15 SQLs a month</strong> from top accounts across BFSI, FMCG, fintech, automotive, real estate and healthcare</span></li>
-          <li data-reveal><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10.5l4 4 8-9"/></svg><span>Multi-threaded <strong>100+ target accounts a month</strong> across business, product and operations leaders</span></li>
-          <li data-reveal><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10.5l4 4 8-9"/></svg><span>Turned a one-person outbound function into a playbook, and <strong>trained 2 SDRs</strong> who run it today</span></li>
-          <li data-reveal><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10.5l4 4 8-9"/></svg><span>Automated research, enrichment, personalization and sending with n8n, Apify and LLMs</span></li>
-          <li data-reveal><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10.5l4 4 8-9"/></svg><span>Founded <strong>Clospect</strong>, a GTM engineering practice for B2B SaaS and recruitment companies</span></li>
-          </ul>
-        </div>
-      </div>
     </div>
   </section>
 
@@ -550,6 +559,19 @@ footer a:hover { color: var(--ink); }
     try { navigator.clipboard.writeText("jithujsam@gmail.com").then(done, function () { copy.textContent = "Select the address to copy"; }); }
     catch (e) { copy.textContent = "Select the address to copy"; }
   });
+
+  /* key things: highlight the point in view and advance the counter */
+  var keyNow = $("#keyNow"), keyItems = $$("[data-key]");
+  if ("IntersectionObserver" in window && keyNow) {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (!e.isIntersecting) return;
+        keyItems.forEach(function (k) { k.classList.toggle("on", k === e.target); });
+        keyNow.textContent = ("0" + (keyItems.indexOf(e.target) + 1)).slice(-2);
+      });
+    }, { rootMargin: "-45% 0px -45% 0px" });
+    keyItems.forEach(function (k) { io.observe(k); });
+  }
 
   /* the project visuals loop through real states, with or without the library */
   function queueLoop() {

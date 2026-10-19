@@ -5,12 +5,16 @@ Jithu Jobin Sam's personal website: an introduction, his experience, three proje
 | File | Purpose |
 |---|---|
 | `index.html` | The whole page. Font: Schibsted Grotesk from Google Fonts. Animation: Motion 11 (motion.dev, the Framer Motion engine) from jsDelivr; the page stays fully readable if it fails to load or the visitor prefers reduced motion. |
-| `Jithu-Jobin-Sam-CV.pdf` | One-page CV, linked from the page |
-| `cv-source.html` | Source for the CV. Edit it, then re-export to PDF (print to A4, background graphics on). Not deployed. |
+| `Jithu-Jobin-Sam-CV.pdf` | Two-page resume, linked from the page. Exported from a Word file kept outside this repo. |
+| `cv-source.html` | Source of the earlier one-page CV, kept for reference. The current PDF does not come from it. Not deployed. |
 | `404.html` | Not-found page, served automatically by Vercel |
 | `favicon.svg`, `og.png` | Tab icon and link-preview image |
 | `assets/jithu.jpg` | Portrait |
 | `vercel.json` | Clean URLs, security headers, caching |
+
+## Hidden slots
+
+`index.html` has two slots that stay hidden until filled: a 2-minute demo video (`#demo`, in Projects) and a testimonial (`#testimonial`, under Enterprise work). Fill in the content, then delete the `hidden` attribute.
 
 ## Deploy on Vercel
 
